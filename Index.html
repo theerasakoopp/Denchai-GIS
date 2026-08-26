@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบสารสนเทศภูมิศาสตร์ | เทศบาลตำบลเด่นชัย</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- ฟอนต์ไทย -->
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Sarabun',sans-serif; }
+    #map { width:100%; height:calc(100vh - 56px); }
+    .navbar {
+      height:56px; background:#2c5f2d; color:#fff;
+      display:flex; align-items:center; padding:0 20px; gap:12px;
+    }
+    .navbar h1 { font-size:18px; font-weight:600; }
+    .search-box {
+      position:absolute; top:70px; left:60px; z-index:1000;
+      background:#fff; padding:8px; border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,.25);
+      display:flex; gap:6px;
+    }
+    .search-box input {
+      width:240px; padding:6px 10px; border:1px solid #ccc; border-radius:5px;
+    }
+    .search-box button {
+      padding:6px 14px; background:#2c5f2d; color:#fff;
+      border:none; border-radius:5px; cursor:pointer;
+    }
+    /* Popup ภาษาไทย */
+    .leaflet-popup-content { font-family:'Sarabun',sans-serif; }
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+  <h1>📍 GIS เทศบาลตำบลเด่นชัย จังหวัดแพร่</h1>
+</div>
+
+<div class="search-box">
+  <input type="text" id="searchInput" placeholder="ค้นหา... เช่น ชื่อพื้นที่">
+  <button onclick="searchLayer()">ค้นหา</button>
+</div>
+
+<div id="map"></div>
+
+<script>
+// ===== 1. สร้างแผนที่ center ที่ ต.เด่นชัย อ.เด่นชัย จ.แพร่ =====
+const map = L.map('map').setView([17.983, 99.861], 13);
+
+// ===== 2. Basemap =====
+const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© OpenStreetMap'
+}).addTo(map);
+
+const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: '© Esri'
+});
+
+L.control.layers({
+  'แผนที่ปกติ': osm,
+  'ภาพถ่ายดาวเทียม': satellite
+}).addTo(map);
+
+// ===== 3. Layer ตัวอย่าง: เขตเทศบาล (placeholder) =====
+// 👉 เปลี่ยน coordinates เป็น polygon เขตเทศบาลจริงของคุณภายหลัง
+const municipalityArea = {
+  "type": "Feature",
+  "properties": { "name": "เขตเทศบาลตำบลเด่นชัย", "area": "..." },
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[
+      [99.84, 17.97], [99.88, 17.97], [99.88, 18.00], [99.84, 18.00], [99.84, 17.97]
+    ]]
+  }
+};
+
+const municipalityLayer = L.geoJSON(municipalityArea, {
+  style: { color:'#e63946', weight:2, fillOpacity:0.15 },
+  onEachFeature: (feature, layer) => {
+    layer.bindPopup(`
+      <b>${feature.properties.name}</b><br>
+      พื้นที่: ${feature.properties.area}
+    `);
+  }
+}).addTo(map);
+
+// ===== 4. ฟังก์ชันค้นหา =====
+function searchLayer() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) return;
+  let found = false;
+  municipalityLayer.eachLayer(l => {
+    if (l.feature.properties.name.includes(q)) {
+      l.setStyle({ fillOpacity:0.45 });
+      map.fitBounds(l.getBounds      l.openPopup();
+      found = true;
+      setTimeout(() => l.setStyle({ fillOpacity:0.15 }), 4000);
+    }
+  });
+  if (!found) alert('ไม่พบข้อมูล: ' + q);
+}
+
+document.getElementById('searchInput')
+  .addEventListener('keyup', e => e.key === 'Enter' && searchLayer());
+
+// ===== 5. โหลด GeoJSON จากไฟล์ภายนอก (เมื่อมีข้อมูลจริง) =====
+// fetch('data/municipality_boundary.geojson').then=>r.json()).then(d => {...});
+
+</script</body>
+</html>
