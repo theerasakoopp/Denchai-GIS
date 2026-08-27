@@ -5,17 +5,10 @@ import * as turf from '@turf/turf';
 import { ROOF_CLASSES } from '../App';
 import { translations } from '../translations';
 import { Layers, Globe, Compass, SunMedium, Focus, Plane } from 'lucide-react';
+import MUNICIPAL_BOUNDARY from '../data/boundary.json';
 
 const BASE = import.meta.env.BASE_URL || '/';
 const cleanBase = BASE.endsWith('/') ? BASE : BASE + '/';
-
-function getAbsoluteUrl(filename) {
-  try {
-    return new URL(`${cleanBase}${filename}`, window.location.href).href;
-  } catch (_) {
-    return `${cleanBase}${filename}`;
-  }
-}
 
 const ENERGY_LEGEND = [
   { color: '#22c55e', label: '< 7,500 kWh/y' },
@@ -48,11 +41,15 @@ export default function MapViewer({
   const tariffRef = useRef(tariff);
   const viewModeRef = useRef(viewMode);
   const colorModeRef = useRef(colorMode);
+  const facetsDataRef = useRef(facetsData);
+  const buildingsDataRef = useRef(buildingsData);
 
   useEffect(() => { langRef.current = lang; }, [lang]);
   useEffect(() => { tariffRef.current = tariff; }, [tariff]);
   useEffect(() => { viewModeRef.current = viewMode; }, [viewMode]);
   useEffect(() => { colorModeRef.current = colorMode; }, [colorMode]);
+  useEffect(() => { facetsDataRef.current = facetsData; }, [facetsData]);
+  useEffect(() => { buildingsDataRef.current = buildingsData; }, [buildingsData]);
 
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -67,47 +64,6 @@ export default function MapViewer({
       ? ['coalesce', ['get', 'energy_color'], '#22c55e']
       : ['coalesce', ['get', 'color'], '#ef4444'];
   };
-
-  // ── Pre-filter Facets in JavaScript ──────────────────────────
-  const filteredFacets = useMemo(() => {
-    if (!facetsData || !facetsData.features) return null;
-
-    const minArea = Number(filters?.minArea) || 0;
-    const minEnergy = Number(filters?.minEnergy) || 0;
-
-    const filtered = facetsData.features.filter(f => {
-      const p = f.properties;
-      if (!p) return false;
-      if (visibleLayers && visibleLayers[p.class_id] === false) return false;
-      const area = p.area_3d || p.area_2d || 0;
-      const eng = p.energy_corrected_kwh || p.energy_kwh || 0;
-      if (minArea > 0 && area < minArea) return false;
-      if (minEnergy > 0 && eng < minEnergy) return false;
-      return true;
-    });
-
-    return { type: 'FeatureCollection', features: filtered };
-  }, [facetsData, filters, visibleLayers]);
-
-  // ── Pre-filter Buildings in JavaScript ────────────────────────
-  const filteredBuildings = useMemo(() => {
-    if (!buildingsData || !buildingsData.features) return null;
-
-    const minArea = Number(filters?.minArea) || 0;
-    const minEnergy = Number(filters?.minEnergy) || 0;
-
-    const filtered = buildingsData.features.filter(f => {
-      const p = f.properties;
-      if (!p) return false;
-      const area = p.area_2d || p.area_3d || 0;
-      const eng = p.energy_corrected_kwh || p.energy_kwh || 0;
-      if (minArea > 0 && area < minArea) return false;
-      if (minEnergy > 0 && eng < minEnergy) return false;
-      return true;
-    });
-
-    return { type: 'FeatureCollection', features: filtered };
-  }, [buildingsData, filters]);
 
   // ── Zoom to bounding box ─────────────────────────────────────
   const zoomTo = (mapInstance, geoJSON) => {
@@ -126,28 +82,27 @@ export default function MapViewer({
     if (uploadedBoundary?.features?.length) { zoomTo(mapRef.current, uploadedBoundary); return; }
     if (facetsData?.features?.length) { zoomTo(mapRef.current, facetsData); return; }
     if (buildingsData?.features?.length) { zoomTo(mapRef.current, buildingsData); return; }
-    if (municipalBoundary?.features?.length) { zoomTo(mapRef.current, municipalBoundary); return; }
-    mapRef.current.fitBounds([[100.028, 17.965], [100.084, 18.006]], { padding: 40, duration: 800 });
+    zoomTo(mapRef.current, MUNICIPAL_BOUNDARY);
   };
 
-  // ── Switch Basemap by Toggling Layer Visibility ──────────────
+  // ── Switch Basemap (Instant visibility toggle) ───────────────
   const changeBasemap = (key) => {
     setCurrentBasemap(key);
     const map = mapRef.current;
     if (!map) return;
 
-    const layers = [
-      { id: 'uav-bg-osm', visible: key === 'uav' },
-      { id: 'uav-layer', visible: key === 'uav' },
-      { id: 'dark-layer', visible: key === 'dark' },
-      { id: 'satellite-layer', visible: key === 'satellite' },
-      { id: 'osm-layer', visible: key === 'osm' },
-      { id: 'light-layer', visible: key === 'light' },
-    ];
+    const layerConfig = {
+      uav:       { 'uav-bg-osm': 'visible', 'uav-layer': 'visible', 'dark-layer': 'none', 'satellite-layer': 'none', 'osm-layer': 'none', 'light-layer': 'none' },
+      dark:      { 'uav-bg-osm': 'none', 'uav-layer': 'none', 'dark-layer': 'visible', 'satellite-layer': 'none', 'osm-layer': 'none', 'light-layer': 'none' },
+      satellite: { 'uav-bg-osm': 'none', 'uav-layer': 'none', 'dark-layer': 'none', 'satellite-layer': 'visible', 'osm-layer': 'none', 'light-layer': 'none' },
+      osm:       { 'uav-bg-osm': 'none', 'uav-layer': 'none', 'dark-layer': 'none', 'satellite-layer': 'none', 'osm-layer': 'visible', 'light-layer': 'none' },
+      light:     { 'uav-bg-osm': 'none', 'uav-layer': 'none', 'dark-layer': 'none', 'satellite-layer': 'none', 'osm-layer': 'none', 'light-layer': 'visible' },
+    };
 
-    layers.forEach(({ id, visible }) => {
-      if (map.getLayer(id)) {
-        map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
+    const target = layerConfig[key] || layerConfig.uav;
+    Object.entries(target).forEach(([layerId, vis]) => {
+      if (map.getLayer(layerId)) {
+        map.setLayoutProperty(layerId, 'visibility', vis);
       }
     });
     map.triggerRepaint();
@@ -213,7 +168,7 @@ export default function MapViewer({
       const visible = [];
       if (mapInstance.getLayer('facets-fill') && mapInstance.getLayoutProperty('facets-fill', 'visibility') !== 'none') visible.push('facets-fill');
       if (mapInstance.getLayer('buildings-fill') && mapInstance.getLayoutProperty('buildings-fill', 'visibility') !== 'none') visible.push('buildings-fill');
-      const feats = mapInstance.queryRenderedFeatures(e.point, { layers: visible });
+      const feats = visible.length ? mapInstance.queryRenderedFeatures(e.point, { layers: visible }) : [];
       mapInstance.getCanvas().style.cursor = feats.length ? 'pointer' : '';
     });
   };
@@ -221,10 +176,6 @@ export default function MapViewer({
   // ── Initialize Map with Comprehensive Style Object ──────────
   useEffect(() => {
     if (mapRef.current) return;
-
-    const fullFacetsUrl = getAbsoluteUrl('rooftop_facets.geojson');
-    const fullBuildingsUrl = getAbsoluteUrl('buildings.geojson');
-    const fullBoundaryUrl = getAbsoluteUrl('boundary.geojson');
 
     const initialStyle = {
       version: 8,
@@ -272,30 +223,30 @@ export default function MapViewer({
           tileSize: 256,
           attribution: '© CARTO, © OpenStreetMap'
         },
-        // ── Vector GeoJSON Sources (With Absolute HTTP Fallbacks) ─
+        // ── Vector GeoJSON Sources (Embedded Boundary + Dynamic Facets) ──
+        'municipal-src': {
+          type: 'geojson',
+          data: MUNICIPAL_BOUNDARY
+        },
+        'uploaded-src': {
+          type: 'geojson',
+          data: uploadedBoundary || { type: 'FeatureCollection', features: [] }
+        },
         'facets-src': {
           type: 'geojson',
-          data: filteredFacets || fullFacetsUrl,
+          data: facetsData || { type: 'FeatureCollection', features: [] },
           buffer: 64,
           tolerance: 0.5
         },
         'buildings-src': {
           type: 'geojson',
-          data: filteredBuildings || fullBuildingsUrl,
+          data: buildingsData || { type: 'FeatureCollection', features: [] },
           buffer: 64,
           tolerance: 0.5
-        },
-        'municipal-src': {
-          type: 'geojson',
-          data: municipalBoundary || fullBoundaryUrl
-        },
-        'uploaded-src': {
-          type: 'geojson',
-          data: uploadedBoundary || { type: 'FeatureCollection', features: [] }
         }
       },
       layers: [
-        // ── 1. Basemap Raster Layers ─────────────────────────
+        // ── 1. Basemap Raster Layers (UAV Default Active) ────
         { id: 'uav-bg-osm', type: 'raster', source: 'osm-src', layout: { visibility: 'visible' } },
         { id: 'uav-layer', type: 'raster', source: 'uav-ortho-src', layout: { visibility: 'visible' } },
         { id: 'dark-layer', type: 'raster', source: 'carto-dark-src', layout: { visibility: 'none' } },
@@ -303,15 +254,15 @@ export default function MapViewer({
         { id: 'osm-layer', type: 'raster', source: 'osm-src', layout: { visibility: 'none' } },
         { id: 'light-layer', type: 'raster', source: 'carto-light-src', layout: { visibility: 'none' } },
 
-        // ── 2. Municipal Boundary (Prominent High-Contrast) ───
+        // ── 2. Municipal Boundary (Permanent High-Contrast) ───
         {
           id: 'municipal-glow',
           type: 'line',
           source: 'municipal-src',
           paint: {
             'line-color': '#000000',
-            'line-width': 5.5,
-            'line-opacity': 0.85
+            'line-width': 6.0,
+            'line-opacity': 0.9
           }
         },
         {
@@ -320,7 +271,7 @@ export default function MapViewer({
           source: 'municipal-src',
           paint: {
             'line-color': '#00f0ff',
-            'line-width': 3.0,
+            'line-width': 3.5,
             'line-dasharray': [4, 2]
           }
         },
@@ -330,7 +281,7 @@ export default function MapViewer({
           source: 'municipal-src',
           paint: {
             'fill-color': '#00f0ff',
-            'fill-opacity': 0.04
+            'fill-opacity': 0.05
           }
         },
 
@@ -390,7 +341,7 @@ export default function MapViewer({
           paint: {
             'line-color': '#ffffff',
             'line-width': 1.0,
-            'line-opacity': 0.65
+            'line-opacity': 0.7
           }
         }
       ]
@@ -421,10 +372,10 @@ export default function MapViewer({
       setupPopups(map);
       setMapLoaded(true);
 
-      // Push initial data if already available in React
-      if (filteredFacets) map.getSource('facets-src')?.setData(filteredFacets);
-      if (filteredBuildings) map.getSource('buildings-src')?.setData(filteredBuildings);
-      if (municipalBoundary) map.getSource('municipal-src')?.setData(municipalBoundary);
+      // Force push data if available
+      if (facetsDataRef.current?.features) map.getSource('facets-src')?.setData(facetsDataRef.current);
+      if (buildingsDataRef.current?.features) map.getSource('buildings-src')?.setData(buildingsDataRef.current);
+      map.getSource('municipal-src')?.setData(MUNICIPAL_BOUNDARY);
 
       // Fit view to Denchai
       map.fitBounds([[100.028, 17.965], [100.084, 18.006]], { padding: 40, duration: 800 });
@@ -439,27 +390,27 @@ export default function MapViewer({
     };
   }, []);
 
-  // ── Sync Facets Data into MapLibre Source on React Filter ────
+  // ── Sync Facets Data into MapLibre Source ────────────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
     const src = map.getSource('facets-src');
-    if (src && filteredFacets) {
-      src.setData(filteredFacets);
+    if (src && facetsData?.features) {
+      src.setData(facetsData);
       map.triggerRepaint();
     }
-  }, [filteredFacets, mapLoaded]);
+  }, [facetsData, mapLoaded]);
 
   // ── Sync Buildings Data into MapLibre Source ──────────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
     const src = map.getSource('buildings-src');
-    if (src && filteredBuildings) {
-      src.setData(filteredBuildings);
+    if (src && buildingsData?.features) {
+      src.setData(buildingsData);
       map.triggerRepaint();
     }
-  }, [filteredBuildings, mapLoaded]);
+  }, [buildingsData, mapLoaded]);
 
   // ── Sync viewMode visibility ─────────────────────────────────
   useEffect(() => {
@@ -484,13 +435,6 @@ export default function MapViewer({
   }, [colorMode, viewMode, mapLoaded]);
 
   // ── Sync boundary sources ────────────────────────────────────
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-    const mSrc = map.getSource('municipal-src');
-    if (mSrc && municipalBoundary) mSrc.setData(municipalBoundary);
-  }, [municipalBoundary, mapLoaded]);
-
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
@@ -520,35 +464,45 @@ export default function MapViewer({
       {/* Basemap Switcher & Controls */}
       <div className="map-floating-panel basemap-control">
         {[
-          { key: 'uav',       icon: <Plane size={13} />,     label: lang === 'th' ? 'โดรน UAV (30cm)' : 'UAV Ortho' },
-          { key: 'dark',      icon: <Layers size={13} />,    label: lang === 'th' ? 'มืด (GIS)' : 'Dark' },
-          { key: 'satellite', icon: <Globe size={13} />,     label: lang === 'th' ? 'ดาวเทียม' : 'Satellite' },
-          { key: 'osm',       icon: <Compass size={13} />,   label: 'OSM' },
-          { key: 'light',     icon: <SunMedium size={13} />, label: lang === 'th' ? 'สว่าง' : 'Light' },
+          { key: 'uav',       icon: <Plane size={14} />,     label: lang === 'th' ? 'โดรน UAV (30cm)' : 'UAV Ortho' },
+          { key: 'dark',      icon: <Layers size={14} />,    label: lang === 'th' ? 'มืด (GIS)' : 'Dark' },
+          { key: 'satellite', icon: <Globe size={14} />,     label: lang === 'th' ? 'ดาวเทียม' : 'Satellite' },
+          { key: 'osm',       icon: <Compass size={14} />,   label: 'OSM' },
+          { key: 'light',     icon: <SunMedium size={14} />, label: lang === 'th' ? 'สว่าง' : 'Light' },
         ].map(({ key, icon, label }) => (
           <button
             key={key}
+            type="button"
             className={`basemap-btn ${currentBasemap === key ? 'active' : ''}`}
-            onClick={() => changeBasemap(key)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              changeBasemap(key);
+            }}
           >
             {icon} {label}
           </button>
         ))}
         <button
+          type="button"
           className="basemap-btn"
-          onClick={zoomToRooftops}
-          style={{ borderLeft: '1px solid rgba(255,255,255,0.12)', marginLeft: 4, paddingLeft: 8 }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            zoomToRooftops();
+          }}
+          style={{ borderLeft: '1px solid rgba(255,255,255,0.18)', marginLeft: 4, paddingLeft: 8 }}
           title={lang === 'th' ? 'ซูมขอบเขตแปลงหลังคาเด่นชัย' : 'Fit to Denchai Rooftops'}
         >
-          <Focus size={13} color="#38bdf8" /> {lang === 'th' ? 'ซูมขอบเขต' : 'Fit View'}
+          <Focus size={14} color="#38bdf8" /> {lang === 'th' ? 'ซูมขอบเขต' : 'Fit View'}
         </button>
       </div>
 
       {/* Quick Summary Card */}
       <div style={{
-        position: 'absolute', top: 62, left: 16, zIndex: 100,
-        background: 'rgba(13,20,36,0.92)', backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(59,130,246,0.3)', borderRadius: 12,
+        position: 'absolute', top: 62, left: 16, zIndex: 400,
+        background: 'rgba(13,20,36,0.94)', backdropFilter: 'blur(16px)',
+        border: '1px solid rgba(59,130,246,0.35)', borderRadius: 12,
         padding: '14px 16px', color: 'white', minWidth: 210,
         boxShadow: 'var(--shadow-lg)', pointerEvents: 'none'
       }}>
@@ -582,8 +536,8 @@ export default function MapViewer({
         ))}
         <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="legend-row">
-            <div style={{ width: 14, height: 2, borderTop: '2px dashed #00f0ff' }} />
-            <span style={{ color: '#00f0ff', fontWeight: 600 }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
+            <div style={{ width: 14, height: 3, borderTop: '3px dashed #00f0ff' }} />
+            <span style={{ color: '#00f0ff', fontWeight: 700 }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
           </div>
           {uploadedBoundary && (
             <div className="legend-row">
