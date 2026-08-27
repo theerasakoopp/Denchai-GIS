@@ -491,35 +491,41 @@ input[type=range]::-webkit-slider-thumb:hover {
   display: flex;
   gap: 4px;
   padding: 5px;
-  z-index: 1000;
+  z-index: 1500;
+  pointer-events: auto !important;
 }
 
 .basemap-btn {
-  padding: 7px 11px;
+  padding: 7px 12px;
   font-size: 0.74rem;
   font-weight: 600;
-  border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
   color: #cbd5e1;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s ease;
   user-select: none;
-  pointer-events: auto;
+  pointer-events: auto !important;
+}
+
+.basemap-btn * {
+  pointer-events: none !important;
 }
 
 .basemap-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
   color: #fff;
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .basemap-btn.active {
   background: var(--accent-blue) !important;
   color: #fff !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
   box-shadow: 0 2px 10px rgba(59, 130, 246, 0.5) !important;
 }
 

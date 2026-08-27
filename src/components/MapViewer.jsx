@@ -159,6 +159,31 @@ export default function MapViewer({
     zoomTo(map, MUNICIPAL_BOUNDARY);
   };
 
+  // ── Apply Basemap to MapLibre Directly ───────────────────────
+  const applyBasemap = (map, key) => {
+    if (!map) return;
+    const allBasemapLayers = ['satellite-layer', 'uav-layer', 'dark-layer', 'osm-layer', 'light-layer'];
+    const showLayers = {
+      uav: ['satellite-layer', 'uav-layer'],
+      satellite: ['satellite-layer'],
+      dark: ['dark-layer'],
+      osm: ['osm-layer'],
+      light: ['light-layer'],
+    }[key] || ['satellite-layer', 'uav-layer'];
+
+    allBasemapLayers.forEach(id => {
+      if (map.getLayer(id)) {
+        map.setLayoutProperty(id, 'visibility', showLayers.includes(id) ? 'visible' : 'none');
+      }
+    });
+    map.triggerRepaint();
+  };
+
+  const changeBasemap = (key) => {
+    setCurrentBasemap(key);
+    applyBasemap(mapRef.current, key);
+  };
+
   // ── Setup Popups ─────────────────────────────────────────────
   const setupPopups = (mapInstance) => {
     mapInstance.on('click', (e) => {
@@ -239,13 +264,13 @@ export default function MapViewer({
         'aoi-src': { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
         'facets-src': {
           type: 'geojson',
-          data: FACETS_URL,
+          data: filteredFacets || facetsData || FACETS_URL,
           buffer: 64,
           tolerance: 0.5
         },
         'bldgs-src': {
           type: 'geojson',
-          data: BLDGS_URL,
+          data: filteredBuildings || buildingsData || BLDGS_URL,
           buffer: 64,
           tolerance: 0.5
         }
@@ -344,7 +369,7 @@ export default function MapViewer({
       setupPopups(map);
       setMapLoaded(true);
 
-      // Push memory data if already available
+      // Force push data if available
       const curFacets = filteredFacets || facetsDataRef.current;
       if (curFacets?.features?.length) {
         map.getSource('facets-src')?.setData(curFacets);
@@ -356,6 +381,7 @@ export default function MapViewer({
       }
 
       map.getSource('bound-src')?.setData(MUNICIPAL_BOUNDARY);
+      applyBasemap(map, currentBasemap);
     });
 
     return () => {
@@ -367,26 +393,11 @@ export default function MapViewer({
     };
   }, []);
 
-  // ── Sync Basemap Visibility ──────────────────────────────────
+  // ── Sync Basemap Visibility automatically when currentBasemap changes ─
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-
-    const allBasemapLayers = ['satellite-layer', 'uav-layer', 'dark-layer', 'osm-layer', 'light-layer'];
-    const showLayers = {
-      uav: ['satellite-layer', 'uav-layer'],
-      satellite: ['satellite-layer'],
-      dark: ['dark-layer'],
-      osm: ['osm-layer'],
-      light: ['light-layer'],
-    }[currentBasemap] || ['satellite-layer', 'uav-layer'];
-
-    allBasemapLayers.forEach(id => {
-      if (map.getLayer(id)) {
-        map.setLayoutProperty(id, 'visibility', showLayers.includes(id) ? 'visible' : 'none');
-      }
-    });
-    map.triggerRepaint();
+    if (mapRef.current && mapLoaded) {
+      applyBasemap(mapRef.current, currentBasemap);
+    }
   }, [currentBasemap, mapLoaded]);
 
   // ── Sync Facets Data into MapLibre Source on React Filter ────
@@ -475,10 +486,13 @@ export default function MapViewer({
             key={key}
             type="button"
             className={`basemap-btn ${currentBasemap === key ? 'active' : ''}`}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              changeBasemap(key);
+            }}
             onClick={(e) => {
               e.preventDefault();
-              e.stopPropagation();
-              setCurrentBasemap(key);
+              changeBasemap(key);
             }}
           >
             {icon} {label}
@@ -487,9 +501,12 @@ export default function MapViewer({
         <button
           type="button"
           className="basemap-btn"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            zoomToRooftops();
+          }}
           onClick={(e) => {
             e.preventDefault();
-            e.stopPropagation();
             zoomToRooftops();
           }}
           style={{ borderLeft: '1px solid rgba(255,255,255,0.18)', marginLeft: 4, paddingLeft: 8 }}
