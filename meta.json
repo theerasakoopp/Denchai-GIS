@@ -1,0 +1,102 @@
+{
+  "classes": {
+    "1": {
+      "name": "N-Roof",
+      "color": "#ff0000"
+    },
+    "2": {
+      "name": "E-Roof",
+      "color": "#00ff00"
+    },
+    "3": {
+      "name": "S-Roof",
+      "color": "#0000ff"
+    },
+    "4": {
+      "name": "W-Roof",
+      "color": "#ffff00"
+    },
+    "5": {
+      "name": "Flat Roof",
+      "color": "#ff00ff"
+    },
+    "6": {
+      "name": "U-Roof",
+      "color": "#808000"
+    },
+    "7": {
+      "name": "PV Panel",
+      "color": "#8000ff"
+    }
+  },
+  "summary": {
+    "1": {
+      "name": "N-Roof",
+      "color": "#ff0000",
+      "count": 2590,
+      "total_area_3d": 170577.5,
+      "total_energy_kwh": 42126515.87
+    },
+    "2": {
+      "name": "E-Roof",
+      "color": "#00ff00",
+      "count": 3209,
+      "total_area_3d": 191931.64,
+      "total_energy_kwh": 47815859.1
+    },
+    "3": {
+      "name": "S-Roof",
+      "color": "#0000ff",
+      "count": 2868,
+      "total_area_3d": 189072.6,
+      "total_energy_kwh": 47965727.97
+    },
+    "4": {
+      "name": "W-Roof",
+      "color": "#ffff00",
+      "count": 3332,
+      "total_area_3d": 224062.92,
+      "total_energy_kwh": 55452997.98
+    },
+    "5": {
+      "name": "Flat Roof",
+      "color": "#ff00ff",
+      "count": 1728,
+      "total_area_3d": 159642.3,
+      "total_energy_kwh": 40104860.82
+    },
+    "6": {
+      "name": "U-Roof",
+      "color": "#808000",
+      "count": 3546,
+      "total_area_3d": 325688.37,
+      "total_energy_kwh": 81964168.01
+    },
+    "7": {
+      "name": "PV Panel",
+      "color": "#8000ff",
+      "count": 71,
+      "total_area_3d": 3578.95,
+      "total_energy_kwh": 895715.08
+    }
+  },
+  "generated_at": "2026-08-10T21:48:42.495145",
+  "latitude": 17.9824,
+  "base_ghi": 4.5,
+  "solar_correction": {
+    "method": "Azimuth-dependent correction (Duffie & Beckman, 2013)",
+    "flat_threshold_deg": 10.0,
+    "flat_correction": 0.95,
+    "anchors": {
+      "0": 0.55,
+      "45": 0.59,
+      "90": 0.73,
+      "135": 0.93,
+      "180": 1.0,
+      "225": 0.93,
+      "270": 0.73,
+      "315": 0.59
+    },
+    "note": "Energy values in output are CORRECTED for roof azimuth."
+  }
+}
