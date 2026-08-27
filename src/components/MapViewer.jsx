@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Map, NavigationControl, ScaleControl, Popup } from 'maplibre-gl';
+import { Map, NavigationControl, ScaleControl, Popup, setWorkerUrl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as turf from '@turf/turf';
 import { ROOF_CLASSES } from '../App';
@@ -17,6 +17,14 @@ function getTileUrl(path) {
   const cleanPath = path.replace(/^\/+/, '');
   const basePath = base ? `/${base}/` : '/';
   return `${origin}${basePath}${cleanPath}`;
+}
+
+// ── Configure MapLibre Web Worker URL to prevent 404 in production ──
+try {
+  const localWorker = getTileUrl('assets/maplibre-gl-worker.mjs');
+  setWorkerUrl(localWorker);
+} catch (e) {
+  console.warn('MapLibre workerUrl setup:', e);
 }
 
 const UAV_TILE_URL = getTileUrl('tiles/uav/{z}/{x}/{y}.webp');
@@ -656,9 +664,6 @@ export default function MapViewer({
 
     mapRef.current = map;
 
-    map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
-    map.addControl(new ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
-
     popupRef.current = new Popup({
       closeButton: true,
       closeOnClick: true,
@@ -670,6 +675,13 @@ export default function MapViewer({
     });
 
     map.on('load', () => {
+      try {
+        map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
+      } catch (_) {}
+      try {
+        map.addControl(new ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
+      } catch (_) {}
+
       setupPopups(map);
       setMapLoaded(true);
 
