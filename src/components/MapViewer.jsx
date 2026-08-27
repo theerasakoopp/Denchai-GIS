@@ -18,14 +18,13 @@ function absUrl(path) {
   }
 }
 
+const UAV_TILE_URL = absUrl('tiles/uav/{z}/{x}/{y}.webp');
 const FACETS_URL = absUrl('rooftop_facets.geojson');
 const BLDGS_URL = absUrl('buildings.geojson');
-const UAV_TILE_URL = absUrl('tiles/uav/{z}/{x}/{y}.webp');
 
-// Free, reliable raster tile endpoints (No API key needed)
 const TILE_SOURCES = {
-  dark: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
   satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  dark: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
   osm: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   light: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'
 };
@@ -33,14 +32,14 @@ const TILE_SOURCES = {
 const CLASS_COLOR_MATCH = [
   'match',
   ['get', 'class_id'],
-  1, '#ef4444', // Red (North)
-  2, '#22c55e', // Green (East)
-  3, '#3b82f6', // Blue (South)
-  4, '#eab308', // Yellow (West)
-  5, '#d946ef', // Magenta (Flat)
+  1, '#ef4444', // Red (N-Roof)
+  2, '#22c55e', // Green (E-Roof)
+  3, '#3b82f6', // Blue (S-Roof)
+  4, '#eab308', // Yellow (W-Roof)
+  5, '#d946ef', // Magenta (Flat Roof)
   6, '#84cc16', // Lime (Unclassified)
   7, '#8b5cf6', // Purple (PV Panel)
-  '#ef4444'     // Fallback
+  '#ef4444'
 ];
 
 const ENERGY_LEGEND = [
@@ -98,7 +97,7 @@ export default function MapViewer({
       : CLASS_COLOR_MATCH;
   };
 
-  // ── Pre-filter Facets in JavaScript ──────────────────────────
+  // ── Filtered Facets ──────────────────────────────────────────
   const filteredFacets = useMemo(() => {
     if (!facetsData || !facetsData.features) return null;
 
@@ -119,7 +118,7 @@ export default function MapViewer({
     return { type: 'FeatureCollection', features: filtered };
   }, [facetsData, filters, visibleLayers]);
 
-  // ── Pre-filter Buildings in JavaScript ────────────────────────
+  // ── Filtered Buildings ───────────────────────────────────────
   const filteredBuildings = useMemo(() => {
     if (!buildingsData || !buildingsData.features) return null;
 
@@ -139,7 +138,7 @@ export default function MapViewer({
     return { type: 'FeatureCollection', features: filtered };
   }, [buildingsData, filters]);
 
-  // ── Zoom to bounding box ─────────────────────────────────────
+  // ── Zoom Helpers ─────────────────────────────────────────────
   const zoomTo = (mapInstance, geoJSON) => {
     if (!geoJSON || !geoJSON.features?.length) return;
     try {
@@ -158,11 +157,6 @@ export default function MapViewer({
     if (facetsData?.features?.length) { zoomTo(map, facetsData); return; }
     if (buildingsData?.features?.length) { zoomTo(map, buildingsData); return; }
     zoomTo(map, MUNICIPAL_BOUNDARY);
-  };
-
-  // ── Switch Basemap Helper ────────────────────────────────────
-  const changeBasemap = (key) => {
-    setCurrentBasemap(key);
   };
 
   // ── Setup Popups ─────────────────────────────────────────────
@@ -226,70 +220,69 @@ export default function MapViewer({
     });
   };
 
-  // ── Initialize Map with Comprehensive Style Object ──────────
+  // ── Initialize Map ───────────────────────────────────────────
   useEffect(() => {
     if (mapRef.current) return;
 
     const initialStyle = {
       version: 8,
       sources: {
-        // ── Free Esri & OSM Basemap Rasters ──────────────────
-        's-dark': { type: 'raster', tiles: [TILE_SOURCES.dark], tileSize: 256, attribution: '© Esri' },
+        // ── Basemap Rasters ──────────────────────────────────
         's-satellite': { type: 'raster', tiles: [TILE_SOURCES.satellite], tileSize: 256, attribution: '© Esri, Maxar' },
+        's-uav': { type: 'raster', tiles: [UAV_TILE_URL], tileSize: 256, minzoom: 10, maxzoom: 22, attribution: '© UAV 30cm Orthophoto' },
+        's-dark': { type: 'raster', tiles: [TILE_SOURCES.dark], tileSize: 256, attribution: '© Esri' },
         's-osm': { type: 'raster', tiles: [TILE_SOURCES.osm], tileSize: 256, attribution: '© OpenStreetMap' },
         's-light': { type: 'raster', tiles: [TILE_SOURCES.light], tileSize: 256, attribution: '© Esri' },
-        's-uav': { type: 'raster', tiles: [UAV_TILE_URL], tileSize: 256, minzoom: 10, maxzoom: 22, attribution: '© UAV 30cm' },
 
         // ── Vector GeoJSON Sources ───────────────────────────
         'bound-src': { type: 'geojson', data: MUNICIPAL_BOUNDARY },
         'aoi-src': { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
         'facets-src': {
           type: 'geojson',
-          data: filteredFacets || facetsData || FACETS_URL,
+          data: FACETS_URL,
           buffer: 64,
           tolerance: 0.5
         },
         'bldgs-src': {
           type: 'geojson',
-          data: filteredBuildings || buildingsData || BLDGS_URL,
+          data: BLDGS_URL,
           buffer: 64,
           tolerance: 0.5
         }
       },
       layers: [
-        // ── 1. Basemap Raster Layers (UAV default) ────────────
-        { id: 'uav-bg', type: 'raster', source: 's-osm', layout: { visibility: 'visible' } },
+        // ── 1. Base Satellite (Underneath UAV) ───────────────
+        { id: 'satellite-layer', type: 'raster', source: 's-satellite', layout: { visibility: 'visible' } },
         { id: 'uav-layer', type: 'raster', source: 's-uav', layout: { visibility: 'visible' } },
         { id: 'dark-layer', type: 'raster', source: 's-dark', layout: { visibility: 'none' } },
-        { id: 'satellite-layer', type: 'raster', source: 's-satellite', layout: { visibility: 'none' } },
         { id: 'osm-layer', type: 'raster', source: 's-osm', layout: { visibility: 'none' } },
         { id: 'light-layer', type: 'raster', source: 's-light', layout: { visibility: 'none' } },
 
-        // ── 2. Municipal Boundary (Permanent High-Contrast) ───
+        // ── 2. Municipal Boundary (Cyan Border) ──────────────
         { id: 'bound-fill', type: 'fill', source: 'bound-src', paint: { 'fill-color': '#00f0ff', 'fill-opacity': 0.05 } },
-        { id: 'bound-glow', type: 'line', source: 'bound-src', paint: { 'line-color': '#000000', 'line-width': 7, 'line-opacity': 0.85 } },
+        { id: 'bound-glow', type: 'line', source: 'bound-src', paint: { 'line-color': '#000000', 'line-width': 6, 'line-opacity': 0.85 } },
         { id: 'bound-line', type: 'line', source: 'bound-src', paint: { 'line-color': '#00f0ff', 'line-width': 3.5 } },
 
         // ── 3. Uploaded AOI ──────────────────────────────────
         { id: 'aoi-fill', type: 'fill', source: 'aoi-src', paint: { 'fill-color': '#a855f7', 'fill-opacity': 0.15 } },
         { id: 'aoi-line', type: 'line', source: 'aoi-src', paint: { 'line-color': '#c084fc', 'line-width': 2.5 } },
 
-        // ── 4. Buildings Footprints Layer ────────────────────
+        // ── 4. Buildings Footprints ──────────────────────────
         {
           id: 'bldgs-fill',
           type: 'fill',
           source: 'bldgs-src',
-          layout: { visibility: viewModeRef.current === 'buildings' ? 'visible' : 'none' },
+          layout: { visibility: 'none' },
           paint: {
             'fill-color': ['coalesce', ['get', 'energy_color'], '#f97316'],
-            'fill-opacity': 0.88
+            'fill-opacity': 0.85
           }
         },
         {
           id: 'bldgs-outline',
           type: 'line',
           source: 'bldgs-src',
-          layout: { visibility: viewModeRef.current === 'buildings' ? 'visible' : 'none' },
+          layout: { visibility: 'none' },
           paint: {
             'line-color': '#ffffff',
             'line-width': 1.0,
@@ -297,26 +290,26 @@ export default function MapViewer({
           }
         },
 
-        // ── 5. Roof Facets Polygons Layer ────────────────────
+        // ── 5. Roof Facets Polygons (Vibrant on UAV) ─────────
         {
           id: 'facets-fill',
           type: 'fill',
           source: 'facets-src',
-          layout: { visibility: viewModeRef.current === 'facets' ? 'visible' : 'none' },
+          layout: { visibility: 'visible' },
           paint: {
-            'fill-color': getColorExpr(colorModeRef.current, viewModeRef.current),
-            'fill-opacity': 0.88
+            'fill-color': CLASS_COLOR_MATCH,
+            'fill-opacity': 0.85
           }
         },
         {
           id: 'facets-outline',
           type: 'line',
           source: 'facets-src',
-          layout: { visibility: viewModeRef.current === 'facets' ? 'visible' : 'none' },
+          layout: { visibility: 'visible' },
           paint: {
             'line-color': '#ffffff',
             'line-width': 1.2,
-            'line-opacity': 0.75
+            'line-opacity': 0.85
           }
         }
       ]
@@ -329,7 +322,7 @@ export default function MapViewer({
       zoom: 16.0,
       minZoom: 11,
       maxZoom: 22,
-      pitch: 20,
+      pitch: 15,
       bearing: -5
     });
 
@@ -343,7 +336,7 @@ export default function MapViewer({
     });
 
     map.on('error', (e) => {
-      console.error('[MapViewer Error]', e.error?.message || e);
+      console.warn('[MapViewer Warning]', e.error?.message || e);
     });
 
     map.on('load', () => {
@@ -351,7 +344,7 @@ export default function MapViewer({
       setupPopups(map);
       setMapLoaded(true);
 
-      // Force push data if available in React memory
+      // Push memory data if already available
       const curFacets = filteredFacets || facetsDataRef.current;
       if (curFacets?.features?.length) {
         map.getSource('facets-src')?.setData(curFacets);
@@ -374,19 +367,19 @@ export default function MapViewer({
     };
   }, []);
 
-  // ── Sync Basemap Visibility automatically when currentBasemap changes ─
+  // ── Sync Basemap Visibility ──────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
-    const allBasemapLayers = ['dark-layer', 'satellite-layer', 'osm-layer', 'light-layer', 'uav-bg', 'uav-layer'];
+    const allBasemapLayers = ['satellite-layer', 'uav-layer', 'dark-layer', 'osm-layer', 'light-layer'];
     const showLayers = {
-      dark: ['dark-layer'],
+      uav: ['satellite-layer', 'uav-layer'],
       satellite: ['satellite-layer'],
+      dark: ['dark-layer'],
       osm: ['osm-layer'],
       light: ['light-layer'],
-      uav: ['uav-bg', 'uav-layer'],
-    }[currentBasemap] || ['uav-bg', 'uav-layer'];
+    }[currentBasemap] || ['satellite-layer', 'uav-layer'];
 
     allBasemapLayers.forEach(id => {
       if (map.getLayer(id)) {
@@ -396,7 +389,7 @@ export default function MapViewer({
     map.triggerRepaint();
   }, [currentBasemap, mapLoaded]);
 
-  // ── Sync Facets Data into MapLibre Source on Data/Filter Change ──
+  // ── Sync Facets Data into MapLibre Source on React Filter ────
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
@@ -473,8 +466,8 @@ export default function MapViewer({
       <div className="map-floating-panel basemap-control">
         {[
           { key: 'uav',       icon: <Plane size={14} />,     label: lang === 'th' ? 'โดรน UAV (30cm)' : 'UAV Ortho' },
-          { key: 'dark',      icon: <Layers size={14} />,    label: lang === 'th' ? 'มืด (GIS)' : 'Dark' },
           { key: 'satellite', icon: <Globe size={14} />,     label: lang === 'th' ? 'ดาวเทียม' : 'Satellite' },
+          { key: 'dark',      icon: <Layers size={14} />,    label: lang === 'th' ? 'มืด (GIS)' : 'Dark' },
           { key: 'osm',       icon: <Compass size={14} />,   label: 'OSM' },
           { key: 'light',     icon: <SunMedium size={14} />, label: lang === 'th' ? 'สว่าง' : 'Light' },
         ].map(({ key, icon, label }) => (
@@ -485,7 +478,7 @@ export default function MapViewer({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              changeBasemap(key);
+              setCurrentBasemap(key);
             }}
           >
             {icon} {label}
