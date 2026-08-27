@@ -238,7 +238,7 @@
 
 <script>
   // ===== 1. สร้างแผนที่ center ที่ ต.เด่นชัย อ.เด่นชัย จ.แพร่ =====
-  const map = L.map('map', { zoomControl: true }).setView([17.983, 99.861], 13);
+  const map = L.map('map', { zoomControl: true }).setView([17.986, 100.055], 14);
 
   // ===== 2. Basemap =====
   const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -257,54 +257,65 @@
     { position: 'topright' }
   ).addTo(map);
 
-  // ===== 3. Layer ตัวอย่าง: เขตเทศบาล (placeholder) =====
-  // 👉 เปลี่ยน coordinates เป็น polygon เขตเทศบาลจริงของคุณภายหลัง
-  // 👉 เมื่อมีไฟล์ข้อมูลจริง แนะนำย้ายไปเก็บใน data/*.geojson แล้วโหลดด้วย fetch() แทน (ดูข้อ 6)
-  const municipalityArea = {
-    "type": "Feature",
-    "properties": { "name": "เขตเทศบาลตำบลเด่นชัย", "area": "รอข้อมูลจริง" },
-    "geometry": {
-      "type": "Polygon",
-      "coordinates": [[
-        [99.84, 17.97], [99.88, 17.97], [99.88, 18.00], [99.84, 18.00], [99.84, 17.97]
-      ]]
-    }
-  };
-
+  // ===== 3. โหลดขอบเขตเทศบาลจริงจากไฟล์ data/denchai_admin.geojson =====
   const featureListEl = document.getElementById('feature-list');
+  let municipalityLayer;
 
-  const municipalityLayer = L.geoJSON(municipalityArea, {
-    style: { color: '#e63946', weight: 2, fillOpacity: 0.15 },
-    onEachFeature: (feature, layer) => {
-      const { name, area } = feature.properties;
-      layer.bindPopup(`<b>${name}</b><br>พื้นที่: ${area}`);
-
-      // เพิ่มรายการลง sidebar
-      const li = document.createElement('li');
-      li.tabIndex = 0;
-      li.innerHTML = `<span class="item-title">${name}</span><span class="item-desc">พื้นที่: ${area}</span>`;
-      const focusFeature = () => {
-        map.fitBounds(layer.getBounds());
-        layer.openPopup();
-      };
-      li.addEventListener('click', focusFeature);
-      li.addEventListener('keyup', (e) => e.key === 'Enter' && focusFeature());
-      featureListEl.appendChild(li);
-    }
-  }).addTo(map);
-
-  if (!featureListEl.children.length) {
-    featureListEl.innerHTML = '<li class="empty">ยังไม่มีข้อมูลพื้นที่ — เพิ่ม GeoJSON ได้ที่ data/</li>';
+  // ดึงชื่อพื้นที่จาก properties โดยรองรับหลายชื่อคีย์ที่พบได้บ่อยในข้อมูล GIS ของไทย
+  function getFeatureName(props) {
+    return props.boundaryor || props.name || props.NAME || props.ADM_NAME || 'ไม่ระบุชื่อ';
   }
+
+  fetch('data/denchai_admin.geojson')
+    .then((res) => {
+      if (!res.ok) throw new Error('โหลดไฟล์ขอบเขตเทศบาลไม่สำเร็จ (' + res.status + ')');
+      return res.json();
+    })
+    .then((data) => {
+      municipalityLayer = L.geoJSON(data, {
+        style: { color: '#e63946', weight: 2, fillOpacity: 0.15 },
+        onEachFeature: (feature, layer) => {
+          const name = getFeatureName(feature.properties);
+          layer.bindPopup(`<b>${name}</b>`);
+
+          // เพิ่มรายการลง sidebar
+          const li = document.createElement('li');
+          li.tabIndex = 0;
+          li.innerHTML = `<span class="item-title">${name}</span>`;
+          const focusFeature = () => {
+            map.fitBounds(layer.getBounds());
+            layer.openPopup();
+          };
+          li.addEventListener('click', focusFeature);
+          li.addEventListener('keyup', (e) => e.key === 'Enter' && focusFeature());
+          featureListEl.appendChild(li);
+        }
+      }).addTo(map);
+
+      // ปรับมุมมองแผนที่ให้พอดีกับขอบเขตที่โหลดมา
+      if (municipalityLayer.getBounds().isValid()) {
+        map.fitBounds(municipalityLayer.getBounds(), { padding: [20, 20] });
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      featureListEl.innerHTML = `<li class="empty">โหลดข้อมูลขอบเขตไม่สำเร็จ: ${err.message}</li>`;
+    });
 
   // ===== 4. ฟังก์ชันค้นหา (แก้ไข syntax error จากต้นฉบับแล้ว) =====
   function searchLayer() {
     const q = document.getElementById('searchInput').value.trim();
     if (!q) return;
 
+    if (!municipalityLayer) {
+      alert('ข้อมูลพื้นที่ยังโหลดไม่เสร็จ กรุณารอสักครู่');
+      return;
+    }
+
     let found = false;
     municipalityLayer.eachLayer(l => {
-      if (l.feature.properties.name.includes(q)) {
+      const name = getFeatureName(l.feature.properties);
+      if (name.includes(q)) {
         l.setStyle({ fillOpacity: 0.45 });
         map.fitBounds(l.getBounds());
         l.openPopup();
@@ -328,16 +339,10 @@
     sidebarToggle.setAttribute('aria-expanded', isOpen);
   });
 
-  // ===== 6. โหลด GeoJSON จากไฟล์ภายนอก (เมื่อมีข้อมูลจริง) =====
-  // ตัวอย่าง: แทนที่ municipalityArea ด้านบนด้วยโค้ดนี้ เมื่อมีไฟล์ data/municipality_boundary.geojson
-  //
-  // fetch('data/municipality_boundary.geojson')
+  // ===== 6. เพิ่มเลเยอร์ข้อมูลอื่นในอนาคต (ตัวอย่าง) =====
+  // fetch('data/schools.geojson')
   //   .then(r => r.json())
-  //   .then(data => {
-  //     const layer = L.geoJSON(data, { style: {...}, onEachFeature: (f, l) => {...} }).addTo(map);
-  //     map.fitBounds(layer.getBounds());
-  //   })
-  //   .catch(err => console.error('โหลด GeoJSON ไม่สำเร็จ:', err));
+  //   .then(data => L.geoJSON(data, { pointToLayer: ..., onEachFeature: ... }).addTo(map));
 </script>
 </body>
 </html>
