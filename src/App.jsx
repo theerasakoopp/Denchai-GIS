@@ -63,6 +63,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
 
   // ── Smart City Tab State ──
   const [activeTab, setActiveTab] = useState('solar'); // 'poi' | 'infra' | 'service' | 'solar'
+  const [selectedFeature, setSelectedFeature] = useState(null);
 
   // ── Layer visibility for POI/Infra/Service categories ──
   const [poiVisible, setPoiVisible] = useState(
@@ -146,6 +147,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         poiVisible={poiVisible} setPoiVisible={setPoiVisible}
         infraVisible={infraVisible} setInfraVisible={setInfraVisible}
         serviceVisible={serviceVisible} setServiceVisible={setServiceVisible}
+        onSelectFeature={setSelectedFeature}
       />
       <MapViewer
         facetsData={geoDataFacets}
@@ -165,6 +167,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         poiVisible={poiVisible}
         infraVisible={infraVisible}
         serviceVisible={serviceVisible}
+        selectedFeature={selectedFeature}
       />
     </div>
   );

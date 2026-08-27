@@ -176,6 +176,7 @@ export default function Sidebar({
   poiVisible, setPoiVisible,
   infraVisible, setInfraVisible,
   serviceVisible, setServiceVisible,
+  onSelectFeature,
 }) {
   const t = translations[lang] || translations.th;
   const fileInputRef = useRef();
@@ -346,9 +347,7 @@ export default function Sidebar({
             t={t}
             summaryIcon="📍"
             summaryLabel={t.poiHeader}
-            onItemClick={(item) => {
-              // Future: pan map to item
-            }}
+            onItemClick={onSelectFeature}
           />
         )}
 
@@ -363,7 +362,7 @@ export default function Sidebar({
             t={t}
             summaryIcon="🏗️"
             summaryLabel={t.infraHeader}
-            onItemClick={(item) => {}}
+            onItemClick={onSelectFeature}
           />
         )}
 
@@ -378,7 +377,7 @@ export default function Sidebar({
             t={t}
             summaryIcon="🏥"
             summaryLabel={t.serviceHeader}
-            onItemClick={(item) => {}}
+            onItemClick={onSelectFeature}
           />
         )}
 
