@@ -9,119 +9,6 @@ import { Layers, Globe, Compass, SunMedium, Focus, Plane } from 'lucide-react';
 const BASE = import.meta.env.BASE_URL || '/';
 const cleanBase = BASE.endsWith('/') ? BASE : BASE + '/';
 
-// ── Bulletproof Self-Contained Raster Basemap Styles ─────────
-const BASEMAP_STYLES = {
-  uav: {
-    id: 'uav',
-    name: 'UAV Drone (30cm)',
-    style: {
-      version: 8,
-      sources: {
-        'osm-bg': {
-          type: 'raster',
-          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-          tileSize: 256,
-          attribution: '© OpenStreetMap'
-        },
-        'uav-tiles': {
-          type: 'raster',
-          tiles: [`${cleanBase}tiles/uav/{z}/{x}/{y}.webp`],
-          tileSize: 256,
-          minzoom: 14,
-          maxzoom: 20,
-          attribution: '© UAV-SolarNet 30cm Orthophoto'
-        }
-      },
-      layers: [
-        { id: 'osm-bg-layer', type: 'raster', source: 'osm-bg' },
-        { id: 'uav-layer', type: 'raster', source: 'uav-tiles', minzoom: 14, maxzoom: 20 }
-      ]
-    }
-  },
-  dark: {
-    id: 'dark',
-    name: 'Dark Matter (GIS)',
-    style: {
-      version: 8,
-      sources: {
-        'carto-dark': {
-          type: 'raster',
-          tiles: [
-            'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-            'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-            'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-          ],
-          tileSize: 256,
-          attribution: '© CARTO, © OpenStreetMap'
-        }
-      },
-      layers: [
-        { id: 'carto-dark-layer', type: 'raster', source: 'carto-dark', minzoom: 0, maxzoom: 20 }
-      ]
-    }
-  },
-  satellite: {
-    id: 'satellite',
-    name: 'Satellite (Esri)',
-    style: {
-      version: 8,
-      sources: {
-        'esri-satellite': {
-          type: 'raster',
-          tiles: [
-            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-          ],
-          tileSize: 256,
-          attribution: '© Esri, Maxar, Earthstar Geographics'
-        }
-      },
-      layers: [
-        { id: 'esri-satellite-layer', type: 'raster', source: 'esri-satellite', minzoom: 0, maxzoom: 22 }
-      ]
-    }
-  },
-  osm: {
-    id: 'osm',
-    name: 'OpenStreetMap',
-    style: {
-      version: 8,
-      sources: {
-        'osm-tiles': {
-          type: 'raster',
-          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-          tileSize: 256,
-          attribution: '© OpenStreetMap contributors'
-        }
-      },
-      layers: [
-        { id: 'osm-layer', type: 'raster', source: 'osm-tiles', minzoom: 0, maxzoom: 19 }
-      ]
-    }
-  },
-  light: {
-    id: 'light',
-    name: 'Positron (Light)',
-    style: {
-      version: 8,
-      sources: {
-        'carto-light': {
-          type: 'raster',
-          tiles: [
-            'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-            'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-            'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
-          ],
-          tileSize: 256,
-          attribution: '© CARTO, © OpenStreetMap'
-        }
-      },
-      layers: [
-        { id: 'carto-light-layer', type: 'raster', source: 'carto-light', minzoom: 0, maxzoom: 20 }
-      ]
-    }
-  }
-};
-
 const ENERGY_LEGEND = [
   { color: '#22c55e', label: '< 7,500 kWh/y' },
   { color: '#f97316', label: '≥ 7,500 kWh/y' },
@@ -194,7 +81,6 @@ export default function MapViewer({
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const popupRef = useRef(null);
-  const layersReadyRef = useRef(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [currentBasemap, setCurrentBasemap] = useState('dark');
 
@@ -206,7 +92,7 @@ export default function MapViewer({
       : ['coalesce', ['get', 'color'], '#ef4444'];
   };
 
-  // ── Fit Bounds Helper ────────────────────────────────────────
+  // ── Zoom to bounding box ─────────────────────────────────────
   const zoomTo = (mapInstance, geoJSON) => {
     if (!geoJSON || !geoJSON.features?.length) return;
     try {
@@ -227,201 +113,42 @@ export default function MapViewer({
     mapRef.current.fitBounds([[100.028, 17.965], [100.084, 18.006]], { padding: 40, duration: 800 });
   };
 
-  // ── Add All Layers ───────────────────────────────────────────
-  const addAllLayers = (map) => {
+  // ── Switch Basemap by Toggling Layer Visibility (Instant 0ms) ─
+  const changeBasemap = (key) => {
+    setCurrentBasemap(key);
+    const map = mapRef.current;
     if (!map) return;
 
-    const safeAddSource = (id, def) => {
-      if (map.getSource(id)) {
-        try { map.removeSource(id); } catch (_) {}
-      }
-      map.addSource(id, def);
-    };
+    const layers = [
+      { id: 'dark-layer', visible: key === 'dark' },
+      { id: 'satellite-layer', visible: key === 'satellite' },
+      { id: 'osm-layer', visible: key === 'osm' },
+      { id: 'light-layer', visible: key === 'light' },
+      { id: 'uav-bg-osm', visible: key === 'uav' },
+      { id: 'uav-layer', visible: key === 'uav' },
+    ];
 
-    const safeAddLayer = (def) => {
-      if (map.getLayer(def.id)) {
-        try { map.removeLayer(def.id); } catch (_) {}
-      }
-      map.addLayer(def);
-    };
-
-    // 1. Municipal Boundary
-    safeAddSource('municipal-src', {
-      type: 'geojson',
-      data: municipalBoundary || { type: 'FeatureCollection', features: [] }
-    });
-    safeAddLayer({
-      id: 'municipal-layer',
-      type: 'line',
-      source: 'municipal-src',
-      paint: {
-        'line-color': '#38bdf8',
-        'line-width': 2.5,
-        'line-dasharray': [3, 2]
+    layers.forEach(({ id, visible }) => {
+      if (map.getLayer(id)) {
+        map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
       }
     });
-
-    // 2. Uploaded AOI
-    safeAddSource('uploaded-src', {
-      type: 'geojson',
-      data: uploadedBoundary || { type: 'FeatureCollection', features: [] }
-    });
-    safeAddLayer({
-      id: 'uploaded-fill',
-      type: 'fill',
-      source: 'uploaded-src',
-      paint: {
-        'fill-color': '#a855f7',
-        'fill-opacity': 0.12
-      }
-    });
-    safeAddLayer({
-      id: 'uploaded-layer',
-      type: 'line',
-      source: 'uploaded-src',
-      paint: {
-        'line-color': '#c084fc',
-        'line-width': 2.5
-      }
-    });
-
-    // 3. Facets Source & Layers
-    const initialFacets = facetsDataRef.current || { type: 'FeatureCollection', features: [] };
-    safeAddSource('facets-src', {
-      type: 'geojson',
-      data: initialFacets,
-      buffer: 64,
-      tolerance: 0.5
-    });
-
-    safeAddLayer({
-      id: 'facets-fill',
-      type: 'fill',
-      source: 'facets-src',
-      layout: {
-        'visibility': viewModeRef.current === 'facets' ? 'visible' : 'none'
-      },
-      filter: buildFacetsFilter(filtersRef.current, visibleLayersRef.current),
-      paint: {
-        'fill-color': getColorExpr(colorModeRef.current, viewModeRef.current),
-        'fill-opacity': 0.85
-      }
-    });
-
-    safeAddLayer({
-      id: 'facets-outline',
-      type: 'line',
-      source: 'facets-src',
-      layout: {
-        'visibility': viewModeRef.current === 'facets' ? 'visible' : 'none'
-      },
-      filter: buildFacetsFilter(filtersRef.current, visibleLayersRef.current),
-      paint: {
-        'line-color': '#ffffff',
-        'line-width': 0.7,
-        'line-opacity': 0.4
-      }
-    });
-
-    // 4. Buildings Source & Layers
-    const initialBuildings = buildingsDataRef.current || { type: 'FeatureCollection', features: [] };
-    safeAddSource('buildings-src', {
-      type: 'geojson',
-      data: initialBuildings,
-      buffer: 64,
-      tolerance: 0.5
-    });
-
-    safeAddLayer({
-      id: 'buildings-fill',
-      type: 'fill',
-      source: 'buildings-src',
-      layout: {
-        'visibility': viewModeRef.current === 'buildings' ? 'visible' : 'none'
-      },
-      filter: buildBuildingsFilter(filtersRef.current),
-      paint: {
-        'fill-color': ['coalesce', ['get', 'energy_color'], '#f97316'],
-        'fill-opacity': 0.88
-      }
-    });
-
-    safeAddLayer({
-      id: 'buildings-outline',
-      type: 'line',
-      source: 'buildings-src',
-      layout: {
-        'visibility': viewModeRef.current === 'buildings' ? 'visible' : 'none'
-      },
-      filter: buildBuildingsFilter(filtersRef.current),
-      paint: {
-        'line-color': '#ffffff',
-        'line-width': 0.8,
-        'line-opacity': 0.4
-      }
-    });
-
-    layersReadyRef.current = true;
     map.triggerRepaint();
   };
 
-  // ── Switch Basemap ───────────────────────────────────────────
-  const changeBasemap = (key) => {
-    if (key === currentBasemap || !mapRef.current) return;
-    setCurrentBasemap(key);
-    const map = mapRef.current;
-    map.setStyle(BASEMAP_STYLES[key].style);
-    map.once('style.load', () => {
-      layersReadyRef.current = false;
-      addAllLayers(map);
-    });
-  };
-
-  // ── Initialize Map ───────────────────────────────────────────
-  useEffect(() => {
-    if (mapRef.current) return;
-
-    const map = new Map({
-      container: mapContainerRef.current,
-      style: BASEMAP_STYLES.dark.style,
-      center: [100.0548, 17.9824],
-      zoom: 15.5,
-      minZoom: 11,
-      maxZoom: 22,
-      pitch: 28,
-      bearing: -5
-    });
-
-    map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
-    map.addControl(new ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
-
-    popupRef.current = new Popup({
-      closeButton: true,
-      closeOnClick: true,
-      maxWidth: '320px'
-    });
-
-    map.on('load', () => {
-      mapRef.current = map;
-      addAllLayers(map);
-      setMapLoaded(true);
-
-      // Fit view to Denchai
-      map.fitBounds([[100.028, 17.965], [100.084, 18.006]], { padding: 40, duration: 800 });
-    });
-
-    // Global Click Handler for Popups
-    map.on('click', (e) => {
+  // ── Setup Popups ─────────────────────────────────────────────
+  const setupPopups = (mapInstance) => {
+    mapInstance.on('click', (e) => {
       const visible = [];
-      if (map.getLayer('facets-fill') && map.getLayoutProperty('facets-fill', 'visibility') !== 'none') {
+      if (mapInstance.getLayer('facets-fill') && mapInstance.getLayoutProperty('facets-fill', 'visibility') !== 'none') {
         visible.push('facets-fill');
       }
-      if (map.getLayer('buildings-fill') && map.getLayoutProperty('buildings-fill', 'visibility') !== 'none') {
+      if (mapInstance.getLayer('buildings-fill') && mapInstance.getLayoutProperty('buildings-fill', 'visibility') !== 'none') {
         visible.push('buildings-fill');
       }
       if (visible.length === 0) return;
 
-      const feats = map.queryRenderedFeatures(e.point, { layers: visible });
+      const feats = mapInstance.queryRenderedFeatures(e.point, { layers: visible });
       if (!feats || feats.length === 0) return;
 
       const p = feats[0].properties;
@@ -462,16 +189,207 @@ export default function MapViewer({
             <span style="color:#38bdf8">${co2.toFixed(2)} t/y</span>
           </div>
         </div>
-      `).addTo(map);
+      `).addTo(mapInstance);
     });
 
-    // Pointer cursor
-    map.on('mousemove', (e) => {
+    mapInstance.on('mousemove', (e) => {
       const visible = [];
-      if (map.getLayer('facets-fill') && map.getLayoutProperty('facets-fill', 'visibility') !== 'none') visible.push('facets-fill');
-      if (map.getLayer('buildings-fill') && map.getLayoutProperty('buildings-fill', 'visibility') !== 'none') visible.push('buildings-fill');
-      const feats = visible.length ? map.queryRenderedFeatures(e.point, { layers: visible }) : [];
-      map.getCanvas().style.cursor = feats.length ? 'pointer' : '';
+      if (mapInstance.getLayer('facets-fill') && mapInstance.getLayoutProperty('facets-fill', 'visibility') !== 'none') visible.push('facets-fill');
+      if (mapInstance.getLayer('buildings-fill') && mapInstance.getLayoutProperty('buildings-fill', 'visibility') !== 'none') visible.push('buildings-fill');
+      const feats = visible.length ? mapInstance.queryRenderedFeatures(e.point, { layers: visible }) : [];
+      mapInstance.getCanvas().style.cursor = feats.length ? 'pointer' : '';
+    });
+  };
+
+  // ── Initialize Map with All Sources & Layers ─────────────────
+  useEffect(() => {
+    if (mapRef.current) return;
+
+    // Standalone Self-Contained Map Style
+    const initialStyle = {
+      version: 8,
+      sources: {
+        'carto-dark-src': {
+          type: 'raster',
+          tiles: [
+            'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+            'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+            'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+          ],
+          tileSize: 256,
+          attribution: '© CARTO, © OpenStreetMap'
+        },
+        'esri-satellite-src': {
+          type: 'raster',
+          tiles: [
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+          ],
+          tileSize: 256,
+          attribution: '© Esri, Maxar'
+        },
+        'osm-src': {
+          type: 'raster',
+          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          attribution: '© OpenStreetMap contributors'
+        },
+        'carto-light-src': {
+          type: 'raster',
+          tiles: [
+            'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+            'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+            'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
+          ],
+          tileSize: 256,
+          attribution: '© CARTO, © OpenStreetMap'
+        },
+        'uav-ortho-src': {
+          type: 'raster',
+          tiles: [`${cleanBase}tiles/uav/{z}/{x}/{y}.webp`],
+          tileSize: 256,
+          minzoom: 14,
+          maxzoom: 20,
+          attribution: '© UAV-SolarNet 30cm Orthophoto'
+        }
+      },
+      layers: [
+        // ── 1. Basemap Raster Layers (Mutually Exclusive) ──────
+        { id: 'dark-layer', type: 'raster', source: 'carto-dark-src', layout: { visibility: 'visible' } },
+        { id: 'satellite-layer', type: 'raster', source: 'esri-satellite-src', layout: { visibility: 'none' } },
+        { id: 'osm-layer', type: 'raster', source: 'osm-src', layout: { visibility: 'none' } },
+        { id: 'light-layer', type: 'raster', source: 'carto-light-src', layout: { visibility: 'none' } },
+        { id: 'uav-bg-osm', type: 'raster', source: 'osm-src', layout: { visibility: 'none' } },
+        { id: 'uav-layer', type: 'raster', source: 'uav-ortho-src', layout: { visibility: 'none' } }
+      ]
+    };
+
+    const map = new Map({
+      container: mapContainerRef.current,
+      style: initialStyle,
+      center: [100.0548, 17.9824],
+      zoom: 15.5,
+      minZoom: 11,
+      maxZoom: 22,
+      pitch: 28,
+      bearing: -5
+    });
+
+    map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
+    map.addControl(new ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
+
+    popupRef.current = new Popup({
+      closeButton: true,
+      closeOnClick: true,
+      maxWidth: '320px'
+    });
+
+    map.on('load', () => {
+      mapRef.current = map;
+
+      // ── 2. Add Vector & GeoJSON Layers ───────────────────────
+      // Municipal boundary
+      map.addSource('municipal-src', {
+        type: 'geojson',
+        data: municipalBoundary || { type: 'FeatureCollection', features: [] }
+      });
+      map.addLayer({
+        id: 'municipal-layer',
+        type: 'line',
+        source: 'municipal-src',
+        paint: {
+          'line-color': '#38bdf8',
+          'line-width': 2.5,
+          'line-dasharray': [3, 2]
+        }
+      });
+
+      // Uploaded AOI
+      map.addSource('uploaded-src', {
+        type: 'geojson',
+        data: uploadedBoundary || { type: 'FeatureCollection', features: [] }
+      });
+      map.addLayer({
+        id: 'uploaded-fill',
+        type: 'fill',
+        source: 'uploaded-src',
+        paint: { 'fill-color': '#a855f7', 'fill-opacity': 0.12 }
+      });
+      map.addLayer({
+        id: 'uploaded-layer',
+        type: 'line',
+        source: 'uploaded-src',
+        paint: { 'line-color': '#c084fc', 'line-width': 2.5 }
+      });
+
+      // Facets
+      const initFacets = facetsDataRef.current || { type: 'FeatureCollection', features: [] };
+      map.addSource('facets-src', {
+        type: 'geojson',
+        data: initFacets,
+        buffer: 64,
+        tolerance: 0.5
+      });
+      map.addLayer({
+        id: 'facets-fill',
+        type: 'fill',
+        source: 'facets-src',
+        layout: { visibility: viewModeRef.current === 'facets' ? 'visible' : 'none' },
+        filter: buildFacetsFilter(filtersRef.current, visibleLayersRef.current),
+        paint: {
+          'fill-color': getColorExpr(colorModeRef.current, viewModeRef.current),
+          'fill-opacity': 0.85
+        }
+      });
+      map.addLayer({
+        id: 'facets-outline',
+        type: 'line',
+        source: 'facets-src',
+        layout: { visibility: viewModeRef.current === 'facets' ? 'visible' : 'none' },
+        filter: buildFacetsFilter(filtersRef.current, visibleLayersRef.current),
+        paint: {
+          'line-color': '#ffffff',
+          'line-width': 0.7,
+          'line-opacity': 0.4
+        }
+      });
+
+      // Buildings
+      const initBuildings = buildingsDataRef.current || { type: 'FeatureCollection', features: [] };
+      map.addSource('buildings-src', {
+        type: 'geojson',
+        data: initBuildings,
+        buffer: 64,
+        tolerance: 0.5
+      });
+      map.addLayer({
+        id: 'buildings-fill',
+        type: 'fill',
+        source: 'buildings-src',
+        layout: { visibility: viewModeRef.current === 'buildings' ? 'visible' : 'none' },
+        filter: buildBuildingsFilter(filtersRef.current),
+        paint: {
+          'fill-color': ['coalesce', ['get', 'energy_color'], '#f97316'],
+          'fill-opacity': 0.88
+        }
+      });
+      map.addLayer({
+        id: 'buildings-outline',
+        type: 'line',
+        source: 'buildings-src',
+        layout: { visibility: viewModeRef.current === 'buildings' ? 'visible' : 'none' },
+        filter: buildBuildingsFilter(filtersRef.current),
+        paint: {
+          'line-color': '#ffffff',
+          'line-width': 0.8,
+          'line-opacity': 0.4
+        }
+      });
+
+      setupPopups(map);
+      setMapLoaded(true);
+
+      // Fit view to Denchai
+      map.fitBounds([[100.028, 17.965], [100.084, 18.006]], { padding: 40, duration: 800 });
     });
 
     return () => {
@@ -483,10 +401,10 @@ export default function MapViewer({
     };
   }, []);
 
-  // ── Sync Facets Data from React Props into MapLibre Source ───
+  // ── Sync Facets Data into MapLibre Source ────────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !layersReadyRef.current) return;
+    if (!map || !mapLoaded) return;
     const src = map.getSource('facets-src');
     if (src && facetsData?.features) {
       src.setData(facetsData);
@@ -494,10 +412,10 @@ export default function MapViewer({
     }
   }, [facetsData, mapLoaded]);
 
-  // ── Sync Buildings Data from React Props into MapLibre Source ──
+  // ── Sync Buildings Data into MapLibre Source ──────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !layersReadyRef.current) return;
+    if (!map || !mapLoaded) return;
     const src = map.getSource('buildings-src');
     if (src && buildingsData?.features) {
       src.setData(buildingsData);
@@ -508,21 +426,19 @@ export default function MapViewer({
   // ── Sync viewMode visibility ─────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !layersReadyRef.current) return;
+    if (!map || !mapLoaded) return;
     const isFacets = viewMode === 'facets';
-    ['facets-fill', 'facets-outline'].forEach(id => {
-      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', isFacets ? 'visible' : 'none');
-    });
-    ['buildings-fill', 'buildings-outline'].forEach(id => {
-      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', isFacets ? 'none' : 'visible');
-    });
+    if (map.getLayer('facets-fill')) map.setLayoutProperty('facets-fill', 'visibility', isFacets ? 'visible' : 'none');
+    if (map.getLayer('facets-outline')) map.setLayoutProperty('facets-outline', 'visibility', isFacets ? 'visible' : 'none');
+    if (map.getLayer('buildings-fill')) map.setLayoutProperty('buildings-fill', 'visibility', isFacets ? 'none' : 'visible');
+    if (map.getLayer('buildings-outline')) map.setLayoutProperty('buildings-outline', 'visibility', isFacets ? 'none' : 'visible');
     map.triggerRepaint();
   }, [viewMode, mapLoaded]);
 
   // ── Sync colorMode ───────────────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !layersReadyRef.current) return;
+    if (!map || !mapLoaded) return;
     if (map.getLayer('facets-fill')) {
       map.setPaintProperty('facets-fill', 'fill-color', getColorExpr(colorMode, viewMode));
       map.triggerRepaint();
@@ -532,29 +448,27 @@ export default function MapViewer({
   // ── Sync filters & visible layers ───────────────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !layersReadyRef.current) return;
+    if (!map || !mapLoaded) return;
     const facetsFilter = buildFacetsFilter(filters, visibleLayers);
     const bldFilter = buildBuildingsFilter(filters);
-    ['facets-fill', 'facets-outline'].forEach(id => {
-      if (map.getLayer(id)) map.setFilter(id, facetsFilter);
-    });
-    ['buildings-fill', 'buildings-outline'].forEach(id => {
-      if (map.getLayer(id)) map.setFilter(id, bldFilter);
-    });
+    if (map.getLayer('facets-fill')) map.setFilter('facets-fill', facetsFilter);
+    if (map.getLayer('facets-outline')) map.setFilter('facets-outline', facetsFilter);
+    if (map.getLayer('buildings-fill')) map.setFilter('buildings-fill', bldFilter);
+    if (map.getLayer('buildings-outline')) map.setFilter('buildings-outline', bldFilter);
     map.triggerRepaint();
   }, [filters, visibleLayers, mapLoaded]);
 
   // ── Sync boundary sources ────────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !layersReadyRef.current) return;
+    if (!map || !mapLoaded) return;
     const mSrc = map.getSource('municipal-src');
     if (mSrc && municipalBoundary) mSrc.setData(municipalBoundary);
   }, [municipalBoundary, mapLoaded]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !layersReadyRef.current) return;
+    if (!map || !mapLoaded) return;
     const uSrc = map.getSource('uploaded-src');
     if (uSrc) {
       uSrc.setData(uploadedBoundary || { type: 'FeatureCollection', features: [] });
