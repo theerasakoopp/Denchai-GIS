@@ -107,12 +107,13 @@ export default function MapViewer({
   const popupRef = useRef(null);
   const layersReadyRef = useRef(false);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [currentBasemap, setCurrentBasemap] = useState('satellite');
+  const [currentBasemap, setCurrentBasemap] = useState('osm');
 
   // ── Derive GeoJSON URLs from Vite base URL ──────────────────
   const BASE = import.meta.env.BASE_URL || '/';
   const FACETS_URL = `${BASE}rooftop_facets.geojson`;
   const BUILDINGS_URL = `${BASE}buildings.geojson`;
+  console.log('[MapViewer] BASE_URL:', BASE, '| facets URL:', FACETS_URL);
 
   // ── Color expressions ────────────────────────────────────────
   const getColorExpr = (mode, vm) => {
@@ -234,7 +235,7 @@ export default function MapViewer({
 
     const map = new Map({
       container: mapContainerRef.current,
-      style: BASEMAP_STYLES.satellite.style,
+      style: BASEMAP_STYLES.osm.style,
       center: [100.0556, 17.9858],
       zoom: 14,
       minZoom: 10,
@@ -248,7 +249,10 @@ export default function MapViewer({
 
     popupRef.current = new Popup({ closeButton: true, closeOnClick: true, maxWidth: '320px' });
 
+    map.on('error', (e) => { console.error('[MapLibre Error]', e.error); });
+
     map.on('load', () => {
+      console.log('[MapViewer] Map loaded! Adding layers...');
       mapRef.current = map;
       addAllLayers(map);
       setMapLoaded(true);
