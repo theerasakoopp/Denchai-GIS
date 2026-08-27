@@ -163,7 +163,6 @@ export default function MapViewer({
 
     const style = {
       version: 8,
-      glyphs: 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',
       sources: {
         // Basemap rasters (Stadia Maps dark/light — free, no API key)
         'osm-src':     { type:'raster', tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize:256, attribution:'© OpenStreetMap' },
@@ -221,16 +220,22 @@ export default function MapViewer({
 
     popupRef.current = new Popup({ closeButton: true, closeOnClick: true, maxWidth: '320px' });
 
+    map.on('error', (e) => {
+      console.error('[MapViewer] MapLibre error:', e.error?.message || e);
+    });
+
     map.on('load', () => {
       mapRef.current = map;
       setupPopups(map);
       setMapLoaded(true);
 
-      // Debug: log all loaded sources and layers
-      console.info('[MapViewer] map.load fired — sources:', Object.keys(map.getStyle().sources));
-      console.info('[MapViewer] facets-src data:', FACETS_URL);
+      // Debug: confirm sources and data URLs
+      const src = map.getStyle().sources;
+      console.info('[MapViewer] load OK — facets URL:', FACETS_URL);
+      console.info('[MapViewer] sources:', Object.keys(src));
+      console.info('[MapViewer] facets-fill visibility:', map.getLayoutProperty('facets-fill','visibility'));
 
-      // Fit to Denchai municipal area
+      // Fit to Denchai
       map.fitBounds([[100.028, 17.965],[100.084, 18.006]], { padding: 40, duration: 1000 });
     });
 
