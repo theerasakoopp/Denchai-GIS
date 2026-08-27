@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import * as maplibregl from 'maplibre-gl';
+import { Map, NavigationControl, ScaleControl, Popup } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as turf from '@turf/turf';
 import { ROOF_CLASSES } from '../App';
@@ -105,13 +105,15 @@ export default function MapViewer({
 
   // Filter features
   useEffect(() => {
-    if (!geoData) return;
+    if (!geoData || !geoData.features) return;
 
     const isBuildings = viewMode === 'buildings';
     const clippingBoundary = uploadedBoundary;
 
     const features = geoData.features.filter(f => {
       const p = f.properties;
+      if (!p) return false;
+
       if (isBuildings) {
         if (filters.minEnergy > 0 && p.energy_kwh < filters.minEnergy) return false;
         if (filters.minArea > 0 && p.area_2d < filters.minArea) return false;
@@ -121,7 +123,7 @@ export default function MapViewer({
         if (p.energy_kwh < filters.minEnergy) return false;
       }
 
-      if (clippingBoundary) {
+      if (clippingBoundary && clippingBoundary.features && clippingBoundary.features.length > 0) {
         try {
           const pt = turf.centroid(f);
           return clippingBoundary.features.some(bf =>
@@ -238,33 +240,37 @@ export default function MapViewer({
   useEffect(() => {
     if (mapRef.current) return;
 
-    const map = new maplibregl.Map({
-      container: mapContainerRef.current,
-      style: BASEMAP_STYLES.satellite.style,
-      center: [100.0548, 17.9824], // Den Chai Municipality center
-      zoom: 15.5,
-      pitch: 35,
-      bearing: -10,
-      minZoom: 11,
-      maxZoom: 21,
-    });
+    try {
+      const map = new Map({
+        container: mapContainerRef.current,
+        style: BASEMAP_STYLES.satellite.style,
+        center: [100.0548, 17.9824], // Den Chai Municipality center
+        zoom: 15.5,
+        pitch: 35,
+        bearing: -10,
+        minZoom: 11,
+        maxZoom: 21,
+      });
 
-    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
-    map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
+      map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
+      map.addControl(new ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
 
-    map.on('load', () => {
-      reAddLayers(map);
-      mapRef.current = map;
-      setMapLoaded(true);
-    });
+      map.on('load', () => {
+        reAddLayers(map);
+        mapRef.current = map;
+        setMapLoaded(true);
+      });
 
-    return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-        setMapLoaded(false);
-      }
-    };
+      return () => {
+        if (mapRef.current) {
+          mapRef.current.remove();
+          mapRef.current = null;
+          setMapLoaded(false);
+        }
+      };
+    } catch (e) {
+      console.error("MapLibre init error:", e);
+    }
   }, []);
 
   // Update Data Sources
@@ -301,7 +307,7 @@ export default function MapViewer({
 
   // Setup Dynamic Popup
   const setupPopups = (mapInstance) => {
-    const popup = new maplibregl.Popup({
+    const popup = new Popup({
       closeButton: true,
       closeOnClick: true,
       maxWidth: '320px'
@@ -359,8 +365,8 @@ export default function MapViewer({
     mapInstance.on('mouseleave', 'features-layer', () => { mapInstance.getCanvas().style.cursor = ''; });
   };
 
-  const totalCapMwp = ((filteredData?.features.reduce((acc, f) => acc + (f.properties.capacity_kwp || 0), 0) || 0) / 1000).toFixed(2);
-  const totalYieldGwh = ((filteredData?.features.reduce((acc, f) => acc + (f.properties.energy_corrected_kwh || f.properties.energy_kwh || 0), 0) || 0) / 1000000).toFixed(2);
+  const totalCapMwp = ((filteredData?.features?.reduce((acc, f) => acc + (f.properties?.capacity_kwp || 0), 0) || 0) / 1000).toFixed(2);
+  const totalYieldGwh = ((filteredData?.features?.reduce((acc, f) => acc + (f.properties?.energy_corrected_kwh || f.properties?.energy_kwh || 0), 0) || 0) / 1000000).toFixed(2);
 
   const legendItems = viewMode === 'buildings'
     ? CAPACITY_LEGEND

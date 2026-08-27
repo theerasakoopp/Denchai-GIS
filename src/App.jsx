@@ -32,9 +32,11 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   const [viewMode, setViewMode] = useState('facets');   // Default to Roof Facet View
 
   useEffect(() => {
-    fetch('./buildings.geojson').then(r => r.json()).then(setGeoDataBuildings).catch(() => {});
-    fetch('./rooftop_facets.geojson').then(r => r.json()).then(setGeoDataFacets).catch(() => {});
-    fetch('./boundary.geojson').then(r => r.json()).then(setMunicipalBoundary).catch(() => {});
+    const base = import.meta.env.BASE_URL || './';
+    const cleanBase = base.endsWith('/') ? base : base + '/';
+    fetch(`${cleanBase}buildings.geojson`).then(r => r.json()).then(setGeoDataBuildings).catch(console.error);
+    fetch(`${cleanBase}rooftop_facets.geojson`).then(r => r.json()).then(setGeoDataFacets).catch(console.error);
+    fetch(`${cleanBase}boundary.geojson`).then(r => r.json()).then(setMunicipalBoundary).catch(console.error);
   }, []);
 
   const activeGeoData = viewMode === 'buildings' ? (geoDataBuildings || geoDataFacets) : geoDataFacets;
