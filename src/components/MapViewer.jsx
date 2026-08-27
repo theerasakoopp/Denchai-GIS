@@ -8,6 +8,9 @@ import { Layers, Globe, Compass, SunMedium, Focus, Plane } from 'lucide-react';
 
 const BASE = import.meta.env.BASE_URL || '/';
 const cleanBase = BASE.endsWith('/') ? BASE : BASE + '/';
+const FACETS_URL = `${cleanBase}rooftop_facets.geojson`;
+const BUILDINGS_URL = `${cleanBase}buildings.geojson`;
+const BOUNDARY_URL = `${cleanBase}boundary.geojson`;
 
 const ENERGY_LEGEND = [
   { color: '#22c55e', label: '< 7,500 kWh/y' },
@@ -60,10 +63,9 @@ export default function MapViewer({
       : ['coalesce', ['get', 'color'], '#ef4444'];
   };
 
-  // ── Pre-filter Facets in JavaScript (Zero-fail, 100% reliable) ─
+  // ── Pre-filter Facets in JavaScript ──────────────────────────
   const filteredFacets = useMemo(() => {
     if (!facetsData || !facetsData.features) return null;
-    if (viewMode !== 'facets') return { type: 'FeatureCollection', features: [] };
 
     const minArea = Number(filters?.minArea) || 0;
     const minEnergy = Number(filters?.minEnergy) || 0;
@@ -80,12 +82,11 @@ export default function MapViewer({
     });
 
     return { type: 'FeatureCollection', features: filtered };
-  }, [facetsData, filters, visibleLayers, viewMode]);
+  }, [facetsData, filters, visibleLayers]);
 
   // ── Pre-filter Buildings in JavaScript ────────────────────────
   const filteredBuildings = useMemo(() => {
     if (!buildingsData || !buildingsData.features) return null;
-    if (viewMode !== 'buildings') return { type: 'FeatureCollection', features: [] };
 
     const minArea = Number(filters?.minArea) || 0;
     const minEnergy = Number(filters?.minEnergy) || 0;
@@ -101,7 +102,7 @@ export default function MapViewer({
     });
 
     return { type: 'FeatureCollection', features: filtered };
-  }, [buildingsData, filters, viewMode]);
+  }, [buildingsData, filters]);
 
   // ── Zoom to bounding box ─────────────────────────────────────
   const zoomTo = (mapInstance, geoJSON) => {
@@ -124,7 +125,7 @@ export default function MapViewer({
     mapRef.current.fitBounds([[100.028, 17.965], [100.084, 18.006]], { padding: 40, duration: 800 });
   };
 
-  // ── Switch Basemap by Toggling Layer Visibility (Instant 0ms) ─
+  // ── Switch Basemap by Toggling Layer Visibility ──────────────
   const changeBasemap = (key) => {
     setCurrentBasemap(key);
     const map = mapRef.current;
@@ -151,8 +152,12 @@ export default function MapViewer({
   const setupPopups = (mapInstance) => {
     mapInstance.on('click', (e) => {
       const visible = [];
-      if (mapInstance.getLayer('facets-fill')) visible.push('facets-fill');
-      if (mapInstance.getLayer('buildings-fill')) visible.push('buildings-fill');
+      if (mapInstance.getLayer('facets-fill') && mapInstance.getLayoutProperty('facets-fill', 'visibility') !== 'none') {
+        visible.push('facets-fill');
+      }
+      if (mapInstance.getLayer('buildings-fill') && mapInstance.getLayoutProperty('buildings-fill', 'visibility') !== 'none') {
+        visible.push('buildings-fill');
+      }
       if (visible.length === 0) return;
 
       const feats = mapInstance.queryRenderedFeatures(e.point, { layers: visible });
@@ -201,8 +206,8 @@ export default function MapViewer({
 
     mapInstance.on('mousemove', (e) => {
       const visible = [];
-      if (mapInstance.getLayer('facets-fill')) visible.push('facets-fill');
-      if (mapInstance.getLayer('buildings-fill')) visible.push('buildings-fill');
+      if (mapInstance.getLayer('facets-fill') && mapInstance.getLayoutProperty('facets-fill', 'visibility') !== 'none') visible.push('facets-fill');
+      if (mapInstance.getLayer('buildings-fill') && mapInstance.getLayoutProperty('buildings-fill', 'visibility') !== 'none') visible.push('buildings-fill');
       const feats = visible.length ? mapInstance.queryRenderedFeatures(e.point, { layers: visible }) : [];
       mapInstance.getCanvas().style.cursor = feats.length ? 'pointer' : '';
     });
@@ -259,7 +264,6 @@ export default function MapViewer({
         }
       },
       layers: [
-        // Basemap Layers (Dark active by default)
         { id: 'dark-layer', type: 'raster', source: 'carto-dark-src', layout: { visibility: 'visible' } },
         { id: 'satellite-layer', type: 'raster', source: 'esri-satellite-src', layout: { visibility: 'none' } },
         { id: 'osm-layer', type: 'raster', source: 'osm-src', layout: { visibility: 'none' } },
@@ -295,7 +299,7 @@ export default function MapViewer({
       // ── Municipal boundary ──────────────────────────────────
       map.addSource('municipal-src', {
         type: 'geojson',
-        data: municipalBoundary || { type: 'FeatureCollection', features: [] }
+        data: municipalBoundary || BOUNDARY_URL
       });
       map.addLayer({
         id: 'municipal-layer',
@@ -327,10 +331,9 @@ export default function MapViewer({
       });
 
       // ── Facets ──────────────────────────────────────────────
-      const initFacets = filteredFacets || { type: 'FeatureCollection', features: [] };
       map.addSource('facets-src', {
         type: 'geojson',
-        data: initFacets,
+        data: filteredFacets || FACETS_URL,
         buffer: 64,
         tolerance: 0.5
       });
@@ -338,6 +341,9 @@ export default function MapViewer({
         id: 'facets-fill',
         type: 'fill',
         source: 'facets-src',
+        layout: {
+          visibility: viewModeRef.current === 'facets' ? 'visible' : 'none'
+        },
         paint: {
           'fill-color': getColorExpr(colorModeRef.current, viewModeRef.current),
           'fill-opacity': 0.88
@@ -347,6 +353,9 @@ export default function MapViewer({
         id: 'facets-outline',
         type: 'line',
         source: 'facets-src',
+        layout: {
+          visibility: viewModeRef.current === 'facets' ? 'visible' : 'none'
+        },
         paint: {
           'line-color': '#ffffff',
           'line-width': 0.8,
@@ -355,10 +364,9 @@ export default function MapViewer({
       });
 
       // ── Buildings ───────────────────────────────────────────
-      const initBuildings = filteredBuildings || { type: 'FeatureCollection', features: [] };
       map.addSource('buildings-src', {
         type: 'geojson',
-        data: initBuildings,
+        data: filteredBuildings || BUILDINGS_URL,
         buffer: 64,
         tolerance: 0.5
       });
@@ -366,6 +374,9 @@ export default function MapViewer({
         id: 'buildings-fill',
         type: 'fill',
         source: 'buildings-src',
+        layout: {
+          visibility: viewModeRef.current === 'buildings' ? 'visible' : 'none'
+        },
         paint: {
           'fill-color': ['coalesce', ['get', 'energy_color'], '#f97316'],
           'fill-opacity': 0.88
@@ -375,6 +386,9 @@ export default function MapViewer({
         id: 'buildings-outline',
         type: 'line',
         source: 'buildings-src',
+        layout: {
+          visibility: viewModeRef.current === 'buildings' ? 'visible' : 'none'
+        },
         paint: {
           'line-color': '#ffffff',
           'line-width': 0.8,
@@ -419,6 +433,18 @@ export default function MapViewer({
       map.triggerRepaint();
     }
   }, [filteredBuildings, mapLoaded]);
+
+  // ── Sync viewMode visibility ─────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    const isFacets = viewMode === 'facets';
+    if (map.getLayer('facets-fill')) map.setLayoutProperty('facets-fill', 'visibility', isFacets ? 'visible' : 'none');
+    if (map.getLayer('facets-outline')) map.setLayoutProperty('facets-outline', 'visibility', isFacets ? 'visible' : 'none');
+    if (map.getLayer('buildings-fill')) map.setLayoutProperty('buildings-fill', 'visibility', isFacets ? 'none' : 'visible');
+    if (map.getLayer('buildings-outline')) map.setLayoutProperty('buildings-outline', 'visibility', isFacets ? 'none' : 'visible');
+    map.triggerRepaint();
+  }, [viewMode, mapLoaded]);
 
   // ── Sync colorMode ───────────────────────────────────────────
   useEffect(() => {
