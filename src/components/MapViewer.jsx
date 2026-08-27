@@ -392,10 +392,8 @@ export default function MapViewer({
         { id: 'osm-layer', type: 'raster', source: 's-osm', layout: { visibility: 'none' } },
         { id: 'light-layer', type: 'raster', source: 's-light', layout: { visibility: 'none' } },
 
-        // ── 2. Municipal Boundary (Cyan Border) ──────────────
-        { id: 'bound-fill', type: 'fill', source: 'bound-src', paint: { 'fill-color': '#00f0ff', 'fill-opacity': 0.05 } },
-        { id: 'bound-glow', type: 'line', source: 'bound-src', paint: { 'line-color': '#000000', 'line-width': 6, 'line-opacity': 0.85 } },
-        { id: 'bound-line', type: 'line', source: 'bound-src', paint: { 'line-color': '#00f0ff', 'line-width': 3.5 } },
+        // ── 2. Municipal Boundary Background Fill ─────────────
+        { id: 'bound-fill', type: 'fill', source: 'bound-src', layout: { visibility: 'visible' }, paint: { 'fill-color': '#00f0ff', 'fill-opacity': 0.04 } },
 
         // ── 3. Uploaded AOI ──────────────────────────────────
         { id: 'aoi-fill', type: 'fill', source: 'aoi-src', paint: { 'fill-color': '#a855f7', 'fill-opacity': 0.15 } },
@@ -604,6 +602,42 @@ export default function MapViewer({
             'text-color': '#fca5a5',
             'text-halo-color': '#090d16',
             'text-halo-width': 2.5
+          }
+        },
+
+        // ── 10. TOPMOST: Municipal Boundary (Always on Top) ─
+        {
+          id: 'bound-glow',
+          type: 'line',
+          source: 'bound-src',
+          layout: { visibility: 'visible' },
+          paint: {
+            'line-color': '#000000',
+            'line-width': 7.5,
+            'line-opacity': 0.9
+          }
+        },
+        {
+          id: 'bound-line',
+          type: 'line',
+          source: 'bound-src',
+          layout: { visibility: 'visible' },
+          paint: {
+            'line-color': '#00f0ff',
+            'line-width': 3.5,
+            'line-opacity': 1.0
+          }
+        },
+        {
+          id: 'bound-line-inner',
+          type: 'line',
+          source: 'bound-src',
+          layout: { visibility: 'visible' },
+          paint: {
+            'line-color': '#ffffff',
+            'line-width': 1.2,
+            'line-dasharray': [4, 3],
+            'line-opacity': 0.9
           }
         }
       ]
@@ -1013,6 +1047,12 @@ export default function MapViewer({
               <span style={{ color: '#cbd5e1' }}>{cat.icon} {lang === 'th' ? cat.name_th : cat.name_en}</span>
             </div>
           ))}
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="legend-row">
+              <div style={{ width: 14, height: 3, borderTop: '3px solid #00f0ff' }} />
+              <span style={{ color: '#00f0ff', fontWeight: 700 }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1026,6 +1066,12 @@ export default function MapViewer({
               <span style={{ color: '#cbd5e1' }}>{cat.icon} {lang === 'th' ? cat.name_th : cat.name_en}</span>
             </div>
           ))}
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="legend-row">
+              <div style={{ width: 14, height: 3, borderTop: '3px solid #00f0ff' }} />
+              <span style={{ color: '#00f0ff', fontWeight: 700 }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
+            </div>
+          </div>
         </div>
       )}
 
@@ -1039,6 +1085,12 @@ export default function MapViewer({
               <span style={{ color: '#cbd5e1' }}>{cat.icon} {lang === 'th' ? cat.name_th : cat.name_en}</span>
             </div>
           ))}
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="legend-row">
+              <div style={{ width: 14, height: 3, borderTop: '3px solid #00f0ff' }} />
+              <span style={{ color: '#00f0ff', fontWeight: 700 }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
+            </div>
+          </div>
         </div>
       )}
     </div>
