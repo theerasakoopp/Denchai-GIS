@@ -10,9 +10,10 @@ import MUNICIPAL_BOUNDARY from '../data/boundary.json';
 // ── Derive clean base URL once ────────────────────────────────
 const BASE = import.meta.env.BASE_URL || '/';
 const cleanBase = BASE.endsWith('/') ? BASE : BASE + '/';
-const FACETS_URL  = `${cleanBase}rooftop_facets.geojson`;
-const BUILDINGS_URL = `${cleanBase}buildings.geojson`;
-const UAV_TILE_URL = `${cleanBase}tiles/uav/{z}/{x}/{y}.webp`;
+const FACETS_URL    = new URL(`${cleanBase}rooftop_facets.geojson`, window.location.origin).href;
+const BUILDINGS_URL = new URL(`${cleanBase}buildings.geojson`,       window.location.origin).href;
+const UAV_TILE_URL  = `${cleanBase}tiles/uav/{z}/{x}/{y}.webp`;
+console.info('[MapViewer] BASE:', BASE, 'FACETS_URL:', FACETS_URL);
 
 const ENERGY_LEGEND = [
   { color: '#22c55e', label: '< 7,500 kWh/y' },
@@ -164,12 +165,12 @@ export default function MapViewer({
       version: 8,
       glyphs: 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',
       sources: {
-        // Basemap rasters
-        'osm-src':          { type:'raster', tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize:256, attribution:'© OpenStreetMap' },
-        'carto-dark-src':   { type:'raster', tiles:['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png','https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png','https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'], tileSize:512, attribution:'© CARTO' },
-        'satellite-src':    { type:'raster', tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], tileSize:256, attribution:'© Esri' },
-        'carto-light-src':  { type:'raster', tiles:['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png','https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'], tileSize:512, attribution:'© CARTO' },
-        'uav-src':          { type:'raster', tiles:[UAV_TILE_URL], tileSize:256, minzoom:14, maxzoom:20, attribution:'© UAV 30cm' },
+        // Basemap rasters (Stadia Maps dark/light — free, no API key)
+        'osm-src':     { type:'raster', tiles:['https://tile.openstreetmap.org/{z}/{x}/{y}.png'], tileSize:256, attribution:'© OpenStreetMap' },
+        'dark-src':    { type:'raster', tiles:['https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}.png'], tileSize:256, attribution:'© Stadia Maps, © OpenMapTiles, © OpenStreetMap' },
+        'satellite-src':{ type:'raster', tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'], tileSize:256, attribution:'© Esri, Maxar' },
+        'light-src':   { type:'raster', tiles:['https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}.png'], tileSize:256, attribution:'© Stadia Maps, © OpenMapTiles, © OpenStreetMap' },
+        'uav-src':     { type:'raster', tiles:[UAV_TILE_URL], tileSize:256, minzoom:14, maxzoom:20, attribution:'© UAV 30cm' },
         // Vector data — let MapLibre stream them directly
         'facets-src':       { type:'geojson', data: FACETS_URL,   buffer:64, tolerance:0.5 },
         'buildings-src':    { type:'geojson', data: BUILDINGS_URL, buffer:64, tolerance:0.5 },
@@ -178,12 +179,12 @@ export default function MapViewer({
       },
       layers: [
         // ── Basemaps ─────────────────────────────────────────
-        { id:'dark-layer',      type:'raster', source:'carto-dark-src',  layout:{ visibility:'visible' } },
-        { id:'satellite-layer', type:'raster', source:'satellite-src',   layout:{ visibility:'none'    } },
-        { id:'osm-layer',       type:'raster', source:'osm-src',         layout:{ visibility:'none'    } },
-        { id:'light-layer',     type:'raster', source:'carto-light-src', layout:{ visibility:'none'    } },
-        { id:'uav-bg-osm',      type:'raster', source:'osm-src',         layout:{ visibility:'none'    } },
-        { id:'uav-layer',       type:'raster', source:'uav-src',         layout:{ visibility:'none'    } },
+        { id:'dark-layer',      type:'raster', source:'dark-src',      layout:{ visibility:'visible' } },
+        { id:'satellite-layer', type:'raster', source:'satellite-src', layout:{ visibility:'none'    } },
+        { id:'osm-layer',       type:'raster', source:'osm-src',       layout:{ visibility:'none'    } },
+        { id:'light-layer',     type:'raster', source:'light-src',     layout:{ visibility:'none'    } },
+        { id:'uav-bg-osm',      type:'raster', source:'osm-src',       layout:{ visibility:'none'    } },
+        { id:'uav-layer',       type:'raster', source:'uav-src',       layout:{ visibility:'none'    } },
 
         // ── Municipal boundary (always on top of basemap) ───
         { id:'boundary-fill', type:'fill', source:'boundary-src', paint:{ 'fill-color':'#00f0ff', 'fill-opacity':0.05 } },
@@ -224,6 +225,10 @@ export default function MapViewer({
       mapRef.current = map;
       setupPopups(map);
       setMapLoaded(true);
+
+      // Debug: log all loaded sources and layers
+      console.info('[MapViewer] map.load fired — sources:', Object.keys(map.getStyle().sources));
+      console.info('[MapViewer] facets-src data:', FACETS_URL);
 
       // Fit to Denchai municipal area
       map.fitBounds([[100.028, 17.965],[100.084, 18.006]], { padding: 40, duration: 1000 });
