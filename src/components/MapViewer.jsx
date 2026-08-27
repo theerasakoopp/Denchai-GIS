@@ -84,69 +84,42 @@ const CAPACITY_LEGEND = [
 const fmt = (n) => new Intl.NumberFormat('en-US').format(Math.round(n || 0));
 
 export default function MapViewer({
-  geoData, filters, visibleLayers,
-  uploadedBoundary, municipalBoundary, colorMode, viewMode,
-  lang = 'th', tariff = 4.2
+  facetsData,
+  buildingsData,
+  filters,
+  visibleLayers,
+  uploadedBoundary,
+  municipalBoundary,
+  colorMode,
+  viewMode,
+  lang = 'th',
+  tariff = 4.2
 }) {
   const t = translations[lang] || translations.th;
   const langRef = useRef(lang);
   const tariffRef = useRef(tariff);
   const viewModeRef = useRef(viewMode);
   const colorModeRef = useRef(colorMode);
-  const filteredDataRef = useRef(null);
+  const facetsDataRef = useRef(facetsData);
+  const buildingsDataRef = useRef(buildingsData);
+  const municipalBoundaryRef = useRef(municipalBoundary);
+  const uploadedBoundaryRef = useRef(uploadedBoundary);
 
   useEffect(() => { langRef.current = lang; }, [lang]);
   useEffect(() => { tariffRef.current = tariff; }, [tariff]);
   useEffect(() => { viewModeRef.current = viewMode; }, [viewMode]);
   useEffect(() => { colorModeRef.current = colorMode; }, [colorMode]);
+  useEffect(() => { facetsDataRef.current = facetsData; }, [facetsData]);
+  useEffect(() => { buildingsDataRef.current = buildingsData; }, [buildingsData]);
+  useEffect(() => { municipalBoundaryRef.current = municipalBoundary; }, [municipalBoundary]);
+  useEffect(() => { uploadedBoundaryRef.current = uploadedBoundary; }, [uploadedBoundary]);
 
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
+  const popupRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [filteredData, setFilteredData] = useState(null);
   const [currentBasemap, setCurrentBasemap] = useState('satellite');
   const initialZoomDone = useRef(false);
-
-  // Filter features
-  useEffect(() => {
-    if (!geoData || !geoData.features) {
-      setFilteredData(null);
-      filteredDataRef.current = null;
-      return;
-    }
-
-    const isBuildings = viewMode === 'buildings';
-    const clippingBoundary = uploadedBoundary;
-
-    const features = geoData.features.filter(f => {
-      const p = f.properties;
-      if (!p) return false;
-
-      const area = p.area_3d || p.area_2d || 0;
-      const energy = p.energy_corrected_kwh || p.energy_kwh || 0;
-
-      if (filters.minArea > 0 && area < filters.minArea) return false;
-      if (filters.minEnergy > 0 && energy < filters.minEnergy) return false;
-
-      if (!isBuildings) {
-        if (!visibleLayers[p.class_id]) return false;
-      }
-
-      if (clippingBoundary && clippingBoundary.features && clippingBoundary.features.length > 0) {
-        try {
-          const pt = turf.centroid(f);
-          return clippingBoundary.features.some(bf =>
-            turf.booleanPointInPolygon(pt, bf)
-          );
-        } catch { return false; }
-      }
-      return true;
-    });
-
-    const fc = { type: 'FeatureCollection', features };
-    setFilteredData(fc);
-    filteredDataRef.current = fc;
-  }, [geoData, filters, visibleLayers, uploadedBoundary, viewMode]);
 
   // Zoom to GeoJSON boundary
   const zoomToBoundary = (mapInstance, boundaryGeoJSON) => {
@@ -154,8 +127,8 @@ export default function MapViewer({
     try {
       const bbox = turf.bbox(boundaryGeoJSON);
       mapInstance.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], {
-        padding: 40,
-        duration: 800,
+        padding: 50,
+        duration: 900,
         animate: true
       });
     } catch (err) {
@@ -166,13 +139,153 @@ export default function MapViewer({
   // Zoom to Rooftop Extent
   const zoomToRooftops = () => {
     if (!mapRef.current) return;
-    if (uploadedBoundary) {
-      zoomToBoundary(mapRef.current, uploadedBoundary);
-    } else if (filteredData && filteredData.features.length > 0) {
-      zoomToBoundary(mapRef.current, filteredData);
-    } else if (municipalBoundary) {
-      zoomToBoundary(mapRef.current, municipalBoundary);
+    if (uploadedBoundaryRef.current) {
+      zoomToBoundary(mapRef.current, uploadedBoundaryRef.current);
+    } else if (facetsDataRef.current && facetsDataRef.current.features?.length > 0) {
+      zoomToBoundary(mapRef.current, facetsDataRef.current);
+    } else if (buildingsDataRef.current && buildingsDataRef.current.features?.length > 0) {
+      zoomToBoundary(mapRef.current, buildingsDataRef.current);
+    } else if (municipalBoundaryRef.current) {
+      zoomToBoundary(mapRef.current, municipalBoundaryRef.current);
     }
+  };
+
+  const getColorExpression = () => {
+    return colorModeRef.current === 'energy'
+      ? ['coalesce', ['get', 'energy_color'], '#22c55e']
+      : ['coalesce', ['get', 'color'], '#3b82f6'];
+  };
+
+  // Safe layer and source rebuild
+  const rebuildAllLayers = (map) => {
+    if (!map) return;
+
+    const safeAddSource = (id, def) => {
+      if (!map.getSource(id)) {
+        map.addSource(id, def);
+      }
+    };
+
+    const safeAddLayer = (def) => {
+      if (!map.getLayer(def.id)) {
+        map.addLayer(def);
+      }
+    };
+
+    // 1. Municipal Boundary
+    safeAddSource('municipal-src', {
+      type: 'geojson',
+      data: municipalBoundaryRef.current || { type: 'FeatureCollection', features: [] }
+    });
+
+    safeAddLayer({
+      id: 'municipal-layer',
+      type: 'line',
+      source: 'municipal-src',
+      paint: {
+        'line-color': uploadedBoundaryRef.current ? 'rgba(96, 165, 250, 0.4)' : '#38bdf8',
+        'line-width': uploadedBoundaryRef.current ? 1.5 : 2.5,
+        'line-dasharray': [3, 2]
+      }
+    });
+
+    // 2. Uploaded AOI
+    safeAddSource('uploaded-src', {
+      type: 'geojson',
+      data: uploadedBoundaryRef.current || { type: 'FeatureCollection', features: [] }
+    });
+
+    safeAddLayer({
+      id: 'uploaded-fill',
+      type: 'fill',
+      source: 'uploaded-src',
+      paint: {
+        'fill-color': '#a855f7',
+        'fill-opacity': 0.12
+      }
+    });
+
+    safeAddLayer({
+      id: 'uploaded-layer',
+      type: 'line',
+      source: 'uploaded-src',
+      paint: {
+        'line-color': '#c084fc',
+        'line-width': 3
+      }
+    });
+
+    // 3. Facets Source & Layers
+    safeAddSource('facets-src', {
+      type: 'geojson',
+      data: facetsDataRef.current || { type: 'FeatureCollection', features: [] },
+      buffer: 64,
+      tolerance: 0.5
+    });
+
+    safeAddLayer({
+      id: 'facets-fill',
+      type: 'fill',
+      source: 'facets-src',
+      layout: {
+        'visibility': viewModeRef.current === 'facets' ? 'visible' : 'none'
+      },
+      paint: {
+        'fill-color': getColorExpression(),
+        'fill-opacity': 0.88
+      }
+    });
+
+    safeAddLayer({
+      id: 'facets-outline',
+      type: 'line',
+      source: 'facets-src',
+      layout: {
+        'visibility': viewModeRef.current === 'facets' ? 'visible' : 'none'
+      },
+      paint: {
+        'line-color': '#ffffff',
+        'line-width': 0.8,
+        'line-opacity': 0.35
+      }
+    });
+
+    // 4. Buildings Source & Layers
+    safeAddSource('buildings-src', {
+      type: 'geojson',
+      data: buildingsDataRef.current || { type: 'FeatureCollection', features: [] },
+      buffer: 64,
+      tolerance: 0.5
+    });
+
+    safeAddLayer({
+      id: 'buildings-fill',
+      type: 'fill',
+      source: 'buildings-src',
+      layout: {
+        'visibility': viewModeRef.current === 'buildings' ? 'visible' : 'none'
+      },
+      paint: {
+        'fill-color': ['coalesce', ['get', 'energy_color'], '#f97316'],
+        'fill-opacity': 0.88
+      }
+    });
+
+    safeAddLayer({
+      id: 'buildings-outline',
+      type: 'line',
+      source: 'buildings-src',
+      layout: {
+        'visibility': viewModeRef.current === 'buildings' ? 'visible' : 'none'
+      },
+      paint: {
+        'line-color': '#ffffff',
+        'line-width': 0.8,
+        'line-opacity': 0.35
+      }
+    });
+
+    map.triggerRepaint();
   };
 
   // Switch Basemap
@@ -184,114 +297,8 @@ export default function MapViewer({
     
     map.setStyle(basemapConfig.style);
     map.once('style.load', () => {
-      reAddBoundaryLayers(map);
-      if (filteredDataRef.current) {
-        updateFeatureLayers(map, filteredDataRef.current);
-      }
+      rebuildAllLayers(map);
     });
-  };
-
-  const getColorExpression = () => {
-    const isBuildings = viewModeRef.current === 'buildings';
-    if (isBuildings) {
-      return ['coalesce', ['get', 'energy_color'], '#f97316'];
-    }
-    return colorModeRef.current === 'energy'
-      ? ['coalesce', ['get', 'energy_color'], '#22c55e']
-      : ['coalesce', ['get', 'color'], '#3b82f6'];
-  };
-
-  // Re-add boundary sources & layers
-  const reAddBoundaryLayers = (map) => {
-    if (!map) return;
-
-    if (!map.getSource('municipal-src')) {
-      map.addSource('municipal-src', { type: 'geojson', data: municipalBoundary || { type: 'FeatureCollection', features: [] } });
-    }
-    if (!map.getSource('uploaded-src')) {
-      map.addSource('uploaded-src', { type: 'geojson', data: uploadedBoundary || { type: 'FeatureCollection', features: [] } });
-    }
-
-    if (!map.getLayer('municipal-layer')) {
-      map.addLayer({
-        id: 'municipal-layer',
-        type: 'line',
-        source: 'municipal-src',
-        paint: {
-          'line-color': uploadedBoundary ? 'rgba(96, 165, 250, 0.4)' : '#38bdf8',
-          'line-width': uploadedBoundary ? 1.5 : 2.5,
-          'line-dasharray': [3, 2]
-        }
-      });
-    }
-
-    if (!map.getLayer('uploaded-fill')) {
-      map.addLayer({
-        id: 'uploaded-fill',
-        type: 'fill',
-        source: 'uploaded-src',
-        paint: {
-          'fill-color': '#a855f7',
-          'fill-opacity': 0.12
-        }
-      });
-    }
-
-    if (!map.getLayer('uploaded-layer')) {
-      map.addLayer({
-        id: 'uploaded-layer',
-        type: 'line',
-        source: 'uploaded-src',
-        paint: {
-          'line-color': '#c084fc',
-          'line-width': 3
-        }
-      });
-    }
-  };
-
-  // Refresh feature layers cleanly
-  const updateFeatureLayers = (map, data) => {
-    if (!map || !data || !data.features) return;
-
-    try {
-      if (map.getLayer('features-outline')) map.removeLayer('features-outline');
-      if (map.getLayer('features-layer')) map.removeLayer('features-layer');
-      if (map.getSource('features-src')) map.removeSource('features-src');
-
-      map.addSource('features-src', {
-        type: 'geojson',
-        data: data,
-        buffer: 64,
-        tolerance: 0.5
-      });
-
-      map.addLayer({
-        id: 'features-layer',
-        type: 'fill',
-        source: 'features-src',
-        paint: {
-          'fill-color': getColorExpression(),
-          'fill-opacity': 0.88
-        }
-      });
-
-      map.addLayer({
-        id: 'features-outline',
-        type: 'line',
-        source: 'features-src',
-        paint: {
-          'line-color': '#ffffff',
-          'line-width': 0.8,
-          'line-opacity': 0.35
-        }
-      });
-
-      setupPopups(map);
-      map.triggerRepaint();
-    } catch (err) {
-      console.warn("updateFeatureLayers error:", err);
-    }
   };
 
   // Initialize Map
@@ -313,17 +320,99 @@ export default function MapViewer({
       map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
       map.addControl(new ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
 
+      popupRef.current = new Popup({
+        closeButton: true,
+        closeOnClick: true,
+        maxWidth: '320px'
+      });
+
+      // Global Click Handler for Polygons
+      map.on('click', (e) => {
+        const queryLayers = [];
+        if (map.getLayer('facets-fill') && map.getLayoutProperty('facets-fill', 'visibility') !== 'none') {
+          queryLayers.push('facets-fill');
+        }
+        if (map.getLayer('buildings-fill') && map.getLayoutProperty('buildings-fill', 'visibility') !== 'none') {
+          queryLayers.push('buildings-fill');
+        }
+        if (queryLayers.length === 0) return;
+
+        const features = map.queryRenderedFeatures(e.point, { layers: queryLayers });
+        if (!features || features.length === 0) return;
+
+        const feat = features[0];
+        const p = feat.properties;
+
+        const currentLang = langRef.current || 'th';
+        const curT = translations[currentLang] || translations.th;
+        const curTariff = tariffRef.current || 4.2;
+        const curViewMode = viewModeRef.current || 'facets';
+
+        const area3d = Number(p.area_3d || p.area_2d || 0);
+        const cap = Number(p.capacity_kwp || ((area3d * 0.18) * 0.20));
+        const eng = Number(p.energy_corrected_kwh || p.energy_kwh || 0);
+        const sav = Number(p.savings_thb || (eng * curTariff));
+        const co2 = (eng * 0.4999) / 1000;
+        const clsName = curT.classes[p.class_id] || p.class_name || (curViewMode === 'buildings' ? 'Building' : 'Roof');
+
+        const html = `
+          <div style="font-family: 'Prompt', 'Inter', sans-serif;">
+            <div style="font-size: 0.95rem; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 6px; margin-bottom: 8px; display:flex; align-items:center; gap:8px;">
+              <div style="width:12px;height:12px;border-radius:3px;background:${p.color || p.energy_color || '#3b82f6'};box-shadow:0 0 6px ${p.color || p.energy_color || '#3b82f6'}"></div>
+              ${curViewMode === 'buildings' ? (p.building_id || 'Building') : clsName}
+            </div>
+            <div class="popup-row"><span style="color:#94a3b8">${curT.popupArea}</span><span style="font-weight:600">${area3d.toFixed(1)} m²</span></div>
+            ${p.slope_deg ? `<div class="popup-row"><span style="color:#94a3b8">${curT.popupSlope}</span><span>${Number(p.slope_deg).toFixed(1)}°</span></div>` : ''}
+            ${p.aspect_deg ? `<div class="popup-row"><span style="color:#94a3b8">${curT.popupAspect}</span><span>${Number(p.aspect_deg).toFixed(1)}°</span></div>` : ''}
+            <div class="popup-row" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08);">
+              <span style="color:#fcd34d;font-weight:600">⚡ ${curT.popupCapacity}</span>
+              <span style="color:#fcd34d;font-weight:700">${cap.toFixed(1)} kWp</span>
+            </div>
+            <div class="popup-row">
+              <span style="color:#34d399;font-weight:600">☀️ ${curT.popupAnnualEnergy}</span>
+              <span style="color:#34d399;font-weight:700">${fmt(eng)} kWh/y</span>
+            </div>
+            <div class="popup-row highlight">
+              <span>💰 ${curT.popupAnnualSavings}</span>
+              <span>~${fmt(sav)} ฿/y</span>
+            </div>
+            <div class="popup-row">
+              <span style="color:#38bdf8">🌿 ${curT.popupCo2}</span>
+              <span style="color:#38bdf8">${co2.toFixed(2)} t/y</span>
+            </div>
+          </div>
+        `;
+
+        popupRef.current.setLngLat(e.lngLat).setHTML(html).addTo(map);
+      });
+
+      // Cursor pointer on hover
+      map.on('mousemove', (e) => {
+        const queryLayers = [];
+        if (map.getLayer('facets-fill') && map.getLayoutProperty('facets-fill', 'visibility') !== 'none') {
+          queryLayers.push('facets-fill');
+        }
+        if (map.getLayer('buildings-fill') && map.getLayoutProperty('buildings-fill', 'visibility') !== 'none') {
+          queryLayers.push('buildings-fill');
+        }
+        if (queryLayers.length === 0) {
+          map.getCanvas().style.cursor = '';
+          return;
+        }
+
+        const features = map.queryRenderedFeatures(e.point, { layers: queryLayers });
+        map.getCanvas().style.cursor = features.length > 0 ? 'pointer' : '';
+      });
+
       map.on('load', () => {
         mapRef.current = map;
         setMapLoaded(true);
-        reAddBoundaryLayers(map);
-        
-        // If data is already available at map load, render immediately!
-        if (filteredDataRef.current && filteredDataRef.current.features && filteredDataRef.current.features.length > 0) {
-          updateFeatureLayers(map, filteredDataRef.current);
-          if (!initialZoomDone.current && !uploadedBoundary) {
+        rebuildAllLayers(map);
+
+        if (facetsDataRef.current && facetsDataRef.current.features?.length > 0) {
+          if (!initialZoomDone.current && !uploadedBoundaryRef.current) {
             initialZoomDone.current = true;
-            zoomToBoundary(map, filteredDataRef.current);
+            zoomToBoundary(map, facetsDataRef.current);
           }
         }
       });
@@ -340,7 +429,38 @@ export default function MapViewer({
     }
   }, []);
 
-  // Update Data Sources & Auto Zoom
+  // Update Facets Data
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !facetsData) return;
+
+    const src = map.getSource('facets-src');
+    if (src) {
+      src.setData(facetsData);
+    } else {
+      rebuildAllLayers(map);
+    }
+
+    if (!initialZoomDone.current && facetsData.features?.length > 0 && !uploadedBoundary) {
+      initialZoomDone.current = true;
+      zoomToBoundary(map, facetsData);
+    }
+    map.triggerRepaint();
+  }, [facetsData, mapLoaded]);
+
+  // Update Buildings Data
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !buildingsData) return;
+
+    const src = map.getSource('buildings-src');
+    if (src) {
+      src.setData(buildingsData);
+    }
+    map.triggerRepaint();
+  }, [buildingsData, mapLoaded]);
+
+  // Update Municipal & Uploaded Boundary Data
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
@@ -353,92 +473,79 @@ export default function MapViewer({
       uSrc.setData(uploadedBoundary || { type: 'FeatureCollection', features: [] });
       if (uploadedBoundary) zoomToBoundary(map, uploadedBoundary);
     }
+  }, [municipalBoundary, uploadedBoundary, mapLoaded]);
 
-    if (filteredData && filteredData.features && filteredData.features.length > 0) {
-      updateFeatureLayers(map, filteredData);
-
-      // Auto zoom to rooftops on first load
-      if (!initialZoomDone.current && !uploadedBoundary) {
-        initialZoomDone.current = true;
-        zoomToBoundary(map, filteredData);
-      }
-    }
-  }, [filteredData, municipalBoundary, uploadedBoundary, mapLoaded]);
-
-  // Update Layer Colors on mode switch
+  // Update View Mode Visibility
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
 
-    if (map.getLayer('features-layer')) {
-      map.setPaintProperty('features-layer', 'fill-color', getColorExpression());
-      map.setPaintProperty('features-layer', 'fill-opacity', 0.88);
+    const isFacets = viewMode === 'facets';
+    if (map.getLayer('facets-fill')) {
+      map.setLayoutProperty('facets-fill', 'visibility', isFacets ? 'visible' : 'none');
+    }
+    if (map.getLayer('facets-outline')) {
+      map.setLayoutProperty('facets-outline', 'visibility', isFacets ? 'visible' : 'none');
+    }
+    if (map.getLayer('buildings-fill')) {
+      map.setLayoutProperty('buildings-fill', 'visibility', !isFacets ? 'visible' : 'none');
+    }
+    if (map.getLayer('buildings-outline')) {
+      map.setLayoutProperty('buildings-outline', 'visibility', !isFacets ? 'visible' : 'none');
+    }
+    map.triggerRepaint();
+  }, [viewMode, mapLoaded]);
+
+  // Update Color Mode Paint
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    if (map.getLayer('facets-fill')) {
+      map.setPaintProperty('facets-fill', 'fill-color', getColorExpression());
+      map.setPaintProperty('facets-fill', 'fill-opacity', 0.88);
       map.triggerRepaint();
     }
-  }, [colorMode, viewMode, mapLoaded]);
+  }, [colorMode, mapLoaded]);
 
-  // Setup Dynamic Popup
-  const setupPopups = (mapInstance) => {
-    const popup = new Popup({
-      closeButton: true,
-      closeOnClick: true,
-      maxWidth: '320px'
-    });
+  // Apply filters via MapLibre GPU layer filter
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
 
-    mapInstance.on('click', 'features-layer', (e) => {
-      const feat = e.features[0];
-      if (!feat) return;
-      const p = feat.properties;
+    const activeClasses = Object.entries(visibleLayers)
+      .filter(([, v]) => v)
+      .map(([k]) => Number(k));
 
-      const currentLang = langRef.current || 'th';
-      const curT = translations[currentLang] || translations.th;
-      const curTariff = tariffRef.current || 4.2;
-      const curViewMode = viewModeRef.current || 'facets';
+    // Facets filter
+    if (map.getLayer('facets-fill')) {
+      const facetFilter = [
+        'all',
+        ['>=', ['coalesce', ['get', 'area_3d'], 0], filters.minArea || 0],
+        ['>=', ['coalesce', ['get', 'energy_kwh'], 0], filters.minEnergy || 0],
+        ['in', ['get', 'class_id'], ['literal', activeClasses]]
+      ];
+      map.setFilter('facets-fill', facetFilter);
+      if (map.getLayer('facets-outline')) map.setFilter('facets-outline', facetFilter);
+    }
 
-      const area3d = p.area_3d || p.area_2d || 0;
-      const cap = p.capacity_kwp || ((area3d * 0.18) * 0.20);
-      const eng = p.energy_corrected_kwh || p.energy_kwh || 0;
-      const sav = p.savings_thb || (eng * curTariff);
-      const co2 = (eng * 0.4999) / 1000; // tCO2/yr
-      const clsName = curT.classes[p.class_id] || p.class_name || (curViewMode === 'buildings' ? 'Building' : 'Roof');
+    // Buildings filter
+    if (map.getLayer('buildings-fill')) {
+      const bldFilter = [
+        'all',
+        ['>=', ['coalesce', ['get', 'area_2d'], 0], filters.minArea || 0],
+        ['>=', ['coalesce', ['get', 'energy_kwh'], 0], filters.minEnergy || 0]
+      ];
+      map.setFilter('buildings-fill', bldFilter);
+      if (map.getLayer('buildings-outline')) map.setFilter('buildings-outline', bldFilter);
+    }
 
-      const html = `
-        <div style="font-family: 'Prompt', 'Inter', sans-serif;">
-          <div style="font-size: 0.95rem; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 6px; margin-bottom: 8px; display:flex; align-items:center; gap:8px;">
-            <div style="width:12px;height:12px;border-radius:3px;background:${p.color || p.energy_color || '#3b82f6'};box-shadow:0 0 6px ${p.color || p.energy_color || '#3b82f6'}"></div>
-            ${curViewMode === 'buildings' ? (p.building_id || 'Building') : clsName}
-          </div>
-          <div class="popup-row"><span style="color:#94a3b8">${curT.popupArea}</span><span style="font-weight:600">${area3d.toFixed(1)} m²</span></div>
-          ${p.slope_deg ? `<div class="popup-row"><span style="color:#94a3b8">${curT.popupSlope}</span><span>${p.slope_deg}°</span></div>` : ''}
-          ${p.aspect_deg ? `<div class="popup-row"><span style="color:#94a3b8">${curT.popupAspect}</span><span>${p.aspect_deg}°</span></div>` : ''}
-          <div class="popup-row" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08);">
-            <span style="color:#fcd34d;font-weight:600">⚡ ${curT.popupCapacity}</span>
-            <span style="color:#fcd34d;font-weight:700">${cap.toFixed(1)} kWp</span>
-          </div>
-          <div class="popup-row">
-            <span style="color:#34d399;font-weight:600">☀️ ${curT.popupAnnualEnergy}</span>
-            <span style="color:#34d399;font-weight:700">${fmt(eng)} kWh/y</span>
-          </div>
-          <div class="popup-row highlight">
-            <span>💰 ${curT.popupAnnualSavings}</span>
-            <span>~${fmt(sav)} ฿/y</span>
-          </div>
-          <div class="popup-row">
-            <span style="color:#38bdf8">🌿 ${curT.popupCo2}</span>
-            <span style="color:#38bdf8">${co2.toFixed(2)} t/y</span>
-          </div>
-        </div>
-      `;
+    map.triggerRepaint();
+  }, [filters, visibleLayers, mapLoaded]);
 
-      popup.setLngLat(e.lngLat).setHTML(html).addTo(mapInstance);
-    });
-
-    mapInstance.on('mouseenter', 'features-layer', () => { mapInstance.getCanvas().style.cursor = 'pointer'; });
-    mapInstance.on('mouseleave', 'features-layer', () => { mapInstance.getCanvas().style.cursor = ''; });
-  };
-
-  const totalCapMwp = ((filteredData?.features?.reduce((acc, f) => acc + (f.properties?.capacity_kwp || 0), 0) || 0) / 1000).toFixed(2);
-  const totalYieldGwh = ((filteredData?.features?.reduce((acc, f) => acc + (f.properties?.energy_corrected_kwh || f.properties?.energy_kwh || 0), 0) || 0) / 1000000).toFixed(2);
+  const activeData = viewMode === 'buildings' ? buildingsData : facetsData;
+  const totalCapMwp = ((activeData?.features?.reduce((acc, f) => acc + (f.properties?.capacity_kwp || 0), 0) || 0) / 1000).toFixed(2);
+  const totalYieldGwh = ((activeData?.features?.reduce((acc, f) => acc + (f.properties?.energy_corrected_kwh || f.properties?.energy_kwh || 0), 0) || 0) / 1000000).toFixed(2);
 
   const legendItems = viewMode === 'buildings'
     ? CAPACITY_LEGEND

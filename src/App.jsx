@@ -144,7 +144,8 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         systemCostPerKwp={systemCostPerKwp} setSystemCostPerKwp={setSystemCostPerKwp}
       />
       <MapViewer
-        geoData={activeGeoData}
+        facetsData={geoDataFacets}
+        buildingsData={geoDataBuildings}
         filters={filters}
         visibleLayers={visibleLayers}
         uploadedBoundary={uploadedBoundary}
@@ -209,7 +210,8 @@ function ResultDashboard({ jobId, lang, setLang, tariff, setTariff, systemCostPe
         systemCostPerKwp={systemCostPerKwp} setSystemCostPerKwp={setSystemCostPerKwp}
       />
       <MapViewer
-        geoData={geoData}
+        facetsData={geoData}
+        buildingsData={null}
         filters={filters}
         visibleLayers={visibleLayers}
         uploadedBoundary={uploadedBoundary}
