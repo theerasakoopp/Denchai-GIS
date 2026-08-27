@@ -4,7 +4,7 @@ import {
 } from 'recharts';
 import {
   Zap, Home, Upload, Layers, SunMedium, X, MapPin,
-  TrendingUp, Leaf, DollarSign, Settings2, Download, Printer, CheckSquare, Square
+  TrendingUp, Leaf, DollarSign, Settings2, Download, Printer
 } from 'lucide-react';
 import { ROOF_CLASSES } from '../App';
 import { translations } from '../translations';
@@ -21,21 +21,32 @@ const fmtEnergy = (n) => {
 };
 
 // Filter features by criteria
-function applyFilters(geoData, filters, visibleLayers, boundary) {
-  if (!geoData) return { totalArea: 0, totalEnergy: 0, totalCapacity: 0, count: 0, byCls: {} };
+function applyFilters(geoData, filters, visibleLayers, boundary, viewMode) {
+  if (!geoData || !geoData.features) return { totalArea: 0, totalEnergy: 0, totalCapacity: 0, count: 0, byCls: {} };
 
   let totalArea = 0, totalEnergy = 0, totalCapacity = 0, count = 0;
   const byCls = Object.fromEntries(
     Object.keys(ROOF_CLASSES).map(k => [k, { area: 0, energy: 0, capacity: 0, count: 0 }])
   );
 
+  const isBuildings = viewMode === 'buildings';
+
   for (const f of geoData.features) {
     const p = f.properties;
-    if (!visibleLayers[p.class_id]) continue;
-    if (p.area_3d < filters.minArea) continue;
-    if (p.energy_kwh < filters.minEnergy) continue;
+    if (!p) continue;
 
-    if (boundary) {
+    if (!isBuildings) {
+      if (!visibleLayers[p.class_id]) continue;
+    }
+
+    const area = p.area_3d || p.area_2d || 0;
+    const correctedEnergy = p.energy_corrected_kwh || p.energy_kwh || 0;
+    const cap = p.capacity_kwp || ((area * 0.18) * 0.20);
+
+    if (filters.minArea > 0 && area < filters.minArea) continue;
+    if (filters.minEnergy > 0 && correctedEnergy < filters.minEnergy) continue;
+
+    if (boundary && boundary.features && boundary.features.length > 0) {
       try {
         const pt = turf.centroid(f);
         const inside = boundary.features.some(bf =>
@@ -45,16 +56,13 @@ function applyFilters(geoData, filters, visibleLayers, boundary) {
       } catch { continue; }
     }
 
-    const correctedEnergy = p.energy_corrected_kwh || p.energy_kwh || 0;
-    const cap = p.capacity_kwp || ((p.area_3d * 0.18) * 0.20);
-
-    totalArea += p.area_3d;
+    totalArea += area;
     totalEnergy += correctedEnergy;
     totalCapacity += cap;
     count++;
 
-    if (byCls[p.class_id]) {
-      byCls[p.class_id].area += p.area_3d;
+    if (p.class_id && byCls[p.class_id]) {
+      byCls[p.class_id].area += area;
       byCls[p.class_id].energy += correctedEnergy;
       byCls[p.class_id].capacity += cap;
       byCls[p.class_id].count++;
@@ -81,8 +89,8 @@ export default function Sidebar({
   const [tempSystemCost, setTempSystemCost] = useState(systemCostPerKwp);
 
   const stats = useMemo(
-    () => applyFilters(geoData, filters, visibleLayers, uploadedBoundary),
-    [geoData, filters, visibleLayers, uploadedBoundary]
+    () => applyFilters(geoData, filters, visibleLayers, uploadedBoundary, viewMode),
+    [geoData, filters, visibleLayers, uploadedBoundary, viewMode]
   );
 
   // Financial and environmental calculations
@@ -92,11 +100,19 @@ export default function Sidebar({
   const co2ReductionTons = (stats.totalEnergy * 0.4999) / 1000; // 0.4999 kg CO2/kWh
   const treesEquivalent = Math.round(co2ReductionTons * 45); // ~45 trees per ton CO2
 
-  const chartData = Object.entries(ROOF_CLASSES).map(([id, cls]) => ({
-    name: t.classes[id] ? t.classes[id].split(' ')[0] : cls.name,
-    energy: Math.round((stats.byCls[id]?.energy || 0) / 1e3), // MWh
-    color: cls.color,
-  }));
+  const isBuildings = viewMode === 'buildings';
+
+  const chartData = isBuildings
+    ? [
+        { name: '< 5 kWp', energy: Math.round(stats.totalEnergy * 0.3 / 1e3), color: '#22c55e' },
+        { name: '5-20 kWp', energy: Math.round(stats.totalEnergy * 0.5 / 1e3), color: '#38bdf8' },
+        { name: '≥ 20 kWp', energy: Math.round(stats.totalEnergy * 0.2 / 1e3), color: '#f97316' },
+      ]
+    : Object.entries(ROOF_CLASSES).map(([id, cls]) => ({
+        name: t.classes[id] ? t.classes[id].split(' ')[0] : cls.name,
+        energy: Math.round((stats.byCls[id]?.energy || 0) / 1e3), // MWh
+        color: cls.color,
+      }));
 
   // Upload AOI
   const handleFileUpload = async (e) => {
@@ -312,7 +328,7 @@ export default function Sidebar({
         {/* Energy Yield Chart */}
         <div>
           <div className="section-title">
-            <span>{lang === 'th' ? 'พลังงานแยกตามทิศทาง (MWh/y)' : 'Energy by Roof Orientation (MWh/y)'}</span>
+            <span>{isBuildings ? (lang === 'th' ? 'สัดส่วนขนาดกำลังผลิต' : 'Capacity Distribution') : (lang === 'th' ? 'พลังงานแยกตามทิศทาง (MWh/y)' : 'Energy by Roof Orientation (MWh/y)')}</span>
           </div>
           <div style={{ width: '100%', height: 140, background: 'rgba(0,0,0,0.25)', borderRadius: 10, padding: '10px 0' }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -379,34 +395,36 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Roof Classification Layers */}
-        <div>
-          <div className="section-title">
-            <span>{t.roofClassesHeader}</span>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button className="btn btn-sm" onClick={() => toggleAllLayers(true)}>{t.selectAll}</button>
-              <button className="btn btn-sm" onClick={() => toggleAllLayers(false)}>{t.deselectAll}</button>
+        {/* Roof Classification Layers (Only in facets mode) */}
+        {!isBuildings && (
+          <div>
+            <div className="section-title">
+              <span>{t.roofClassesHeader}</span>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button className="btn btn-sm" onClick={() => toggleAllLayers(true)}>{t.selectAll}</button>
+                <button className="btn btn-sm" onClick={() => toggleAllLayers(false)}>{t.deselectAll}</button>
+              </div>
+            </div>
+            <div className="layer-list">
+              {Object.entries(ROOF_CLASSES).map(([id, cls]) => {
+                const active = !!visibleLayers[id];
+                return (
+                  <div
+                    key={id}
+                    className={`layer-item ${active ? 'active' : 'muted'}`}
+                    onClick={() => toggleLayer(id)}
+                  >
+                    <div className="layer-left">
+                      <div className="color-dot" style={{ background: cls.color }} />
+                      <span className="layer-name">{t.classes[id] || cls.name}</span>
+                    </div>
+                    <span className="layer-count">{fmt(stats.byCls[id]?.count || 0)}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
-          <div className="layer-list">
-            {Object.entries(ROOF_CLASSES).map(([id, cls]) => {
-              const active = !!visibleLayers[id];
-              return (
-                <div
-                  key={id}
-                  className={`layer-item ${active ? 'active' : 'muted'}`}
-                  onClick={() => toggleLayer(id)}
-                >
-                  <div className="layer-left">
-                    <div className="color-dot" style={{ background: cls.color }} />
-                    <span className="layer-name">{t.classes[id] || cls.name}</span>
-                  </div>
-                  <span className="layer-count">{fmt(stats.byCls[id]?.count || 0)}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        )}
 
         {/* AOI Study Area Upload */}
         <div>

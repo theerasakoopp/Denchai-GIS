@@ -92,10 +92,13 @@ export default function MapViewer({
   const langRef = useRef(lang);
   const tariffRef = useRef(tariff);
   const viewModeRef = useRef(viewMode);
+  const colorModeRef = useRef(colorMode);
+  const filteredDataRef = useRef(null);
 
   useEffect(() => { langRef.current = lang; }, [lang]);
   useEffect(() => { tariffRef.current = tariff; }, [tariff]);
   useEffect(() => { viewModeRef.current = viewMode; }, [viewMode]);
+  useEffect(() => { colorModeRef.current = colorMode; }, [colorMode]);
 
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -106,7 +109,11 @@ export default function MapViewer({
 
   // Filter features
   useEffect(() => {
-    if (!geoData || !geoData.features) return;
+    if (!geoData || !geoData.features) {
+      setFilteredData(null);
+      filteredDataRef.current = null;
+      return;
+    }
 
     const isBuildings = viewMode === 'buildings';
     const clippingBoundary = uploadedBoundary;
@@ -115,13 +122,14 @@ export default function MapViewer({
       const p = f.properties;
       if (!p) return false;
 
-      if (isBuildings) {
-        if (filters.minEnergy > 0 && p.energy_kwh < filters.minEnergy) return false;
-        if (filters.minArea > 0 && p.area_2d < filters.minArea) return false;
-      } else {
+      const area = p.area_3d || p.area_2d || 0;
+      const energy = p.energy_corrected_kwh || p.energy_kwh || 0;
+
+      if (filters.minArea > 0 && area < filters.minArea) return false;
+      if (filters.minEnergy > 0 && energy < filters.minEnergy) return false;
+
+      if (!isBuildings) {
         if (!visibleLayers[p.class_id]) return false;
-        if (p.area_3d < filters.minArea) return false;
-        if (p.energy_kwh < filters.minEnergy) return false;
       }
 
       if (clippingBoundary && clippingBoundary.features && clippingBoundary.features.length > 0) {
@@ -135,7 +143,9 @@ export default function MapViewer({
       return true;
     });
 
-    setFilteredData({ type: 'FeatureCollection', features });
+    const fc = { type: 'FeatureCollection', features };
+    setFilteredData(fc);
+    filteredDataRef.current = fc;
   }, [geoData, filters, visibleLayers, uploadedBoundary, viewMode]);
 
   // Zoom to GeoJSON boundary
@@ -144,8 +154,8 @@ export default function MapViewer({
     try {
       const bbox = turf.bbox(boundaryGeoJSON);
       mapInstance.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], {
-        padding: 50,
-        duration: 900,
+        padding: 40,
+        duration: 800,
         animate: true
       });
     } catch (err) {
@@ -174,12 +184,25 @@ export default function MapViewer({
     
     map.setStyle(basemapConfig.style);
     map.once('style.load', () => {
-      reAddLayers(map);
+      reAddBoundaryLayers(map);
+      if (filteredDataRef.current) {
+        updateFeatureLayers(map, filteredDataRef.current);
+      }
     });
   };
 
-  // Re-add custom GIS sources & layers after style load
-  const reAddLayers = (map) => {
+  const getColorExpression = () => {
+    const isBuildings = viewModeRef.current === 'buildings';
+    if (isBuildings) {
+      return ['coalesce', ['get', 'energy_color'], '#f97316'];
+    }
+    return colorModeRef.current === 'energy'
+      ? ['coalesce', ['get', 'energy_color'], '#22c55e']
+      : ['coalesce', ['get', 'color'], '#3b82f6'];
+  };
+
+  // Re-add boundary sources & layers
+  const reAddBoundaryLayers = (map) => {
     if (!map) return;
 
     if (!map.getSource('municipal-src')) {
@@ -187,9 +210,6 @@ export default function MapViewer({
     }
     if (!map.getSource('uploaded-src')) {
       map.addSource('uploaded-src', { type: 'geojson', data: uploadedBoundary || { type: 'FeatureCollection', features: [] } });
-    }
-    if (!map.getSource('features-src')) {
-      map.addSource('features-src', { type: 'geojson', data: filteredData || { type: 'FeatureCollection', features: [] } });
     }
 
     if (!map.getLayer('municipal-layer')) {
@@ -228,25 +248,50 @@ export default function MapViewer({
         }
       });
     }
+  };
 
-    if (!map.getLayer('features-layer')) {
-      const colorProp = viewMode === 'buildings' 
-        ? 'energy_color'
-        : (colorMode === 'energy' ? 'energy_color' : 'color');
+  // Refresh feature layers cleanly
+  const updateFeatureLayers = (map, data) => {
+    if (!map || !data || !data.features) return;
+
+    try {
+      if (map.getLayer('features-outline')) map.removeLayer('features-outline');
+      if (map.getLayer('features-layer')) map.removeLayer('features-layer');
+      if (map.getSource('features-src')) map.removeSource('features-src');
+
+      map.addSource('features-src', {
+        type: 'geojson',
+        data: data,
+        buffer: 64,
+        tolerance: 0.5
+      });
 
       map.addLayer({
         id: 'features-layer',
         type: 'fill',
         source: 'features-src',
         paint: {
-          'fill-color': ['coalesce', ['get', colorProp], '#f59e0b'],
-          'fill-opacity': 0.88,
-          'fill-outline-color': 'rgba(255, 255, 255, 0.35)'
+          'fill-color': getColorExpression(),
+          'fill-opacity': 0.88
         }
       });
-    }
 
-    setupPopups(map);
+      map.addLayer({
+        id: 'features-outline',
+        type: 'line',
+        source: 'features-src',
+        paint: {
+          'line-color': '#ffffff',
+          'line-width': 0.8,
+          'line-opacity': 0.35
+        }
+      });
+
+      setupPopups(map);
+      map.triggerRepaint();
+    } catch (err) {
+      console.warn("updateFeatureLayers error:", err);
+    }
   };
 
   // Initialize Map
@@ -257,7 +302,7 @@ export default function MapViewer({
       const map = new Map({
         container: mapContainerRef.current,
         style: BASEMAP_STYLES.satellite.style,
-        center: [100.0556, 17.9858], // Centered at Denchai rooftop cluster
+        center: [100.0556, 17.9858],
         zoom: 15.5,
         pitch: 35,
         bearing: -10,
@@ -269,9 +314,18 @@ export default function MapViewer({
       map.addControl(new ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
 
       map.on('load', () => {
-        reAddLayers(map);
         mapRef.current = map;
         setMapLoaded(true);
+        reAddBoundaryLayers(map);
+        
+        // If data is already available at map load, render immediately!
+        if (filteredDataRef.current && filteredDataRef.current.features && filteredDataRef.current.features.length > 0) {
+          updateFeatureLayers(map, filteredDataRef.current);
+          if (!initialZoomDone.current && !uploadedBoundary) {
+            initialZoomDone.current = true;
+            zoomToBoundary(map, filteredDataRef.current);
+          }
+        }
       });
 
       return () => {
@@ -300,29 +354,27 @@ export default function MapViewer({
       if (uploadedBoundary) zoomToBoundary(map, uploadedBoundary);
     }
 
-    const fSrc = map.getSource('features-src');
-    if (fSrc && filteredData) {
-      fSrc.setData(filteredData);
-      
+    if (filteredData && filteredData.features && filteredData.features.length > 0) {
+      updateFeatureLayers(map, filteredData);
+
       // Auto zoom to rooftops on first load
-      if (!initialZoomDone.current && filteredData.features.length > 0 && !uploadedBoundary) {
+      if (!initialZoomDone.current && !uploadedBoundary) {
         initialZoomDone.current = true;
         zoomToBoundary(map, filteredData);
       }
     }
   }, [filteredData, municipalBoundary, uploadedBoundary, mapLoaded]);
 
-  // Update Layer Colors
+  // Update Layer Colors on mode switch
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded || !map.getLayer('features-layer')) return;
+    if (!map || !mapLoaded) return;
 
-    const colorProp = viewMode === 'buildings'
-      ? 'energy_color'
-      : (colorMode === 'energy' ? 'energy_color' : 'color');
-
-    map.setPaintProperty('features-layer', 'fill-color', ['coalesce', ['get', colorProp], '#f59e0b']);
-    map.setPaintProperty('features-layer', 'fill-opacity', 0.88);
+    if (map.getLayer('features-layer')) {
+      map.setPaintProperty('features-layer', 'fill-color', getColorExpression());
+      map.setPaintProperty('features-layer', 'fill-opacity', 0.88);
+      map.triggerRepaint();
+    }
   }, [colorMode, viewMode, mapLoaded]);
 
   // Setup Dynamic Popup
@@ -348,12 +400,12 @@ export default function MapViewer({
       const eng = p.energy_corrected_kwh || p.energy_kwh || 0;
       const sav = p.savings_thb || (eng * curTariff);
       const co2 = (eng * 0.4999) / 1000; // tCO2/yr
-      const clsName = curT.classes[p.class_id] || p.class_name || 'Roof';
+      const clsName = curT.classes[p.class_id] || p.class_name || (curViewMode === 'buildings' ? 'Building' : 'Roof');
 
       const html = `
         <div style="font-family: 'Prompt', 'Inter', sans-serif;">
           <div style="font-size: 0.95rem; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 6px; margin-bottom: 8px; display:flex; align-items:center; gap:8px;">
-            <div style="width:12px;height:12px;border-radius:3px;background:${p.color || '#3b82f6'};box-shadow:0 0 6px ${p.color || '#3b82f6'}"></div>
+            <div style="width:12px;height:12px;border-radius:3px;background:${p.color || p.energy_color || '#3b82f6'};box-shadow:0 0 6px ${p.color || p.energy_color || '#3b82f6'}"></div>
             ${curViewMode === 'buildings' ? (p.building_id || 'Building') : clsName}
           </div>
           <div class="popup-row"><span style="color:#94a3b8">${curT.popupArea}</span><span style="font-weight:600">${area3d.toFixed(1)} m²</span></div>
