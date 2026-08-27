@@ -4,7 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import * as turf from '@turf/turf';
 import { ROOF_CLASSES } from '../App';
 import { translations } from '../translations';
-import { Layers, Globe, Compass, Maximize2, SunMedium } from 'lucide-react';
+import { Layers, Globe, Compass, SunMedium } from 'lucide-react';
 
 const BASEMAP_STYLES = {
   satellite: {
@@ -89,6 +89,14 @@ export default function MapViewer({
   lang = 'th', tariff = 4.2
 }) {
   const t = translations[lang] || translations.th;
+  const langRef = useRef(lang);
+  const tariffRef = useRef(tariff);
+  const viewModeRef = useRef(viewMode);
+
+  useEffect(() => { langRef.current = lang; }, [lang]);
+  useEffect(() => { tariffRef.current = tariff; }, [tariff]);
+  useEffect(() => { viewModeRef.current = viewMode; }, [viewMode]);
+
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -291,12 +299,12 @@ export default function MapViewer({
     map.setPaintProperty('features-layer', 'fill-opacity', 0.88);
   }, [colorMode, viewMode, mapLoaded]);
 
-  // Setup Popup
+  // Setup Dynamic Popup
   const setupPopups = (mapInstance) => {
     const popup = new maplibregl.Popup({
       closeButton: true,
       closeOnClick: true,
-      maxWidth: '300px'
+      maxWidth: '320px'
     });
 
     mapInstance.on('click', 'features-layer', (e) => {
@@ -304,36 +312,41 @@ export default function MapViewer({
       if (!feat) return;
       const p = feat.properties;
 
+      const currentLang = langRef.current || 'th';
+      const curT = translations[currentLang] || translations.th;
+      const curTariff = tariffRef.current || 4.2;
+      const curViewMode = viewModeRef.current || 'facets';
+
       const area3d = p.area_3d || p.area_2d || 0;
       const cap = p.capacity_kwp || ((area3d * 0.18) * 0.20);
       const eng = p.energy_corrected_kwh || p.energy_kwh || 0;
-      const sav = p.savings_thb || (eng * tariff);
+      const sav = p.savings_thb || (eng * curTariff);
       const co2 = (eng * 0.4999) / 1000; // tCO2/yr
-      const clsName = t.classes[p.class_id] || p.class_name || 'Roof';
+      const clsName = curT.classes[p.class_id] || p.class_name || 'Roof';
 
       const html = `
         <div style="font-family: 'Prompt', 'Inter', sans-serif;">
           <div style="font-size: 0.95rem; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 6px; margin-bottom: 8px; display:flex; align-items:center; gap:8px;">
             <div style="width:12px;height:12px;border-radius:3px;background:${p.color || '#3b82f6'};box-shadow:0 0 6px ${p.color || '#3b82f6'}"></div>
-            ${viewMode === 'buildings' ? (p.building_id || 'Building') : clsName}
+            ${curViewMode === 'buildings' ? (p.building_id || 'Building') : clsName}
           </div>
-          <div class="popup-row"><span style="color:#94a3b8">${t.popupArea}</span><span style="font-weight:600">${area3d.toFixed(1)} m²</span></div>
-          ${p.slope_deg ? `<div class="popup-row"><span style="color:#94a3b8">${t.popupSlope}</span><span>${p.slope_deg}°</span></div>` : ''}
-          ${p.aspect_deg ? `<div class="popup-row"><span style="color:#94a3b8">${t.popupAspect}</span><span>${p.aspect_deg}°</span></div>` : ''}
+          <div class="popup-row"><span style="color:#94a3b8">${curT.popupArea}</span><span style="font-weight:600">${area3d.toFixed(1)} m²</span></div>
+          ${p.slope_deg ? `<div class="popup-row"><span style="color:#94a3b8">${curT.popupSlope}</span><span>${p.slope_deg}°</span></div>` : ''}
+          ${p.aspect_deg ? `<div class="popup-row"><span style="color:#94a3b8">${curT.popupAspect}</span><span>${p.aspect_deg}°</span></div>` : ''}
           <div class="popup-row" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08);">
-            <span style="color:#fcd34d;font-weight:600">⚡ ${t.popupCapacity}</span>
+            <span style="color:#fcd34d;font-weight:600">⚡ ${curT.popupCapacity}</span>
             <span style="color:#fcd34d;font-weight:700">${cap.toFixed(1)} kWp</span>
           </div>
           <div class="popup-row">
-            <span style="color:#34d399;font-weight:600">☀️ ${t.popupAnnualEnergy}</span>
+            <span style="color:#34d399;font-weight:600">☀️ ${curT.popupAnnualEnergy}</span>
             <span style="color:#34d399;font-weight:700">${fmt(eng)} kWh/y</span>
           </div>
           <div class="popup-row highlight">
-            <span>💰 ${t.popupAnnualSavings}</span>
+            <span>💰 ${curT.popupAnnualSavings}</span>
             <span>~${fmt(sav)} ฿/y</span>
           </div>
           <div class="popup-row">
-            <span style="color:#38bdf8">🌿 ${t.popupCo2}</span>
+            <span style="color:#38bdf8">🌿 ${curT.popupCo2}</span>
             <span style="color:#38bdf8">${co2.toFixed(2)} t/y</span>
           </div>
         </div>
@@ -407,7 +420,7 @@ export default function MapViewer({
           {t.appTitle}
         </div>
         <div style={{ marginBottom: 8 }}>
-          <div style={{ fontSize: '0.68rem', color: '#fbbf24' }}>{t.kpiEstInvestment ? 'กำลังผลิตติดตั้งรวม (Capacity)' : 'Total Capacity'}</div>
+          <div style={{ fontSize: '0.68rem', color: '#fbbf24' }}>{lang === 'th' ? 'กำลังผลิตติดตั้งรวม (Capacity)' : 'Total Capacity'}</div>
           <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fcd34d' }}>
             {totalCapMwp} <span style={{ fontSize: '0.8rem', fontWeight: 500 }}>MWp</span>
           </div>
@@ -434,12 +447,12 @@ export default function MapViewer({
         <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="legend-row">
             <div style={{ width: 14, height: 2, borderTop: '2px dashed #38bdf8' }} />
-            <span style={{ color: '#94a3b8' }}>ขอบเขตเทศบาลตำบลเด่นชัย</span>
+            <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลตำบลเด่นชัย' : 'Denchai Municipal Boundary'}</span>
           </div>
           {uploadedBoundary && (
             <div className="legend-row">
               <div style={{ width: 14, height: 3, background: '#c084fc', borderRadius: 2 }} />
-              <span style={{ color: '#c084fc' }}>ขอบเขตพื้นที่ศึกษา (AOI)</span>
+              <span style={{ color: '#c084fc' }}>{lang === 'th' ? 'ขอบเขตพื้นที่ศึกษา (AOI)' : 'Active Study Area (AOI)'}</span>
             </div>
           )}
         </div>
