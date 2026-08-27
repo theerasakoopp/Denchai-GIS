@@ -6,8 +6,48 @@ import { ROOF_CLASSES } from '../App';
 import { translations } from '../translations';
 import { Layers, Globe, Compass, SunMedium, Focus, Plane } from 'lucide-react';
 
+const BASE = import.meta.env.BASE_URL || '/';
+const cleanBase = BASE.endsWith('/') ? BASE : BASE + '/';
+
 // ── Basemap Configurations ──────────────────────────────────
 const BASEMAP_STYLES = {
+  uav: {
+    id: 'uav',
+    name: 'UAV Drone (30cm)',
+    style: {
+      version: 8,
+      sources: {
+        'osm-bg': {
+          type: 'raster',
+          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          attribution: '© OpenStreetMap contributors'
+        },
+        'uav-tiles': {
+          type: 'raster',
+          tiles: [`${cleanBase}tiles/uav/{z}/{x}/{y}.webp`],
+          tileSize: 256,
+          minzoom: 14,
+          maxzoom: 20,
+          attribution: '© UAV-SolarNet Orthophoto (30cm GSD)'
+        }
+      },
+      layers: [
+        {
+          id: 'osm-bg-layer',
+          type: 'raster',
+          source: 'osm-bg'
+        },
+        {
+          id: 'uav-layer',
+          type: 'raster',
+          source: 'uav-tiles',
+          minzoom: 14,
+          maxzoom: 20
+        }
+      ]
+    }
+  },
   dark: {
     id: 'dark',
     name: 'Dark Matter',
@@ -531,6 +571,7 @@ export default function MapViewer({
       {/* Basemap Switcher & Controls */}
       <div className="map-floating-panel basemap-control">
         {[
+          { key: 'uav',       icon: <Plane size={13} />,     label: lang === 'th' ? 'โดรน UAV (30cm)' : 'UAV Ortho' },
           { key: 'dark',      icon: <Layers size={13} />,    label: lang === 'th' ? 'มืด (GIS)' : 'Dark' },
           { key: 'satellite', icon: <Globe size={13} />,     label: lang === 'th' ? 'ดาวเทียม' : 'Satellite' },
           { key: 'osm',       icon: <Compass size={13} />,   label: 'OSM' },
