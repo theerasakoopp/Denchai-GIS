@@ -188,7 +188,7 @@ export default function MapViewer({
     try {
       const bbox = turf.bbox(geoJSON);
       mapInstance.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], {
-        padding: 60,
+        padding: { top: 60, bottom: 60, left: 420, right: 60 },
         duration: 900
       });
     } catch (_) {}
@@ -450,7 +450,7 @@ export default function MapViewer({
           id: 'infra-line-glow',
           type: 'line',
           source: 'infra-src',
-          layout: { visibility: 'none' },
+          layout: { visibility: 'visible' },
           filter: ['==', ['geometry-type'], 'LineString'],
           paint: {
             'line-color': '#000000',
@@ -462,7 +462,7 @@ export default function MapViewer({
           id: 'infra-line',
           type: 'line',
           source: 'infra-src',
-          layout: { visibility: 'none' },
+          layout: { visibility: 'visible' },
           filter: ['==', ['geometry-type'], 'LineString'],
           paint: {
             'line-color': '#f97316',
@@ -476,7 +476,7 @@ export default function MapViewer({
           id: 'infra-circle-glow',
           type: 'circle',
           source: 'infra-src',
-          layout: { visibility: 'none' },
+          layout: { visibility: 'visible' },
           filter: ['==', ['geometry-type'], 'Point'],
           paint: {
             'circle-radius': 14,
@@ -488,7 +488,7 @@ export default function MapViewer({
           id: 'infra-circle',
           type: 'circle',
           source: 'infra-src',
-          layout: { visibility: 'none' },
+          layout: { visibility: 'visible' },
           filter: ['==', ['geometry-type'], 'Point'],
           paint: {
             'circle-radius': 8,
@@ -503,7 +503,7 @@ export default function MapViewer({
           type: 'symbol',
           source: 'infra-src',
           layout: {
-            visibility: 'none',
+            visibility: 'visible',
             'text-field': ['get', 'name_th'],
             'text-size': 11,
             'text-offset': [0, 1.3],
@@ -522,7 +522,7 @@ export default function MapViewer({
           id: 'poi-glow',
           type: 'circle',
           source: 'poi-src',
-          layout: { visibility: 'none' },
+          layout: { visibility: 'visible' },
           paint: {
             'circle-radius': 15,
             'circle-color': POI_COLOR_MATCH,
@@ -533,7 +533,7 @@ export default function MapViewer({
           id: 'poi-circle',
           type: 'circle',
           source: 'poi-src',
-          layout: { visibility: 'none' },
+          layout: { visibility: 'visible' },
           paint: {
             'circle-radius': 8.5,
             'circle-color': POI_COLOR_MATCH,
@@ -547,7 +547,7 @@ export default function MapViewer({
           type: 'symbol',
           source: 'poi-src',
           layout: {
-            visibility: 'none',
+            visibility: 'visible',
             'text-field': ['get', 'name_th'],
             'text-size': 11,
             'text-offset': [0, 1.3],
@@ -566,7 +566,7 @@ export default function MapViewer({
           id: 'service-glow',
           type: 'circle',
           source: 'service-src',
-          layout: { visibility: 'none' },
+          layout: { visibility: 'visible' },
           paint: {
             'circle-radius': 15,
             'circle-color': SERVICE_COLOR_MATCH,
@@ -577,7 +577,7 @@ export default function MapViewer({
           id: 'service-circle',
           type: 'circle',
           source: 'service-src',
-          layout: { visibility: 'none' },
+          layout: { visibility: 'visible' },
           paint: {
             'circle-radius': 8.5,
             'circle-color': SERVICE_COLOR_MATCH,
@@ -591,7 +591,7 @@ export default function MapViewer({
           type: 'symbol',
           source: 'service-src',
           layout: {
-            visibility: 'none',
+            visibility: 'visible',
             'text-field': ['get', 'name_th'],
             'text-size': 11,
             'text-offset': [0, 1.3],
@@ -613,8 +613,8 @@ export default function MapViewer({
           layout: { visibility: 'visible' },
           paint: {
             'line-color': '#000000',
-            'line-width': 7.5,
-            'line-opacity': 0.9
+            'line-width': 8.0,
+            'line-opacity': 0.95
           }
         },
         {
@@ -624,7 +624,7 @@ export default function MapViewer({
           layout: { visibility: 'visible' },
           paint: {
             'line-color': '#00f0ff',
-            'line-width': 3.5,
+            'line-width': 4.0,
             'line-opacity': 1.0
           }
         },
@@ -635,9 +635,9 @@ export default function MapViewer({
           layout: { visibility: 'visible' },
           paint: {
             'line-color': '#ffffff',
-            'line-width': 1.2,
+            'line-width': 1.5,
             'line-dasharray': [4, 3],
-            'line-opacity': 0.9
+            'line-opacity': 1.0
           }
         }
       ]
@@ -646,12 +646,12 @@ export default function MapViewer({
     const map = new Map({
       container: mapContainerRef.current,
       style: initialStyle,
-      center: [100.0558, 17.9835],
-      zoom: 16.0,
-      minZoom: 11,
+      center: [100.055, 17.985],
+      zoom: 13.8,
+      minZoom: 10,
       maxZoom: 22,
-      pitch: 15,
-      bearing: -5
+      pitch: 0,
+      bearing: 0
     });
 
     mapRef.current = map;
@@ -690,6 +690,9 @@ export default function MapViewer({
 
       map.getSource('bound-src')?.setData(MUNICIPAL_BOUNDARY);
       applyBasemap(map, currentBasemap);
+
+      // Automatically frame the entire municipal boundary cleanly!
+      zoomTo(map, MUNICIPAL_BOUNDARY);
     });
 
     return () => {
@@ -784,6 +787,21 @@ export default function MapViewer({
     if (map.getLayer('service-glow')) map.setLayoutProperty('service-glow', 'visibility', isService ? 'visible' : 'none');
     if (map.getLayer('service-circle')) map.setLayoutProperty('service-circle', 'visibility', isService ? 'visible' : 'none');
     if (map.getLayer('service-label')) map.setLayoutProperty('service-label', 'visibility', isService ? 'visible' : 'none');
+
+    // Municipal boundary is ALWAYS visible on all tabs!
+    if (map.getLayer('bound-fill')) map.setLayoutProperty('bound-fill', 'visibility', 'visible');
+    if (map.getLayer('bound-glow')) map.setLayoutProperty('bound-glow', 'visibility', 'visible');
+    if (map.getLayer('bound-line')) map.setLayoutProperty('bound-line', 'visibility', 'visible');
+    if (map.getLayer('bound-line-inner')) map.setLayoutProperty('bound-line-inner', 'visibility', 'visible');
+
+    // When tab changes, automatically frame that tab's data!
+    if (activeTab === 'poi' && poiData?.features?.length) {
+      zoomTo(map, poiData);
+    } else if (activeTab === 'infra' && infraData?.features?.length) {
+      zoomTo(map, infraData);
+    } else if (activeTab === 'service' && serviceData?.features?.length) {
+      zoomTo(map, serviceData);
+    }
 
     map.triggerRepaint();
   }, [viewMode, activeTab, mapLoaded]);
