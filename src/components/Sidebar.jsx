@@ -500,13 +500,13 @@ export default function Sidebar({
               <div className="section-title">
                 <span>{isBuildings ? (lang === 'th' ? 'สัดส่วนขนาดกำลังผลิต' : 'Capacity Distribution') : (lang === 'th' ? 'พลังงานแยกตามทิศทาง (MWh/y)' : 'Energy by Roof Orientation (MWh/y)')}</span>
               </div>
-              <div style={{ width: '100%', height: 140, background: 'rgba(0,0,0,0.25)', borderRadius: 10, padding: '10px 0' }}>
+              <div style={{ width: '100%', height: 140, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '10px 0' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} />
-                    <YAxis stroke="#64748b" fontSize={10} tickLine={false} />
+                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} />
                     <Tooltip
-                      contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 11 }}
+                      contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 11, color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
                       formatter={(val) => [`${fmt(val)} MWh`, 'Energy']}
                     />
                     <Bar dataKey="energy" radius={[4, 4, 0, 0]}>
@@ -650,17 +650,17 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* Solar ROI Settings Modal */}
+      {/* Solar ROI Settings Modal (Light Theme) */}
       {showRoiModal && (
         <div className="modal-overlay" onClick={() => setShowRoiModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Settings2 size={18} color="#38bdf8" />
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Settings2 size={18} color="#2563eb" />
                 {t.roiSettings}
               </h3>
               <button
-                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }}
                 onClick={() => setShowRoiModal(false)}
               >
                 <X size={18} />
@@ -669,7 +669,7 @@ export default function Sidebar({
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={{ fontSize: '0.78rem', color: '#cbd5e1', display: 'block', marginBottom: 6 }}>
+                <label style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600, display: 'block', marginBottom: 6 }}>
                   {t.tariffRate}
                 </label>
                 <input
@@ -678,14 +678,14 @@ export default function Sidebar({
                   value={tempTariff}
                   onChange={e => setTempTariff(Number(e.target.value))}
                   style={{
-                    width: '100%', padding: '9px 12px', background: 'rgba(0,0,0,0.4)',
-                    border: '1px solid var(--border)', borderRadius: 8, color: '#fff', fontSize: '0.9rem'
+                    width: '100%', padding: '9px 12px', background: '#f8fafc',
+                    border: '1px solid #cbd5e1', borderRadius: 8, color: '#0f172a', fontSize: '0.9rem'
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.78rem', color: '#cbd5e1', display: 'block', marginBottom: 6 }}>
+                <label style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600, display: 'block', marginBottom: 6 }}>
                   {t.systemCost}
                 </label>
                 <input
@@ -694,8 +694,8 @@ export default function Sidebar({
                   value={tempSystemCost}
                   onChange={e => setTempSystemCost(Number(e.target.value))}
                   style={{
-                    width: '100%', padding: '9px 12px', background: 'rgba(0,0,0,0.4)',
-                    border: '1px solid var(--border)', borderRadius: 8, color: '#fff', fontSize: '0.9rem'
+                    width: '100%', padding: '9px 12px', background: '#f8fafc',
+                    border: '1px solid #cbd5e1', borderRadius: 8, color: '#0f172a', fontSize: '0.9rem'
                   }}
                 />
               </div>
