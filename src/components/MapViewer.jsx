@@ -8,9 +8,14 @@ import { Layers, Globe, Compass, SunMedium, Focus, Plane } from 'lucide-react';
 
 const BASE = import.meta.env.BASE_URL || '/';
 const cleanBase = BASE.endsWith('/') ? BASE : BASE + '/';
-const FACETS_URL = `${cleanBase}rooftop_facets.geojson`;
-const BUILDINGS_URL = `${cleanBase}buildings.geojson`;
-const BOUNDARY_URL = `${cleanBase}boundary.geojson`;
+
+function getAbsoluteUrl(filename) {
+  try {
+    return new URL(`${cleanBase}${filename}`, window.location.href).href;
+  } catch (_) {
+    return `${cleanBase}${filename}`;
+  }
+}
 
 const ENERGY_LEGEND = [
   { color: '#22c55e', label: '< 7,500 kWh/y' },
@@ -208,7 +213,7 @@ export default function MapViewer({
       const visible = [];
       if (mapInstance.getLayer('facets-fill') && mapInstance.getLayoutProperty('facets-fill', 'visibility') !== 'none') visible.push('facets-fill');
       if (mapInstance.getLayer('buildings-fill') && mapInstance.getLayoutProperty('buildings-fill', 'visibility') !== 'none') visible.push('buildings-fill');
-      const feats = visible.length ? mapInstance.queryRenderedFeatures(e.point, { layers: visible }) : [];
+      const feats = mapInstance.queryRenderedFeatures(e.point, { layers: visible });
       mapInstance.getCanvas().style.cursor = feats.length ? 'pointer' : '';
     });
   };
@@ -216,6 +221,10 @@ export default function MapViewer({
   // ── Initialize Map with Comprehensive Style Object ──────────
   useEffect(() => {
     if (mapRef.current) return;
+
+    const fullFacetsUrl = getAbsoluteUrl('rooftop_facets.geojson');
+    const fullBuildingsUrl = getAbsoluteUrl('buildings.geojson');
+    const fullBoundaryUrl = getAbsoluteUrl('boundary.geojson');
 
     const initialStyle = {
       version: 8,
@@ -263,26 +272,26 @@ export default function MapViewer({
           tileSize: 256,
           attribution: '© CARTO, © OpenStreetMap'
         },
-        // ── Vector GeoJSON Sources (Streams immediately) ─────
+        // ── Vector GeoJSON Sources (With Absolute HTTP Fallbacks) ─
         'facets-src': {
           type: 'geojson',
-          data: FACETS_URL,
+          data: filteredFacets || fullFacetsUrl,
           buffer: 64,
           tolerance: 0.5
         },
         'buildings-src': {
           type: 'geojson',
-          data: BUILDINGS_URL,
+          data: filteredBuildings || fullBuildingsUrl,
           buffer: 64,
           tolerance: 0.5
         },
         'municipal-src': {
           type: 'geojson',
-          data: BOUNDARY_URL
+          data: municipalBoundary || fullBoundaryUrl
         },
         'uploaded-src': {
           type: 'geojson',
-          data: { type: 'FeatureCollection', features: [] }
+          data: uploadedBoundary || { type: 'FeatureCollection', features: [] }
         }
       },
       layers: [
@@ -294,15 +303,34 @@ export default function MapViewer({
         { id: 'osm-layer', type: 'raster', source: 'osm-src', layout: { visibility: 'none' } },
         { id: 'light-layer', type: 'raster', source: 'carto-light-src', layout: { visibility: 'none' } },
 
-        // ── 2. Municipal Boundary ────────────────────────────
+        // ── 2. Municipal Boundary (Prominent High-Contrast) ───
+        {
+          id: 'municipal-glow',
+          type: 'line',
+          source: 'municipal-src',
+          paint: {
+            'line-color': '#000000',
+            'line-width': 5.5,
+            'line-opacity': 0.85
+          }
+        },
         {
           id: 'municipal-layer',
           type: 'line',
           source: 'municipal-src',
           paint: {
-            'line-color': '#38bdf8',
-            'line-width': 2.5,
-            'line-dasharray': [3, 2]
+            'line-color': '#00f0ff',
+            'line-width': 3.0,
+            'line-dasharray': [4, 2]
+          }
+        },
+        {
+          id: 'municipal-fill',
+          type: 'fill',
+          source: 'municipal-src',
+          paint: {
+            'fill-color': '#00f0ff',
+            'fill-opacity': 0.04
           }
         },
 
@@ -338,8 +366,8 @@ export default function MapViewer({
           layout: { visibility: viewModeRef.current === 'buildings' ? 'visible' : 'none' },
           paint: {
             'line-color': '#ffffff',
-            'line-width': 0.8,
-            'line-opacity': 0.5
+            'line-width': 1.0,
+            'line-opacity': 0.6
           }
         },
 
@@ -351,7 +379,7 @@ export default function MapViewer({
           layout: { visibility: viewModeRef.current === 'facets' ? 'visible' : 'none' },
           paint: {
             'fill-color': getColorExpr(colorModeRef.current, viewModeRef.current),
-            'fill-opacity': 0.85
+            'fill-opacity': 0.88
           }
         },
         {
@@ -361,8 +389,8 @@ export default function MapViewer({
           layout: { visibility: viewModeRef.current === 'facets' ? 'visible' : 'none' },
           paint: {
             'line-color': '#ffffff',
-            'line-width': 0.8,
-            'line-opacity': 0.5
+            'line-width': 1.0,
+            'line-opacity': 0.65
           }
         }
       ]
@@ -392,6 +420,11 @@ export default function MapViewer({
       mapRef.current = map;
       setupPopups(map);
       setMapLoaded(true);
+
+      // Push initial data if already available in React
+      if (filteredFacets) map.getSource('facets-src')?.setData(filteredFacets);
+      if (filteredBuildings) map.getSource('buildings-src')?.setData(filteredBuildings);
+      if (municipalBoundary) map.getSource('municipal-src')?.setData(municipalBoundary);
 
       // Fit view to Denchai
       map.fitBounds([[100.028, 17.965], [100.084, 18.006]], { padding: 40, duration: 800 });
@@ -549,8 +582,8 @@ export default function MapViewer({
         ))}
         <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="legend-row">
-            <div style={{ width: 14, height: 2, borderTop: '2px dashed #38bdf8' }} />
-            <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
+            <div style={{ width: 14, height: 2, borderTop: '2px dashed #00f0ff' }} />
+            <span style={{ color: '#00f0ff', fontWeight: 600 }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
           </div>
           {uploadedBoundary && (
             <div className="legend-row">
