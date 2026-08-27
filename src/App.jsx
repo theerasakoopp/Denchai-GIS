@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { HashRouter, Routes, Route, Link } from 'react-router-dom';
 import MapViewer from './components/MapViewer';
 import Sidebar from './components/Sidebar';
 import UploadPage from './pages/UploadPage';
@@ -162,7 +162,7 @@ export default function App() {
   const [systemCostPerKwp, setSystemCostPerKwp] = useState(28000); // 28,000 THB/kWp
 
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route
           path="/"
@@ -180,7 +180,7 @@ export default function App() {
           path="/result/:jobId"
           element={
             <ResultDashboard
-              jobId={window.location.pathname.split('/').pop()}
+              jobId={window.location.hash.split('/').pop()}
               lang={lang} setLang={setLang}
               tariff={tariff} setTariff={setTariff}
               systemCostPerKwp={systemCostPerKwp} setSystemCostPerKwp={setSystemCostPerKwp}
@@ -188,6 +188,6 @@ export default function App() {
           }
         />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
