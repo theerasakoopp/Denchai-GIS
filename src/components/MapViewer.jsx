@@ -30,6 +30,19 @@ const TILE_SOURCES = {
   light: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}'
 };
 
+const CLASS_COLOR_MATCH = [
+  'match',
+  ['get', 'class_id'],
+  1, '#ef4444', // Red (North)
+  2, '#22c55e', // Green (East)
+  3, '#3b82f6', // Blue (South)
+  4, '#eab308', // Yellow (West)
+  5, '#d946ef', // Magenta (Flat)
+  6, '#84cc16', // Lime (Unclassified)
+  7, '#8b5cf6', // Purple (PV Panel)
+  '#ef4444'     // Fallback
+];
+
 const ENERGY_LEGEND = [
   { color: '#22c55e', label: '< 7,500 kWh/y' },
   { color: '#f97316', label: '≥ 7,500 kWh/y' },
@@ -82,7 +95,7 @@ export default function MapViewer({
     if (vm === 'buildings') return ['coalesce', ['get', 'energy_color'], '#f97316'];
     return mode === 'energy'
       ? ['coalesce', ['get', 'energy_color'], '#22c55e']
-      : ['coalesce', ['get', 'color'], '#ef4444'];
+      : CLASS_COLOR_MATCH;
   };
 
   // ── Pre-filter Facets in JavaScript ──────────────────────────
@@ -225,7 +238,7 @@ export default function MapViewer({
         's-satellite': { type: 'raster', tiles: [TILE_SOURCES.satellite], tileSize: 256, attribution: '© Esri, Maxar' },
         's-osm': { type: 'raster', tiles: [TILE_SOURCES.osm], tileSize: 256, attribution: '© OpenStreetMap' },
         's-light': { type: 'raster', tiles: [TILE_SOURCES.light], tileSize: 256, attribution: '© Esri' },
-        's-uav': { type: 'raster', tiles: [UAV_TILE_URL], tileSize: 256, minzoom: 14, maxzoom: 20, attribution: '© UAV 30cm' },
+        's-uav': { type: 'raster', tiles: [UAV_TILE_URL], tileSize: 256, minzoom: 10, maxzoom: 22, attribution: '© UAV 30cm' },
 
         // ── Vector GeoJSON Sources ───────────────────────────
         'bound-src': { type: 'geojson', data: MUNICIPAL_BOUNDARY },
@@ -255,7 +268,7 @@ export default function MapViewer({
         // ── 2. Municipal Boundary (Permanent High-Contrast) ───
         { id: 'bound-fill', type: 'fill', source: 'bound-src', paint: { 'fill-color': '#00f0ff', 'fill-opacity': 0.05 } },
         { id: 'bound-glow', type: 'line', source: 'bound-src', paint: { 'line-color': '#000000', 'line-width': 7, 'line-opacity': 0.85 } },
-        { id: 'bound-line', type: 'line', source: 'bound-src', paint: { 'line-color': '#00f0ff', 'line-width': 3.5, 'line-dasharray': [4, 2] } },
+        { id: 'bound-line', type: 'line', source: 'bound-src', paint: { 'line-color': '#00f0ff', 'line-width': 3.5 } },
 
         // ── 3. Uploaded AOI ──────────────────────────────────
         { id: 'aoi-fill', type: 'fill', source: 'aoi-src', paint: { 'fill-color': '#a855f7', 'fill-opacity': 0.15 } },
@@ -302,8 +315,8 @@ export default function MapViewer({
           layout: { visibility: viewModeRef.current === 'facets' ? 'visible' : 'none' },
           paint: {
             'line-color': '#ffffff',
-            'line-width': 1.0,
-            'line-opacity': 0.7
+            'line-width': 1.2,
+            'line-opacity': 0.75
           }
         }
       ]
@@ -312,11 +325,11 @@ export default function MapViewer({
     const map = new Map({
       container: mapContainerRef.current,
       style: initialStyle,
-      center: [100.0548, 17.9824],
-      zoom: 15.5,
+      center: [100.0558, 17.9835],
+      zoom: 16.0,
       minZoom: 11,
       maxZoom: 22,
-      pitch: 24,
+      pitch: 20,
       bearing: -5
     });
 
@@ -350,9 +363,6 @@ export default function MapViewer({
       }
 
       map.getSource('bound-src')?.setData(MUNICIPAL_BOUNDARY);
-
-      // Fit view to Denchai
-      map.fitBounds([[100.028, 17.965], [100.084, 18.006]], { padding: 40, duration: 800 });
     });
 
     return () => {
@@ -534,7 +544,7 @@ export default function MapViewer({
         ))}
         <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="legend-row">
-            <div style={{ width: 14, height: 3, borderTop: '3px dashed #00f0ff' }} />
+            <div style={{ width: 14, height: 3, borderTop: '3px solid #00f0ff' }} />
             <span style={{ color: '#00f0ff', fontWeight: 700 }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
           </div>
           {uploadedBoundary && (
