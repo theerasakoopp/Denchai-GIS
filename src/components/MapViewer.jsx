@@ -20,7 +20,7 @@ function absUrl(path) {
 
 const FACETS_URL = absUrl('rooftop_facets.geojson');
 const BLDGS_URL = absUrl('buildings.geojson');
-const UAV_TILE_URL = cleanBase + 'tiles/uav/{z}/{x}/{y}.webp';
+const UAV_TILE_URL = absUrl('tiles/uav/{z}/{x}/{y}.webp');
 
 // Free, reliable raster tile endpoints (No API key needed)
 const TILE_SOURCES = {
@@ -75,7 +75,7 @@ export default function MapViewer({
   const mapRef = useRef(null);
   const popupRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const [currentBasemap, setCurrentBasemap] = useState('dark');
+  const [currentBasemap, setCurrentBasemap] = useState('uav');
 
   // ── Color expression ─────────────────────────────────────────
   const getColorExpr = (mode, vm) => {
@@ -147,27 +147,9 @@ export default function MapViewer({
     zoomTo(map, MUNICIPAL_BOUNDARY);
   };
 
-  // ── Switch Basemap (Instant 0ms visibility toggle) ───────────
+  // ── Switch Basemap Helper ────────────────────────────────────
   const changeBasemap = (key) => {
     setCurrentBasemap(key);
-    const map = mapRef.current;
-    if (!map) return;
-
-    const allBasemapLayers = ['dark-layer', 'satellite-layer', 'osm-layer', 'light-layer', 'uav-bg', 'uav-layer'];
-    const showLayers = {
-      dark: ['dark-layer'],
-      satellite: ['satellite-layer'],
-      osm: ['osm-layer'],
-      light: ['light-layer'],
-      uav: ['uav-bg', 'uav-layer'],
-    }[key] || ['dark-layer'];
-
-    allBasemapLayers.forEach(id => {
-      if (map.getLayer(id)) {
-        map.setLayoutProperty(id, 'visibility', showLayers.includes(id) ? 'visible' : 'none');
-      }
-    });
-    map.triggerRepaint();
   };
 
   // ── Setup Popups ─────────────────────────────────────────────
@@ -262,13 +244,13 @@ export default function MapViewer({
         }
       },
       layers: [
-        // ── 1. Basemap Raster Layers (Dark active by default) ─
-        { id: 'dark-layer', type: 'raster', source: 's-dark', layout: { visibility: 'visible' } },
+        // ── 1. Basemap Raster Layers (UAV default) ────────────
+        { id: 'uav-bg', type: 'raster', source: 's-osm', layout: { visibility: 'visible' } },
+        { id: 'uav-layer', type: 'raster', source: 's-uav', layout: { visibility: 'visible' } },
+        { id: 'dark-layer', type: 'raster', source: 's-dark', layout: { visibility: 'none' } },
         { id: 'satellite-layer', type: 'raster', source: 's-satellite', layout: { visibility: 'none' } },
         { id: 'osm-layer', type: 'raster', source: 's-osm', layout: { visibility: 'none' } },
         { id: 'light-layer', type: 'raster', source: 's-light', layout: { visibility: 'none' } },
-        { id: 'uav-bg', type: 'raster', source: 's-osm', layout: { visibility: 'none' } },
-        { id: 'uav-layer', type: 'raster', source: 's-uav', layout: { visibility: 'none' } },
 
         // ── 2. Municipal Boundary (Permanent High-Contrast) ───
         { id: 'bound-fill', type: 'fill', source: 'bound-src', paint: { 'fill-color': '#00f0ff', 'fill-opacity': 0.05 } },
@@ -382,6 +364,28 @@ export default function MapViewer({
     };
   }, []);
 
+  // ── Sync Basemap Visibility automatically when currentBasemap changes ─
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    const allBasemapLayers = ['dark-layer', 'satellite-layer', 'osm-layer', 'light-layer', 'uav-bg', 'uav-layer'];
+    const showLayers = {
+      dark: ['dark-layer'],
+      satellite: ['satellite-layer'],
+      osm: ['osm-layer'],
+      light: ['light-layer'],
+      uav: ['uav-bg', 'uav-layer'],
+    }[currentBasemap] || ['uav-bg', 'uav-layer'];
+
+    allBasemapLayers.forEach(id => {
+      if (map.getLayer(id)) {
+        map.setLayoutProperty(id, 'visibility', showLayers.includes(id) ? 'visible' : 'none');
+      }
+    });
+    map.triggerRepaint();
+  }, [currentBasemap, mapLoaded]);
+
   // ── Sync Facets Data into MapLibre Source on Data/Filter Change ──
   useEffect(() => {
     const map = mapRef.current;
@@ -458,11 +462,11 @@ export default function MapViewer({
       {/* Basemap Switcher & Controls */}
       <div className="map-floating-panel basemap-control">
         {[
+          { key: 'uav',       icon: <Plane size={14} />,     label: lang === 'th' ? 'โดรน UAV (30cm)' : 'UAV Ortho' },
           { key: 'dark',      icon: <Layers size={14} />,    label: lang === 'th' ? 'มืด (GIS)' : 'Dark' },
           { key: 'satellite', icon: <Globe size={14} />,     label: lang === 'th' ? 'ดาวเทียม' : 'Satellite' },
           { key: 'osm',       icon: <Compass size={14} />,   label: 'OSM' },
           { key: 'light',     icon: <SunMedium size={14} />, label: lang === 'th' ? 'สว่าง' : 'Light' },
-          { key: 'uav',       icon: <Plane size={14} />,     label: lang === 'th' ? 'โดรน UAV (30cm)' : 'UAV Ortho' },
         ].map(({ key, icon, label }) => (
           <button
             key={key}
