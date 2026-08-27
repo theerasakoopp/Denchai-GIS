@@ -5,6 +5,9 @@ import Sidebar from './components/Sidebar';
 import UploadPage from './pages/UploadPage';
 import ProcessingPage from './pages/ProcessingPage';
 import { Loader2 } from 'lucide-react';
+import { POI_DATA, POI_CATEGORIES } from './data/poi_data';
+import { INFRA_DATA, INFRA_CATEGORIES } from './data/infra_data';
+import { SERVICE_DATA, SERVICE_CATEGORIES } from './data/service_data';
 import './index.css';
 
 const API = 'http://localhost:8000';
@@ -58,6 +61,20 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   const [colorMode, setColorMode] = useState('class'); // Default to Class colors
   const [viewMode, setViewMode] = useState('facets');   // Default to Roof Facet View
 
+  // ── Smart City Tab State ──
+  const [activeTab, setActiveTab] = useState('solar'); // 'poi' | 'infra' | 'service' | 'solar'
+
+  // ── Layer visibility for POI/Infra/Service categories ──
+  const [poiVisible, setPoiVisible] = useState(
+    Object.fromEntries(Object.keys(POI_CATEGORIES).map(k => [k, true]))
+  );
+  const [infraVisible, setInfraVisible] = useState(
+    Object.fromEntries(Object.keys(INFRA_CATEGORIES).map(k => [k, true]))
+  );
+  const [serviceVisible, setServiceVisible] = useState(
+    Object.fromEntries(Object.keys(SERVICE_CATEGORIES).map(k => [k, true]))
+  );
+
   useEffect(() => {
     let mounted = true;
 
@@ -94,26 +111,6 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
 
   return (
     <div className="app-container">
-      {/* Top action bar */}
-      <div style={{
-        position: 'absolute', top: 14, right: 16, zIndex: 2000,
-        display: 'flex', gap: 10, alignItems: 'center'
-      }}>
-        <Link to="/upload" style={{
-          padding: '8px 14px',
-          background: 'linear-gradient(135deg, rgba(59,130,246,0.3), rgba(99,102,241,0.3))',
-          border: '1px solid rgba(99,102,241,0.5)', borderRadius: 8,
-          color: '#93c5fd', textDecoration: 'none', fontSize: '0.78rem',
-          fontFamily: 'Prompt, Inter, sans-serif', fontWeight: 600,
-          backdropFilter: 'blur(12px)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-          display: 'flex', alignItems: 'center', gap: 6
-        }}>
-          <span>➕</span>
-          <span>{lang === 'th' ? 'ประมวลผลข้อมูลใหม่ (UAV Pipeline)' : 'Run New Pipeline'}</span>
-        </Link>
-      </div>
-
       {/* Loading Overlay */}
       {loading && (
         <div style={{
@@ -124,10 +121,10 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         }}>
           <Loader2 size={36} color="#38bdf8" className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
           <div style={{ fontSize: '1.05rem', fontWeight: 600 }}>
-            {lang === 'th' ? 'กำลังโหลดข้อมูลเชิงพื้นที่ 3D เทศบาลตำบลเด่นชัย...' : 'Loading 3D Denchai Rooftop Solar Data...'}
+            {lang === 'th' ? 'กำลังโหลดข้อมูล Denchai Smart City...' : 'Loading Denchai Smart City Data...'}
           </div>
           <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
-            {lang === 'th' ? 'กรุณารอสักครู่ ระบบกำลังแสดงผล 17,344 ระนาบหลังคา' : 'Processing 17,344 rooftop facets...'}
+            {lang === 'th' ? 'กรุณารอสักครู่ ระบบกำลังเตรียมข้อมูลภูมิสารสนเทศ' : 'Preparing GIS data layers...'}
           </div>
         </div>
       )}
@@ -142,6 +139,13 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         lang={lang} setLang={setLang}
         tariff={tariff} setTariff={setTariff}
         systemCostPerKwp={systemCostPerKwp} setSystemCostPerKwp={setSystemCostPerKwp}
+        activeTab={activeTab} setActiveTab={setActiveTab}
+        poiData={POI_DATA} poiCategories={POI_CATEGORIES}
+        infraData={INFRA_DATA} infraCategories={INFRA_CATEGORIES}
+        serviceData={SERVICE_DATA} serviceCategories={SERVICE_CATEGORIES}
+        poiVisible={poiVisible} setPoiVisible={setPoiVisible}
+        infraVisible={infraVisible} setInfraVisible={setInfraVisible}
+        serviceVisible={serviceVisible} setServiceVisible={setServiceVisible}
       />
       <MapViewer
         facetsData={geoDataFacets}
@@ -154,6 +158,13 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         viewMode={viewMode}
         lang={lang}
         tariff={tariff}
+        activeTab={activeTab}
+        poiData={POI_DATA}
+        infraData={INFRA_DATA}
+        serviceData={SERVICE_DATA}
+        poiVisible={poiVisible}
+        infraVisible={infraVisible}
+        serviceVisible={serviceVisible}
       />
     </div>
   );
@@ -208,6 +219,7 @@ function ResultDashboard({ jobId, lang, setLang, tariff, setTariff, systemCostPe
         lang={lang} setLang={setLang}
         tariff={tariff} setTariff={setTariff}
         systemCostPerKwp={systemCostPerKwp} setSystemCostPerKwp={setSystemCostPerKwp}
+        activeTab="solar" setActiveTab={() => {}}
       />
       <MapViewer
         facetsData={geoData}
@@ -220,6 +232,7 @@ function ResultDashboard({ jobId, lang, setLang, tariff, setTariff, systemCostPe
         viewMode="facets"
         lang={lang}
         tariff={tariff}
+        activeTab="solar"
       />
     </div>
   );

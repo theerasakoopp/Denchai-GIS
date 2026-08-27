@@ -1,8 +1,30 @@
 export const translations = {
   th: {
-    appTitle: 'ระบบสารสนเทศภูมิศาสตร์พลังงานแสงอาทิตย์',
-    appSubtitle: 'เทศบาลตำบลเด่นชัย อำเภอเด่นชัย จังหวัดแพร่',
+    appTitle: 'Denchai Smart City',
+    appSubtitle: 'ระบบภูมิสารสนเทศข้อมูลเมืองอัจฉริยะ เทศบาลตำบลเด่นชัย จ.แพร่',
     badgeLive: 'ข้อมูล UAV ความละเอียดสูง',
+    badgeSmartCity: 'เมืองอัจฉริยะ',
+
+    // Tab Navigation
+    tabPoi: 'สถานที่สำคัญ',
+    tabInfra: 'โครงสร้างพื้นฐาน',
+    tabService: 'บริการสาธารณะ',
+    tabSolar: 'พลังงานแสงอาทิตย์',
+
+    // POI Tab
+    poiHeader: 'สถานที่สำคัญในเขตเทศบาล',
+    poiCount: 'จุดข้อมูล',
+    poiShowAll: 'แสดงทั้งหมด',
+    poiHideAll: 'ซ่อนทั้งหมด',
+
+    // Infrastructure Tab
+    infraHeader: 'โครงสร้างพื้นฐานสาธารณะ',
+    infraCount: 'รายการ',
+
+    // Service Tab
+    serviceHeader: 'บริการสาธารณะและหน่วยงาน',
+    serviceCount: 'แห่ง',
+    servicePhone: 'โทรศัพท์',
     
     // View modes
     viewMode: 'โหมดมุมมองข้อมูล',
@@ -95,9 +117,31 @@ export const translations = {
   },
   
   en: {
-    appTitle: 'Rooftop Solar Potential GIS Dashboard',
-    appSubtitle: 'Denchai Subdistrict Municipality, Phrae Province, Thailand',
+    appTitle: 'Denchai Smart City',
+    appSubtitle: 'Smart City GIS Platform — Denchai Municipality, Phrae, Thailand',
     badgeLive: 'High-Resolution UAV LiDAR/Orthophoto',
+    badgeSmartCity: 'Smart City',
+
+    // Tab Navigation
+    tabPoi: 'Points of Interest',
+    tabInfra: 'Infrastructure',
+    tabService: 'Public Services',
+    tabSolar: 'Solar Potential',
+
+    // POI Tab
+    poiHeader: 'Points of Interest in Municipality',
+    poiCount: 'locations',
+    poiShowAll: 'Show All',
+    poiHideAll: 'Hide All',
+
+    // Infrastructure Tab
+    infraHeader: 'Public Infrastructure',
+    infraCount: 'items',
+
+    // Service Tab
+    serviceHeader: 'Public Services & Agencies',
+    serviceCount: 'locations',
+    servicePhone: 'Phone',
     
     // View modes
     viewMode: 'Data View Mode',

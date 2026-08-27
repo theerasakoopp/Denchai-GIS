@@ -87,6 +87,202 @@ body {
   background: rgba(255, 255, 255, 0.25);
 }
 
+/* ── Smart City Tab Navigation ── */
+.tab-nav {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10, 15, 28, 0.6);
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 4px 8px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-sub);
+  background: transparent;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  position: relative;
+}
+
+.tab-btn:hover {
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tab-btn.active {
+  color: #fff;
+  border-bottom-color: var(--accent-blue);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.tab-btn .tab-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.tab-btn.active .tab-icon {
+  filter: drop-shadow(0 0 6px rgba(59, 130, 246, 0.5));
+}
+
+/* ── Category List Items (POI/Infra/Service tabs) ── */
+.category-group {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+
+.category-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.category-header .cat-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.category-header .cat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.category-header .cat-count {
+  font-size: 0.68rem;
+  color: var(--text-sub);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.category-items {
+  padding: 0;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px 8px 32px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.category-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+}
+
+.category-item:last-child {
+  border-bottom: none;
+}
+
+.category-item .item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-item .item-icon {
+  font-size: 0.85rem;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+/* Toggle switch (for category visibility) */
+.toggle-switch {
+  width: 32px;
+  height: 17px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle-switch.on {
+  background: var(--accent-blue);
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.2s;
+}
+
+.toggle-switch.on::after {
+  transform: translateX(15px);
+}
+
+/* Tab content summary card */
+.tab-summary-card {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(99, 102, 241, 0.08));
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tab-summary-card .summary-icon {
+  font-size: 1.6rem;
+}
+
+.tab-summary-card .summary-text {
+  flex: 1;
+}
+
+.tab-summary-card .summary-title {
+  font-size: 0.7rem;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tab-summary-card .summary-value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
 /* ── Header ── */
 .sidebar-header {
   padding: 18px 20px 14px;

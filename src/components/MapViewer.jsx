@@ -64,7 +64,15 @@ export default function MapViewer({
   colorMode,
   viewMode,
   lang = 'th',
-  tariff = 4.2
+  tariff = 4.2,
+  // Smart City multi-layer props
+  activeTab = 'solar',
+  poiData,
+  infraData,
+  serviceData,
+  poiVisible = {},
+  infraVisible = {},
+  serviceVisible = {},
 }) {
   const t = translations[lang] || translations.th;
   const langRef = useRef(lang);
@@ -86,6 +94,8 @@ export default function MapViewer({
   const popupRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [currentBasemap, setCurrentBasemap] = useState('uav');
+  const activeTabRef = useRef(activeTab);
+  useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
 
   // ── Color expression ─────────────────────────────────────────
   const getColorExpr = (mode, vm) => {
@@ -185,7 +195,15 @@ export default function MapViewer({
   // ── Setup Popups ─────────────────────────────────────────────
   const setupPopups = (mapInstance) => {
     mapInstance.on('click', (e) => {
-      const ql = ['facets-fill', 'bldgs-fill'].filter(
+      const allInteractiveLayers = [
+        'poi-circle',
+        'service-circle',
+        'infra-circle',
+        'infra-line',
+        'facets-fill',
+        'bldgs-fill'
+      ];
+      const ql = allInteractiveLayers.filter(
         id => mapInstance.getLayer(id) && mapInstance.getLayoutProperty(id, 'visibility') !== 'none'
       );
       if (!ql.length) return;
@@ -193,8 +211,42 @@ export default function MapViewer({
       const feats = mapInstance.queryRenderedFeatures(e.point, { layers: ql });
       if (!feats?.length) return;
 
-      const p = feats[0].properties;
+      const feat = feats[0];
+      const p = feat.properties;
+      const layerId = feat.layer.id;
       const curT = translations[langRef.current] || translations.th;
+      const curLang = langRef.current || 'th';
+
+      // 1. POI & Service & Infra popups
+      if (layerId === 'poi-circle' || layerId === 'service-circle' || layerId === 'infra-circle' || layerId === 'infra-line') {
+        const name = curLang === 'th' ? (p.name_th || p.name_en) : (p.name_en || p.name_th);
+        const desc = curLang === 'th' ? (p.description_th || p.description_en) : (p.description_en || p.description_th);
+        const cat = p.category || '';
+        const icon = layerId === 'poi-circle' ? '📍' : layerId === 'service-circle' ? '🏥' : '🏗️';
+        const color = layerId === 'poi-circle' ? '#3b82f6' : layerId === 'service-circle' ? '#ef4444' : '#f97316';
+
+        popupRef.current.setLngLat(e.lngLat).setHTML(`
+          <div style="font-family:'Prompt','Inter',sans-serif">
+            <div style="font-size:0.95rem;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:6px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+              <span style="font-size:1.1rem">${icon}</span>
+              <span style="color:#f8fafc">${name}</span>
+            </div>
+            ${desc ? `<div style="font-size:0.78rem;color:#cbd5e1;line-height:1.4;margin-bottom:8px">${desc}</div>` : ''}
+            ${p.phone ? `<div class="popup-row"><span style="color:#94a3b8">📞 ${curT.servicePhone || 'โทร'}</span><span style="color:#38bdf8;font-weight:600">${p.phone}</span></div>` : ''}
+            ${p.length_km ? `<div class="popup-row"><span style="color:#94a3b8">📏 ${curLang === 'th' ? 'ระยะทาง' : 'Length'}</span><span>${p.length_km} km</span></div>` : ''}
+            ${p.capacity_kva ? `<div class="popup-row"><span style="color:#94a3b8">⚡ ${curLang === 'th' ? 'กำลังผลิต' : 'Capacity'}</span><span>${p.capacity_kva} KVA</span></div>` : ''}
+            ${p.capacity_m3 ? `<div class="popup-row"><span style="color:#94a3b8">💧 ${curLang === 'th' ? 'ความจุ' : 'Capacity'}</span><span>${p.capacity_m3} m³</span></div>` : ''}
+            ${p.width_m ? `<div class="popup-row"><span style="color:#94a3b8">📐 ${curLang === 'th' ? 'ความกว้าง' : 'Width'}</span><span>${p.width_m} m</span></div>` : ''}
+            <div class="popup-row" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.08)">
+              <span style="color:#94a3b8">${curLang === 'th' ? 'หมวดหมู่' : 'Category'}</span>
+              <span style="color:${color};font-weight:600;text-transform:capitalize">${cat}</span>
+            </div>
+          </div>
+        `).addTo(mapInstance);
+        return;
+      }
+
+      // 2. Solar rooftop / building popup
       const curTariff = tariffRef.current || 4.2;
       const curMode = viewModeRef.current || 'facets';
 
@@ -235,7 +287,15 @@ export default function MapViewer({
     });
 
     mapInstance.on('mousemove', (e) => {
-      const ql = ['facets-fill', 'bldgs-fill'].filter(
+      const allInteractiveLayers = [
+        'poi-circle',
+        'service-circle',
+        'infra-circle',
+        'infra-line',
+        'facets-fill',
+        'bldgs-fill'
+      ];
+      const ql = allInteractiveLayers.filter(
         id => mapInstance.getLayer(id) && mapInstance.getLayoutProperty(id, 'visibility') !== 'none'
       );
       const feats = ql.length ? mapInstance.queryRenderedFeatures(e.point, { layers: ql }) : [];
@@ -271,7 +331,11 @@ export default function MapViewer({
           data: { type: 'FeatureCollection', features: [] },
           buffer: 64,
           tolerance: 0.5
-        }
+        },
+        // ── Smart City Layers ────────────────────────────
+        'poi-src': { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+        'infra-src': { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+        'service-src': { type: 'geojson', data: { type: 'FeatureCollection', features: [] } }
       },
       layers: [
         // ── 1. Base Satellite (Underneath UAV) ───────────────
@@ -333,6 +397,63 @@ export default function MapViewer({
             'line-color': '#ffffff',
             'line-width': 1.2,
             'line-opacity': 0.85
+          }
+        },
+
+        // ── 6. Infrastructure Lines ─────────────────────────
+        {
+          id: 'infra-line',
+          type: 'line',
+          source: 'infra-src',
+          layout: { visibility: 'none' },
+          filter: ['==', ['geometry-type'], 'LineString'],
+          paint: {
+            'line-color': ['coalesce', ['get', 'color'], '#f97316'],
+            'line-width': 3,
+            'line-opacity': 0.8
+          }
+        },
+        // ── 7. Infrastructure Points ────────────────────────
+        {
+          id: 'infra-circle',
+          type: 'circle',
+          source: 'infra-src',
+          layout: { visibility: 'none' },
+          filter: ['==', ['geometry-type'], 'Point'],
+          paint: {
+            'circle-radius': 7,
+            'circle-color': '#f97316',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff',
+            'circle-opacity': 0.9
+          }
+        },
+        // ── 8. POI Circles ──────────────────────────────────
+        {
+          id: 'poi-circle',
+          type: 'circle',
+          source: 'poi-src',
+          layout: { visibility: 'none' },
+          paint: {
+            'circle-radius': 8,
+            'circle-color': '#3b82f6',
+            'circle-stroke-width': 2.5,
+            'circle-stroke-color': '#ffffff',
+            'circle-opacity': 0.9
+          }
+        },
+        // ── 9. Service Circles ──────────────────────────────
+        {
+          id: 'service-circle',
+          type: 'circle',
+          source: 'service-src',
+          layout: { visibility: 'none' },
+          paint: {
+            'circle-radius': 8,
+            'circle-color': '#ef4444',
+            'circle-stroke-width': 2.5,
+            'circle-stroke-color': '#ffffff',
+            'circle-opacity': 0.9
           }
         }
       ]
@@ -448,13 +569,20 @@ export default function MapViewer({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+    const isSolar = activeTab === 'solar';
     const isFacets = viewMode === 'facets';
-    if (map.getLayer('facets-fill')) map.setLayoutProperty('facets-fill', 'visibility', isFacets ? 'visible' : 'none');
-    if (map.getLayer('facets-outline')) map.setLayoutProperty('facets-outline', 'visibility', isFacets ? 'visible' : 'none');
-    if (map.getLayer('bldgs-fill')) map.setLayoutProperty('bldgs-fill', 'visibility', isFacets ? 'none' : 'visible');
-    if (map.getLayer('bldgs-outline')) map.setLayoutProperty('bldgs-outline', 'visibility', isFacets ? 'none' : 'visible');
+    // Solar layers
+    if (map.getLayer('facets-fill')) map.setLayoutProperty('facets-fill', 'visibility', isSolar && isFacets ? 'visible' : 'none');
+    if (map.getLayer('facets-outline')) map.setLayoutProperty('facets-outline', 'visibility', isSolar && isFacets ? 'visible' : 'none');
+    if (map.getLayer('bldgs-fill')) map.setLayoutProperty('bldgs-fill', 'visibility', isSolar && !isFacets ? 'visible' : 'none');
+    if (map.getLayer('bldgs-outline')) map.setLayoutProperty('bldgs-outline', 'visibility', isSolar && !isFacets ? 'visible' : 'none');
+    // Smart City layers
+    if (map.getLayer('poi-circle')) map.setLayoutProperty('poi-circle', 'visibility', activeTab === 'poi' ? 'visible' : 'none');
+    if (map.getLayer('infra-line')) map.setLayoutProperty('infra-line', 'visibility', activeTab === 'infra' ? 'visible' : 'none');
+    if (map.getLayer('infra-circle')) map.setLayoutProperty('infra-circle', 'visibility', activeTab === 'infra' ? 'visible' : 'none');
+    if (map.getLayer('service-circle')) map.setLayoutProperty('service-circle', 'visibility', activeTab === 'service' ? 'visible' : 'none');
     map.triggerRepaint();
-  }, [viewMode, mapLoaded]);
+  }, [viewMode, activeTab, mapLoaded]);
 
   // ── Sync colorMode ───────────────────────────────────────────
   useEffect(() => {
@@ -476,6 +604,58 @@ export default function MapViewer({
       if (uploadedBoundary?.features?.length) zoomTo(map, uploadedBoundary);
     }
   }, [uploadedBoundary, mapLoaded]);
+
+  // ── Sync POI/Infra/Service data into map sources ─────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const pushData = () => {
+      if (poiData) map.getSource('poi-src')?.setData(poiData);
+      if (infraData) map.getSource('infra-src')?.setData(infraData);
+      if (serviceData) map.getSource('service-src')?.setData(serviceData);
+    };
+    if (map.isStyleLoaded()) pushData();
+    else map.once('load', pushData);
+  }, [poiData, infraData, serviceData, mapLoaded]);
+
+  // ── Filter POI/Infra/Service by category visibility ──────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    // POI filter
+    if (map.getLayer('poi-circle') && poiVisible) {
+      const visibleCats = Object.entries(poiVisible).filter(([,v]) => v).map(([k]) => k);
+      if (visibleCats.length === 0) {
+        map.setFilter('poi-circle', ['==', ['get', 'category'], '__none__']);
+      } else {
+        map.setFilter('poi-circle', ['in', ['get', 'category'], ['literal', visibleCats]]);
+      }
+    }
+    // Infra filter
+    const infraCats = Object.entries(infraVisible || {}).filter(([,v]) => v).map(([k]) => k);
+    ['infra-line', 'infra-circle'].forEach(layerId => {
+      if (map.getLayer(layerId)) {
+        const baseFilter = layerId === 'infra-line'
+          ? ['==', ['geometry-type'], 'LineString']
+          : ['==', ['geometry-type'], 'Point'];
+        if (infraCats.length === 0) {
+          map.setFilter(layerId, ['all', baseFilter, ['==', ['get', 'category'], '__none__']]);
+        } else {
+          map.setFilter(layerId, ['all', baseFilter, ['in', ['get', 'category'], ['literal', infraCats]]]);
+        }
+      }
+    });
+    // Service filter
+    if (map.getLayer('service-circle') && serviceVisible) {
+      const visCats = Object.entries(serviceVisible).filter(([,v]) => v).map(([k]) => k);
+      if (visCats.length === 0) {
+        map.setFilter('service-circle', ['==', ['get', 'category'], '__none__']);
+      } else {
+        map.setFilter('service-circle', ['in', ['get', 'category'], ['literal', visCats]]);
+      }
+    }
+    map.triggerRepaint();
+  }, [poiVisible, infraVisible, serviceVisible, mapLoaded]);
 
   // ── Stats for floating card ──────────────────────────────────
   const activeData = viewMode === 'buildings' ? buildingsData : facetsData;
@@ -536,7 +716,7 @@ export default function MapViewer({
         </button>
       </div>
 
-      {/* Quick Summary Card */}
+      {/* Quick Summary Card — changes with activeTab */}
       <div style={{
         position: 'absolute', top: 62, left: 16, zIndex: 400,
         background: 'rgba(13,20,36,0.94)', backdropFilter: 'blur(16px)',
@@ -545,20 +725,38 @@ export default function MapViewer({
         boxShadow: 'var(--shadow-lg)', pointerEvents: 'none'
       }}>
         <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <SunMedium size={14} color="#f59e0b" /> {t.appTitle}
+          🏙️ Denchai Smart City
         </div>
-        <div style={{ marginBottom: 6 }}>
-          <div style={{ fontSize: '0.68rem', color: '#fbbf24' }}>{lang === 'th' ? 'กำลังผลิตติดตั้งรวม' : 'Total Capacity'}</div>
-          <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#fcd34d' }}>
-            {totalCapMwp} <span style={{ fontSize: '0.78rem', fontWeight: 500 }}>MWp</span>
+        {activeTab === 'solar' ? (
+          <>
+            <div style={{ marginBottom: 6 }}>
+              <div style={{ fontSize: '0.68rem', color: '#fbbf24' }}>{lang === 'th' ? 'กำลังผลิตติดตั้งรวม' : 'Total Capacity'}</div>
+              <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#fcd34d' }}>
+                {totalCapMwp} <span style={{ fontSize: '0.78rem', fontWeight: 500 }}>MWp</span>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '0.68rem', color: '#6ee7b7' }}>{t.kpiTotalEnergy}</div>
+              <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#34d399' }}>
+                {totalYieldGwh} <span style={{ fontSize: '0.78rem', fontWeight: 500 }}>GWh/y</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div>
+            <div style={{ fontSize: '0.68rem', color: '#38bdf8' }}>
+              {activeTab === 'poi' ? (lang === 'th' ? '📍 สถานที่สำคัญ' : '📍 Points of Interest')
+               : activeTab === 'infra' ? (lang === 'th' ? '🏗️ โครงสร้างพื้นฐาน' : '🏗️ Infrastructure')
+               : (lang === 'th' ? '🏥 บริการสาธารณะ' : '🏥 Public Services')}
+            </div>
+            <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#38bdf8' }}>
+              {activeTab === 'poi' ? (poiData?.features?.length || 0)
+               : activeTab === 'infra' ? (infraData?.features?.length || 0)
+               : (serviceData?.features?.length || 0)}
+              <span style={{ fontSize: '0.78rem', fontWeight: 500 }}> {lang === 'th' ? 'จุดข้อมูล' : 'locations'}</span>
+            </div>
           </div>
-        </div>
-        <div>
-          <div style={{ fontSize: '0.68rem', color: '#6ee7b7' }}>{t.kpiTotalEnergy}</div>
-          <div style={{ fontSize: '1.35rem', fontWeight: 800, color: '#34d399' }}>
-            {totalYieldGwh} <span style={{ fontSize: '0.78rem', fontWeight: 500 }}>GWh/y</span>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Legend Overlay */}
