@@ -19,8 +19,6 @@ function absUrl(path) {
 }
 
 const UAV_TILE_URL = absUrl('tiles/uav/{z}/{x}/{y}.webp');
-const FACETS_URL = absUrl('rooftop_facets.geojson');
-const BLDGS_URL = absUrl('buildings.geojson');
 
 const TILE_SOURCES = {
   satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
@@ -245,7 +243,7 @@ export default function MapViewer({
     });
   };
 
-  // ── Initialize Map ───────────────────────────────────────────
+  // ── Initialize Map (Instant 0ms style without blocking network) ─
   useEffect(() => {
     if (mapRef.current) return;
 
@@ -259,18 +257,18 @@ export default function MapViewer({
         's-osm': { type: 'raster', tiles: [TILE_SOURCES.osm], tileSize: 256, attribution: '© OpenStreetMap' },
         's-light': { type: 'raster', tiles: [TILE_SOURCES.light], tileSize: 256, attribution: '© Esri' },
 
-        // ── Vector GeoJSON Sources ───────────────────────────
+        // ── Vector GeoJSON Sources (In-memory empty collections) ─
         'bound-src': { type: 'geojson', data: MUNICIPAL_BOUNDARY },
         'aoi-src': { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
         'facets-src': {
           type: 'geojson',
-          data: filteredFacets || facetsData || FACETS_URL,
+          data: { type: 'FeatureCollection', features: [] },
           buffer: 64,
           tolerance: 0.5
         },
         'bldgs-src': {
           type: 'geojson',
-          data: filteredBuildings || buildingsData || BLDGS_URL,
+          data: { type: 'FeatureCollection', features: [] },
           buffer: 64,
           tolerance: 0.5
         }
@@ -351,6 +349,9 @@ export default function MapViewer({
       bearing: -5
     });
 
+    // Set instance immediately so refs and button actions work immediately!
+    mapRef.current = map;
+
     map.addControl(new NavigationControl({ visualizePitch: true }), 'top-right');
     map.addControl(new ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
 
@@ -365,7 +366,6 @@ export default function MapViewer({
     });
 
     map.on('load', () => {
-      mapRef.current = map;
       setupPopups(map);
       setMapLoaded(true);
 
@@ -395,7 +395,7 @@ export default function MapViewer({
 
   // ── Sync Basemap Visibility automatically when currentBasemap changes ─
   useEffect(() => {
-    if (mapRef.current && mapLoaded) {
+    if (mapRef.current) {
       applyBasemap(mapRef.current, currentBasemap);
     }
   }, [currentBasemap, mapLoaded]);
@@ -403,31 +403,51 @@ export default function MapViewer({
   // ── Sync Facets Data into MapLibre Source on React Filter ────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-    const src = map.getSource('facets-src');
+    if (!map) return;
     const dataToSet = filteredFacets || facetsData;
-    if (src && dataToSet?.features) {
-      src.setData(dataToSet);
-      map.triggerRepaint();
+    if (!dataToSet?.features) return;
+
+    const pushFacets = () => {
+      const src = map.getSource('facets-src');
+      if (src) {
+        src.setData(dataToSet);
+        map.triggerRepaint();
+      }
+    };
+
+    if (map.isStyleLoaded()) {
+      pushFacets();
+    } else {
+      map.once('load', pushFacets);
     }
   }, [filteredFacets, facetsData, mapLoaded]);
 
   // ── Sync Buildings Data into MapLibre Source ──────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded) return;
-    const src = map.getSource('bldgs-src');
+    if (!map) return;
     const dataToSet = filteredBuildings || buildingsData;
-    if (src && dataToSet?.features) {
-      src.setData(dataToSet);
-      map.triggerRepaint();
+    if (!dataToSet?.features) return;
+
+    const pushBldgs = () => {
+      const src = map.getSource('bldgs-src');
+      if (src) {
+        src.setData(dataToSet);
+        map.triggerRepaint();
+      }
+    };
+
+    if (map.isStyleLoaded()) {
+      pushBldgs();
+    } else {
+      map.once('load', pushBldgs);
     }
   }, [filteredBuildings, buildingsData, mapLoaded]);
 
   // ── Sync viewMode visibility ─────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded) return;
+    if (!map) return;
     const isFacets = viewMode === 'facets';
     if (map.getLayer('facets-fill')) map.setLayoutProperty('facets-fill', 'visibility', isFacets ? 'visible' : 'none');
     if (map.getLayer('facets-outline')) map.setLayoutProperty('facets-outline', 'visibility', isFacets ? 'visible' : 'none');
@@ -439,7 +459,7 @@ export default function MapViewer({
   // ── Sync colorMode ───────────────────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded) return;
+    if (!map) return;
     if (map.getLayer('facets-fill')) {
       map.setPaintProperty('facets-fill', 'fill-color', getColorExpr(colorMode, viewMode));
       map.triggerRepaint();
@@ -449,7 +469,7 @@ export default function MapViewer({
   // ── Sync uploaded boundary AOI ───────────────────────────────
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !mapLoaded) return;
+    if (!map) return;
     const uSrc = map.getSource('aoi-src');
     if (uSrc) {
       uSrc.setData(uploadedBoundary || { type: 'FeatureCollection', features: [] });
