@@ -4,25 +4,52 @@ import MapViewer from './components/MapViewer';
 import Sidebar from './components/Sidebar';
 import UploadPage from './pages/UploadPage';
 import ProcessingPage from './pages/ProcessingPage';
+import { Loader2 } from 'lucide-react';
 import './index.css';
 
 const API = 'http://localhost:8000';
 
 export const ROOF_CLASSES = {
-  1: { name: 'N-Roof',    color: '#ff0000' }, // Red
-  2: { name: 'E-Roof',    color: '#00ff00' }, // Green
-  3: { name: 'S-Roof',    color: '#0000ff' }, // Blue
-  4: { name: 'W-Roof',    color: '#ffff00' }, // Yellow
-  5: { name: 'Flat Roof', color: '#ff00ff' }, // Magenta
-  6: { name: 'U-Roof',    color: '#808000' }, // Olive
-  7: { name: 'PV Panel',  color: '#8000ff' }, // Violet/Purple
+  1: { name: 'N-Roof',    color: '#ef4444' }, // Red
+  2: { name: 'E-Roof',    color: '#22c55e' }, // Green
+  3: { name: 'S-Roof',    color: '#3b82f6' }, // Blue
+  4: { name: 'W-Roof',    color: '#eab308' }, // Yellow
+  5: { name: 'Flat Roof', color: '#d946ef' }, // Magenta
+  6: { name: 'U-Roof',    color: '#84cc16' }, // Lime/Olive
+  7: { name: 'PV Panel',  color: '#8b5cf6' }, // Violet/Purple
 };
+
+// Helper: fetch with fallback paths
+async function fetchWithFallback(filename) {
+  const base = import.meta.env.BASE_URL || './';
+  const cleanBase = base.endsWith('/') ? base : base + '/';
+  
+  const paths = [
+    `${cleanBase}${filename}`,
+    `./${filename}`,
+    `./public/${filename}`,
+    `/${filename}`
+  ];
+
+  for (const path of paths) {
+    try {
+      const res = await fetch(path);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      // try next path
+    }
+  }
+  throw new Error(`Failed to load ${filename}`);
+}
 
 // ── Default dashboard: loads pre-generated GeoJSON from /public ──
 function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, setSystemCostPerKwp }) {
   const [geoDataFacets, setGeoDataFacets] = useState(null);
   const [geoDataBuildings, setGeoDataBuildings] = useState(null);
   const [municipalBoundary, setMunicipalBoundary] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ minArea: 10, minEnergy: 0 });
   const [visibleLayers, setVisibleLayers] = useState(
     Object.fromEntries(Object.keys(ROOF_CLASSES).map(k => [k, true]))
@@ -32,14 +59,34 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   const [viewMode, setViewMode] = useState('facets');   // Default to Roof Facet View
 
   useEffect(() => {
-    const base = import.meta.env.BASE_URL || './';
-    const cleanBase = base.endsWith('/') ? base : base + '/';
-    fetch(`${cleanBase}buildings.geojson`).then(r => r.json()).then(setGeoDataBuildings).catch(console.error);
-    fetch(`${cleanBase}rooftop_facets.geojson`).then(r => r.json()).then(setGeoDataFacets).catch(console.error);
-    fetch(`${cleanBase}boundary.geojson`).then(r => r.json()).then(setMunicipalBoundary).catch(console.error);
+    let mounted = true;
+
+    async function loadData() {
+      setLoading(true);
+      try {
+        const [facets, bldgs, boundary] = await Promise.allSettled([
+          fetchWithFallback('rooftop_facets.geojson'),
+          fetchWithFallback('buildings.geojson'),
+          fetchWithFallback('boundary.geojson')
+        ]);
+
+        if (mounted) {
+          if (facets.status === 'fulfilled') setGeoDataFacets(facets.value);
+          if (bldgs.status === 'fulfilled') setGeoDataBuildings(bldgs.value);
+          if (boundary.status === 'fulfilled') setMunicipalBoundary(boundary.value);
+        }
+      } catch (err) {
+        console.error("Data loading error:", err);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    loadData();
+    return () => { mounted = false; };
   }, []);
 
-  const activeGeoData = viewMode === 'buildings' ? (geoDataBuildings || geoDataFacets) : geoDataFacets;
+  const activeGeoData = viewMode === 'buildings' ? (geoDataBuildings || geoDataFacets) : (geoDataFacets || geoDataBuildings);
 
   const toggleLayer = (id) => setVisibleLayers(p => ({ ...p, [id]: !p[id] }));
   const toggleAllLayers = (v) =>
@@ -66,6 +113,24 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
           <span>{lang === 'th' ? 'ประมวลผลข้อมูลใหม่ (UAV Pipeline)' : 'Run New Pipeline'}</span>
         </Link>
       </div>
+
+      {/* Loading Overlay */}
+      {loading && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 5000,
+          background: 'rgba(9, 13, 22, 0.85)', backdropFilter: 'blur(12px)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          gap: 16, color: '#f8fafc', fontFamily: 'Prompt, Inter, sans-serif'
+        }}>
+          <Loader2 size={36} color="#38bdf8" className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
+          <div style={{ fontSize: '1.05rem', fontWeight: 600 }}>
+            {lang === 'th' ? 'กำลังโหลดข้อมูลเชิงพื้นที่ 3D เทศบาลตำบลเด่นชัย...' : 'Loading 3D Denchai Rooftop Solar Data...'}
+          </div>
+          <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+            {lang === 'th' ? 'กรุณารอสักครู่ ระบบกำลังแสดงผล 17,344 ระนาบหลังคา' : 'Processing 17,344 rooftop facets...'}
+          </div>
+        </div>
+      )}
 
       <Sidebar
         geoData={activeGeoData}

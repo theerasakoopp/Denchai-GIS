@@ -4,7 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import * as turf from '@turf/turf';
 import { ROOF_CLASSES } from '../App';
 import { translations } from '../translations';
-import { Layers, Globe, Compass, SunMedium } from 'lucide-react';
+import { Layers, Globe, Compass, SunMedium, Focus } from 'lucide-react';
 
 const BASEMAP_STYLES = {
   satellite: {
@@ -102,6 +102,7 @@ export default function MapViewer({
   const [mapLoaded, setMapLoaded] = useState(false);
   const [filteredData, setFilteredData] = useState(null);
   const [currentBasemap, setCurrentBasemap] = useState('satellite');
+  const initialZoomDone = useRef(false);
 
   // Filter features
   useEffect(() => {
@@ -149,6 +150,18 @@ export default function MapViewer({
       });
     } catch (err) {
       console.warn("fitBounds error:", err);
+    }
+  };
+
+  // Zoom to Rooftop Extent
+  const zoomToRooftops = () => {
+    if (!mapRef.current) return;
+    if (uploadedBoundary) {
+      zoomToBoundary(mapRef.current, uploadedBoundary);
+    } else if (filteredData && filteredData.features.length > 0) {
+      zoomToBoundary(mapRef.current, filteredData);
+    } else if (municipalBoundary) {
+      zoomToBoundary(mapRef.current, municipalBoundary);
     }
   };
 
@@ -228,7 +241,7 @@ export default function MapViewer({
         paint: {
           'fill-color': ['coalesce', ['get', colorProp], '#f59e0b'],
           'fill-opacity': 0.88,
-          'fill-outline-color': 'rgba(255, 255, 255, 0.25)'
+          'fill-outline-color': 'rgba(255, 255, 255, 0.35)'
         }
       });
     }
@@ -244,7 +257,7 @@ export default function MapViewer({
       const map = new Map({
         container: mapContainerRef.current,
         style: BASEMAP_STYLES.satellite.style,
-        center: [100.0548, 17.9824], // Den Chai Municipality center
+        center: [100.0556, 17.9858], // Centered at Denchai rooftop cluster
         zoom: 15.5,
         pitch: 35,
         bearing: -10,
@@ -273,7 +286,7 @@ export default function MapViewer({
     }
   }, []);
 
-  // Update Data Sources
+  // Update Data Sources & Auto Zoom
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapLoaded) return;
@@ -285,11 +298,18 @@ export default function MapViewer({
     if (uSrc) {
       uSrc.setData(uploadedBoundary || { type: 'FeatureCollection', features: [] });
       if (uploadedBoundary) zoomToBoundary(map, uploadedBoundary);
-      else if (municipalBoundary) zoomToBoundary(map, municipalBoundary);
     }
 
     const fSrc = map.getSource('features-src');
-    if (fSrc && filteredData) fSrc.setData(filteredData);
+    if (fSrc && filteredData) {
+      fSrc.setData(filteredData);
+      
+      // Auto zoom to rooftops on first load
+      if (!initialZoomDone.current && filteredData.features.length > 0 && !uploadedBoundary) {
+        initialZoomDone.current = true;
+        zoomToBoundary(map, filteredData);
+      }
+    }
   }, [filteredData, municipalBoundary, uploadedBoundary, mapLoaded]);
 
   // Update Layer Colors
@@ -410,6 +430,14 @@ export default function MapViewer({
           title="OpenStreetMap"
         >
           <Compass size={13} /> OSM
+        </button>
+        <button
+          className="basemap-btn"
+          onClick={zoomToRooftops}
+          title={lang === 'th' ? 'ซูมไปที่กลุ่มหลังคา' : 'Zoom to Rooftops'}
+          style={{ borderLeft: '1px solid rgba(255,255,255,0.1)', marginLeft: 4, paddingLeft: 8 }}
+        >
+          <Focus size={13} color="#38bdf8" /> {lang === 'th' ? 'ซูมขอบเขต' : 'Fit View'}
         </button>
       </div>
 
