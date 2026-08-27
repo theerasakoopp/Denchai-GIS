@@ -9,7 +9,7 @@ import { Layers, Globe, Compass, SunMedium, Focus, Plane } from 'lucide-react';
 const BASE = import.meta.env.BASE_URL || '/';
 const cleanBase = BASE.endsWith('/') ? BASE : BASE + '/';
 
-// ── Basemap Configurations ──────────────────────────────────
+// ── Bulletproof Self-Contained Raster Basemap Styles ─────────
 const BASEMAP_STYLES = {
   uav: {
     id: 'uav',
@@ -21,7 +21,7 @@ const BASEMAP_STYLES = {
           type: 'raster',
           tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
           tileSize: 256,
-          attribution: '© OpenStreetMap contributors'
+          attribution: '© OpenStreetMap'
         },
         'uav-tiles': {
           type: 'raster',
@@ -29,29 +29,36 @@ const BASEMAP_STYLES = {
           tileSize: 256,
           minzoom: 14,
           maxzoom: 20,
-          attribution: '© UAV-SolarNet Orthophoto (30cm GSD)'
+          attribution: '© UAV-SolarNet 30cm Orthophoto'
         }
       },
       layers: [
-        {
-          id: 'osm-bg-layer',
-          type: 'raster',
-          source: 'osm-bg'
-        },
-        {
-          id: 'uav-layer',
-          type: 'raster',
-          source: 'uav-tiles',
-          minzoom: 14,
-          maxzoom: 20
-        }
+        { id: 'osm-bg-layer', type: 'raster', source: 'osm-bg' },
+        { id: 'uav-layer', type: 'raster', source: 'uav-tiles', minzoom: 14, maxzoom: 20 }
       ]
     }
   },
   dark: {
     id: 'dark',
-    name: 'Dark Matter',
-    style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+    name: 'Dark Matter (GIS)',
+    style: {
+      version: 8,
+      sources: {
+        'carto-dark': {
+          type: 'raster',
+          tiles: [
+            'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+            'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+            'https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
+          ],
+          tileSize: 256,
+          attribution: '© CARTO, © OpenStreetMap'
+        }
+      },
+      layers: [
+        { id: 'carto-dark-layer', type: 'raster', source: 'carto-dark', minzoom: 0, maxzoom: 20 }
+      ]
+    }
   },
   satellite: {
     id: 'satellite',
@@ -69,13 +76,7 @@ const BASEMAP_STYLES = {
         }
       },
       layers: [
-        {
-          id: 'esri-satellite-layer',
-          type: 'raster',
-          source: 'esri-satellite',
-          minzoom: 0,
-          maxzoom: 22
-        }
+        { id: 'esri-satellite-layer', type: 'raster', source: 'esri-satellite', minzoom: 0, maxzoom: 22 }
       ]
     }
   },
@@ -93,20 +94,31 @@ const BASEMAP_STYLES = {
         }
       },
       layers: [
-        {
-          id: 'osm-layer',
-          type: 'raster',
-          source: 'osm-tiles',
-          minzoom: 0,
-          maxzoom: 19
-        }
+        { id: 'osm-layer', type: 'raster', source: 'osm-tiles', minzoom: 0, maxzoom: 19 }
       ]
     }
   },
   light: {
     id: 'light',
     name: 'Positron (Light)',
-    style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+    style: {
+      version: 8,
+      sources: {
+        'carto-light': {
+          type: 'raster',
+          tiles: [
+            'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+            'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+            'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'
+          ],
+          tileSize: 256,
+          attribution: '© CARTO, © OpenStreetMap'
+        }
+      },
+      layers: [
+        { id: 'carto-light-layer', type: 'raster', source: 'carto-light', minzoom: 0, maxzoom: 20 }
+      ]
+    }
   }
 };
 
@@ -158,8 +170,7 @@ export default function MapViewer({
   colorMode,
   viewMode,
   lang = 'th',
-  tariff = 4.2,
-  uavOrthoUrl = null // Optional: URL for UAV Orthophoto Tile Server (XYZ / TMS)
+  tariff = 4.2
 }) {
   const t = translations[lang] || translations.th;
   const langRef = useRef(lang);
@@ -186,7 +197,6 @@ export default function MapViewer({
   const layersReadyRef = useRef(false);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [currentBasemap, setCurrentBasemap] = useState('dark');
-  const [uavOrthoActive, setUavOrthoActive] = useState(false);
 
   // ── Color expression ─────────────────────────────────────────
   const getColorExpr = (mode, vm) => {
@@ -275,7 +285,7 @@ export default function MapViewer({
       }
     });
 
-    // 3. Facets Source & Layers (Uses direct in-memory GeoJSON from App.jsx)
+    // 3. Facets Source & Layers
     const initialFacets = facetsDataRef.current || { type: 'FeatureCollection', features: [] };
     safeAddSource('facets-src', {
       type: 'geojson',
