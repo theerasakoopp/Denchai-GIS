@@ -502,6 +502,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         serviceVisible={serviceVisible}
         waterVisible={waterVisible}
         selectedFeature={selectedFeature}
+        isEditorMode={false}
         isPickingLocation={isPickingLocation}
         onLocationPicked={handleLocationPicked}
         onEditFeature={handleOpenEdit}

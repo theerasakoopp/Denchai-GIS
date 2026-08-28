@@ -677,6 +677,7 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
           serviceVisible={Object.fromEntries(Object.keys(SERVICE_CATEGORIES).map(k => [k, true]))}
           waterVisible={Object.fromEntries(Object.keys(WATER_CATEGORIES).map(k => [k, true]))}
           selectedFeature={selectedFeature}
+          isEditorMode={true}
           isPickingLocation={isPickingLocation}
           onLocationPicked={(coords) => {
             setPickedCoordinates(coords);

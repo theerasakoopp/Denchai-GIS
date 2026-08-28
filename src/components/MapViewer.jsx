@@ -141,8 +141,8 @@ const POI_COLOR_MATCH = [
   'school', '#3b82f6',
   'market', '#f97316',
   'transport', '#8b5cf6',
-  'government', '#06b6d4',
-  'park', '#22c55e',
+  'government', '#0891b2',
+  'park', '#16a34a',
   'bank', '#6366f1',
   '#3b82f6'
 ];
@@ -151,29 +151,29 @@ const SERVICE_COLOR_MATCH = [
   'match',
   ['get', 'category'],
   'health', '#ef4444',
-  'police', '#3b82f6',
-  'fire', '#f97316',
+  'police', '#1d4ed8',
+  'fire', '#dc2626',
   'welfare', '#8b5cf6',
-  'post', '#06b6d4',
-  'waste', '#22c55e',
+  'post', '#0891b2',
+  'waste', '#16a34a',
   '#ef4444'
 ];
 
 const INFRA_COLOR_MATCH = [
   'match',
   ['get', 'category'],
-  'highway', '#f97316',
-  'rural_road', '#f59e0b',
-  'main_road', '#eab308',
-  'collector_road', '#38bdf8',
-  'local_road', '#94a3b8',
+  'highway', '#ea580c',
+  'rural_road', '#0284c7',
+  'main_road', '#f59e0b',
+  'collector_road', '#fb923c',
+  'local_road', '#64748b',
   'agri_road', '#10b981',
   'planned_road', '#ec4899',
-  'rail', '#a855f7',
-  'bridge', '#ef4444',
+  'rail', '#581c87',
+  'bridge', '#dc2626',
   'water', '#06b6d4',
-  'electric', '#facc15',
-  '#f97316'
+  'electric', '#eab308',
+  '#ea580c'
 ];
 
 export const WATER_COLOR_MATCH = [
@@ -321,6 +321,7 @@ export default function MapViewer({
   serviceVisible = {},
   waterVisible = {},
   selectedFeature = null,
+  isEditorMode = false,
   // Editor props
   isPickingLocation = false,
   onLocationPicked = null,
@@ -473,11 +474,35 @@ export default function MapViewer({
     if (geomType === 'LineString') {
       const lenKm = turf.length(targetFeat, { units: 'kilometers' });
       const lenM = lenKm * 1000;
+      const coords = targetFeat.geometry?.coordinates;
+      let bearingInfo = null;
+      if (coords && coords.length >= 2) {
+        const startPt = turf.point(coords[0]);
+        const endPt = turf.point(coords[coords.length - 1]);
+        let angle = Math.round(turf.bearing(startPt, endPt));
+        if (angle < 0) angle += 360;
+
+        const directions = [
+          { min: 337.5, max: 360,   th: 'ทิศเหนือ (N)', en: 'North (N)' },
+          { min: 0,     max: 22.5,  th: 'ทิศเหนือ (N)', en: 'North (N)' },
+          { min: 22.5,  max: 67.5,  th: 'ทิศตะวันออกเฉียงเหนือ (NE)', en: 'Northeast (NE)' },
+          { min: 67.5,  max: 112.5, th: 'ทิศตะวันออก (E)', en: 'East (E)' },
+          { min: 112.5, max: 157.5, th: 'ทิศตะวันออกเฉียงใต้ (SE)', en: 'Southeast (SE)' },
+          { min: 157.5, max: 202.5, th: 'ทิศใต้ (S)', en: 'South (S)' },
+          { min: 202.5, max: 247.5, th: 'ทิศตะวันตกเฉียงใต้ (SW)', en: 'Southwest (SW)' },
+          { min: 247.5, max: 292.5, th: 'ทิศตะวันตก (W)', en: 'West (W)' },
+          { min: 292.5, max: 337.5, th: 'ทิศตะวันตกเฉียงเหนือ (NW)', en: 'Northwest (NW)' },
+        ];
+        const dir = directions.find(d => angle >= d.min && angle < d.max) || directions[0];
+        bearingInfo = { angle, dirText: lang === 'th' ? dir.th : dir.en };
+      }
+
       setMeasureInfo({
         type: 'line',
         feature: targetFeat,
         lengthKm: lenKm.toFixed(3),
         lengthM: lenM.toFixed(1),
+        bearing: bearingInfo,
         totalFeatures: data.features.length
       });
     } else if (geomType === 'Polygon') {
@@ -1310,12 +1335,30 @@ export default function MapViewer({
             'line-width': [
               'match',
               ['get', 'category'],
-              'highway', 4.5,
-              'main_road', 3.5,
-              'rail', 3.0,
-              'local_road', 2.0,
+              'highway', 5.0,
+              'rural_road', 3.8,
+              'main_road', 3.8,
+              'collector_road', 2.8,
+              'local_road', 2.2,
+              'agri_road', 2.0,
+              'planned_road', 2.5,
+              'rail', 3.5,
+              'bridge', 4.0,
               2.5
             ],
+            'line-opacity': 0.95
+          }
+        },
+        {
+          id: 'infra-rail-dash',
+          type: 'line',
+          source: 'infra-src',
+          layout: { visibility: 'visible', 'line-cap': 'butt' },
+          filter: ['all', ['==', ['geometry-type'], 'LineString'], ['==', ['get', 'category'], 'rail']],
+          paint: {
+            'line-color': '#ffffff',
+            'line-width': 2.0,
+            'line-dasharray': [2, 2],
             'line-opacity': 0.95
           }
         },
@@ -1986,420 +2029,321 @@ export default function MapViewer({
     <div className="map-wrap">
       <div ref={mapContainerRef} className="map-container" />
 
-      {/* Basemap Switcher & Controls */}
-      <div className="map-floating-panel basemap-control">
-        {[
-          { key: 'uav',       icon: <Plane size={14} />,     label: lang === 'th' ? 'โดรน UAV (30cm)' : 'UAV Ortho' },
-          { key: 'satellite', icon: <Globe size={14} />,     label: lang === 'th' ? 'ดาวเทียม' : 'Satellite' },
-          { key: 'dark',      icon: <Layers size={14} />,    label: lang === 'th' ? 'มืด (GIS)' : 'Dark' },
-          { key: 'osm',       icon: <Compass size={14} />,   label: 'OSM' },
-          { key: 'light',     icon: <SunMedium size={14} />, label: lang === 'th' ? 'สว่าง' : 'Light' },
-        ].map(({ key, icon, label }) => (
+      {/* ── TOOLBAR: Viewer Mode vs Editor Mode ── */}
+      {!isEditorMode ? (
+        /* ── Viewer Mode Toolbar (Top Left: Basemap + Fit View + Measurement Tools) ── */
+        <div className="map-floating-panel" style={{
+          position: 'absolute', top: 14, left: 16, zIndex: 1200,
+          display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px',
+          background: 'rgba(13, 20, 36, 0.94)', backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 10,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.3)'
+        }}>
+          {[
+            { key: 'uav',       icon: <Plane size={14} />,     label: lang === 'th' ? 'โดรน UAV' : 'UAV' },
+            { key: 'satellite', icon: <Globe size={14} />,     label: lang === 'th' ? 'ดาวเทียม' : 'Sat' },
+            { key: 'dark',      icon: <Layers size={14} />,    label: lang === 'th' ? 'มืด (GIS)' : 'Dark' },
+            { key: 'osm',       icon: <Compass size={14} />,   label: 'OSM' },
+            { key: 'light',     icon: <SunMedium size={14} />, label: lang === 'th' ? 'สว่าง' : 'Light' },
+          ].map(({ key, icon, label }) => (
+            <button
+              key={key}
+              type="button"
+              className={`basemap-btn ${currentBasemap === key ? 'active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                changeBasemap(key);
+              }}
+            >
+              {icon} {label}
+            </button>
+          ))}
           <button
-            key={key}
             type="button"
-            className={`basemap-btn ${currentBasemap === key ? 'active' : ''}`}
-            onPointerDown={(e) => {
-              e.preventDefault();
-              changeBasemap(key);
-            }}
+            className="basemap-btn"
             onClick={(e) => {
               e.preventDefault();
-              changeBasemap(key);
+              zoomToRooftops();
             }}
+            style={{ borderLeft: '1px solid rgba(255,255,255,0.18)', marginLeft: 4, paddingLeft: 8 }}
+            title={lang === 'th' ? 'ซูมขอบเขตเด่นชัย' : 'Fit to Denchai'}
           >
-            {icon} {label}
+            <Focus size={14} color="#38bdf8" /> {lang === 'th' ? 'ซูมขอบเขต' : 'Fit'}
           </button>
-        ))}
-        <button
-          type="button"
-          className="basemap-btn"
-          onPointerDown={(e) => {
-            e.preventDefault();
-            zoomToRooftops();
-          }}
-          onClick={(e) => {
-            e.preventDefault();
-            zoomToRooftops();
-          }}
-          style={{ borderLeft: '1px solid rgba(255,255,255,0.18)', marginLeft: 4, paddingLeft: 8 }}
-          title={lang === 'th' ? 'ซูมขอบเขตเด่นชัย' : 'Fit to Denchai'}
-        >
-          <Focus size={14} color="#38bdf8" /> {lang === 'th' ? 'ซูมขอบเขต' : 'Fit View'}
-        </button>
-      </div>
 
-      {/* Reshaping Road Active Banner */}
-      {editingRoadId && (
-        <div style={{
-          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 5500, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
-          color: 'white', border: '2px solid #f59e0b', borderRadius: 30,
-          padding: '8px 20px', display: 'flex', alignItems: 'center', gap: 14,
-          boxShadow: '0 8px 32px rgba(245, 158, 11, 0.3)'
-        }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#fcd34d' }}>
-            🛣️ กำลังดัดแนวเส้น: {editingRoadName} (คลิกลากจุดยอด Vertex บนแผนที่ได้เลย)
-          </span>
-          <button
-            type="button"
-            className="btn btn-primary"
-            style={{ padding: '5px 12px', fontSize: '0.75rem', background: '#22c55e', borderColor: '#16a34a' }}
-            onClick={() => {
-              const all = drawRef.current?.getAll();
-              const editedFeat = all?.features?.find(f => f.id === editingRoadId) || all?.features?.[0];
-              if (editedFeat) {
-                const lenKm = turf.length(editedFeat, { units: 'kilometers' });
-                const baseFeature = reshapingFeature || editingRoadFeatRef.current || infraDataRef.current?.features?.find(f => (f.properties?.id || f.id) === (editingRoadIdRef.current || editingRoadId)) || editedFeat;
-                const targetId = baseFeature.properties?.id || baseFeature.id || editingRoadId;
-                const updated = {
-                  ...baseFeature,
-                  id: targetId,
-                  geometry: editedFeat.geometry,
-                  properties: {
-                    ...(baseFeature?.properties || {}),
-                    id: targetId,
-                    length_km: Number(lenKm.toFixed(3))
-                  }
-                };
-                onSaveFeature?.(updated, 'infra');
-                alert(`บันทึกแนวเส้นทาง ${editingRoadName || 'ถนน'} (ความยาว ${lenKm.toFixed(2)} กม.) เรียบร้อยแล้ว!`);
-              }
-              drawRef.current?.deleteAll();
-              setEditingRoadId(null);
-              setEditingRoadName('');
-              editingRoadFeatRef.current = null;
-              setActiveDrawMode('none');
-              onFinishReshaping?.();
-            }}
-          >
-            💾 บันทึกแนวถนน
-          </button>
-          <button
-            type="button"
-            style={{
-              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
-              color: 'white', borderRadius: 20, padding: '4px 10px', fontSize: '0.75rem',
-              cursor: 'pointer', fontWeight: 600
-            }}
-            onClick={() => {
-              drawRef.current?.deleteAll();
-              setEditingRoadId(null);
-              setEditingRoadName('');
-              setActiveDrawMode('none');
-              onFinishReshaping?.();
-            }}
-          >
-            ยกเลิก
-          </button>
+          {/* Viewer Measurement Tools */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, borderLeft: '1px solid rgba(255,255,255,0.2)', marginLeft: 4, paddingLeft: 8 }}>
+            <button
+              type="button"
+              className={`basemap-btn ${activeDrawMode === 'line' ? 'active' : ''}`}
+              onClick={() => {
+                setDrawMode(activeDrawMode === 'line' ? 'none' : 'line');
+              }}
+              title={lang === 'th' ? 'วัดระยะทาง (คลิกจุดบนแผนที่เพื่อคำนวณความยาว)' : 'Measure Distance'}
+              style={{ color: activeDrawMode === 'line' ? '#ffffff' : '#38bdf8', fontWeight: 600 }}
+            >
+              <Ruler size={13} /> {lang === 'th' ? 'วัดระยะ' : 'Distance'}
+            </button>
+            <button
+              type="button"
+              className={`basemap-btn ${activeDrawMode === 'polygon' ? 'active' : ''}`}
+              onClick={() => {
+                setDrawMode(activeDrawMode === 'polygon' ? 'none' : 'polygon');
+              }}
+              title={lang === 'th' ? 'วัดพื้นที่ (คลิกตีกรอบรูปแปลงเพื่อคำนวณ ตร.ม. และไร่)' : 'Measure Area'}
+              style={{ color: activeDrawMode === 'polygon' ? '#ffffff' : '#4ade80', fontWeight: 600 }}
+            >
+              <Square size={13} /> {lang === 'th' ? 'วัดพื้นที่' : 'Area'}
+            </button>
+            <button
+              type="button"
+              className={`basemap-btn ${activeDrawMode === 'bearing' ? 'active' : ''}`}
+              onClick={() => {
+                if (activeDrawMode === 'bearing') {
+                  setDrawMode('none');
+                } else {
+                  setDrawMode('line');
+                  setActiveDrawMode('bearing');
+                }
+              }}
+              title={lang === 'th' ? 'วัดทิศทางและมุมองศา (Azimuth / Bearing)' : 'Measure Bearing / Angle'}
+              style={{ color: activeDrawMode === 'bearing' ? '#ffffff' : '#f59e0b', fontWeight: 600 }}
+            >
+              <Compass size={13} /> {lang === 'th' ? 'วัดมุม/ทิศ' : 'Bearing'}
+            </button>
+          </div>
         </div>
-      )}
-
-      {/* Split Line Active Banner */}
-      {topologyMode === 'split' && (
-        <div style={{
-          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 5500, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
-          color: 'white', border: '2px solid #ef4444', borderRadius: 30,
-          padding: '8px 20px', display: 'flex', alignItems: 'center', gap: 14,
-          boxShadow: '0 8px 32px rgba(239, 68, 68, 0.35)'
-        }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#fca5a5' }}>
-            ✂️ โหมดตัดเส้นทาง: คลิกที่จุดบนเส้นถนนที่ต้องการตัดออกเป็น 2 ตอน
-          </span>
-          <button
-            type="button"
-            style={{
-              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
-              color: 'white', borderRadius: 20, padding: '4px 10px', fontSize: '0.75rem',
-              cursor: 'pointer', fontWeight: 600
-            }}
-            onClick={() => setTopologyMode('none')}
-          >
-            ยกเลิก
-          </button>
-        </div>
-      )}
-
-      {/* Merge Line Active Banner */}
-      {topologyMode === 'merge' && (
-        <div style={{
-          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 5500, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
-          color: 'white', border: '2px solid #a855f7', borderRadius: 30,
-          padding: '8px 20px', display: 'flex', alignItems: 'center', gap: 14,
-          boxShadow: '0 8px 32px rgba(168, 85, 247, 0.35)'
-        }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#d8b4fe' }}>
-            {mergeFirstFeature
-              ? `🔗 กำลังเลือก: "${mergeFirstFeature.properties?.name_th || 'ถนน'}" ➡️ คลิกถนนเส้นที่ 2 เพื่อต่อเชื่อม`
-              : '🔗 โหมดต่อรวมเส้นทาง: คลิกเลือกถนนเส้นที่ 1 บนแผนที่'}
-          </span>
-          <button
-            type="button"
-            style={{
-              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
-              color: 'white', borderRadius: 20, padding: '4px 10px', fontSize: '0.75rem',
-              cursor: 'pointer', fontWeight: 600
-            }}
-            onClick={() => {
-              setTopologyMode('none');
-              setMergeFirstFeature(null);
-            }}
-          >
-            ยกเลิก
-          </button>
-        </div>
-      )}
-
-      {/* Reshape Line Active Banner */}
-      {topologyMode === 'reshape' && !editingRoadId && (
-        <div style={{
-          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 5500, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
-          color: 'white', border: '2px solid #38bdf8', borderRadius: 30,
-          padding: '8px 20px', display: 'flex', alignItems: 'center', gap: 14,
-          boxShadow: '0 8px 32px rgba(56, 189, 248, 0.35)'
-        }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#38bdf8' }}>
-            📐 โหมดดัดเส้น: คลิกเลือกเส้นถนนบนแผนที่เพื่อดึง/ดัดจุดยอด (Vertex)
-          </span>
-          <button
-            type="button"
-            style={{
-              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
-              color: 'white', borderRadius: 20, padding: '4px 10px', fontSize: '0.75rem',
-              cursor: 'pointer', fontWeight: 600
-            }}
-            onClick={() => setTopologyMode('none')}
-          >
-            ยกเลิก
-          </button>
-        </div>
-      )}
-
-      {/* Delete Feature Active Banner */}
-      {topologyMode === 'delete' && (
-        <div style={{
-          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 5500, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
-          color: 'white', border: '2px solid #ef4444', borderRadius: 30,
-          padding: '8px 20px', display: 'flex', alignItems: 'center', gap: 14,
-          boxShadow: '0 8px 32px rgba(239, 68, 68, 0.35)'
-        }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#fca5a5' }}>
-            🗑️ โหมดลบข้อมูล: คลิกที่เส้นถนนหรือสถานที่บนแผนที่เพื่อลบออกทั้งเส้น
-          </span>
-          <button
-            type="button"
-            style={{
-              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
-              color: 'white', borderRadius: 20, padding: '4px 10px', fontSize: '0.75rem',
-              cursor: 'pointer', fontWeight: 600
-            }}
-            onClick={() => setTopologyMode('none')}
-          >
-            ยกเลิก
-          </button>
-        </div>
-      )}
-
-      {/* ── MapLibre Drawing & Geometry Editor Toolbar ── */}
-      <div className="map-floating-panel" style={{
-        position: 'absolute', top: 14, right: 54, zIndex: 1500,
-        display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px',
-        background: 'rgba(13, 20, 36, 0.94)', backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 8
-      }}>
-        <button
-          type="button"
-          className={`basemap-btn ${activeDrawMode === 'point' ? 'active' : ''}`}
-          onClick={() => {
-            setDrawMode(activeDrawMode === 'point' ? 'none' : 'point');
-            setTopologyMode('none');
-          }}
-          title={lang === 'th' ? 'วาด/ปักหมุดจุดพิกัด (Point)' : 'Draw Point'}
-          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
-        >
-          <MapPin size={13} color={activeDrawMode === 'point' ? '#fff' : '#38bdf8'} /> {lang === 'th' ? 'จุด' : 'Point'}
-        </button>
-
-        <button
-          type="button"
-          className={`basemap-btn ${activeDrawMode === 'line' ? 'active' : ''}`}
-          onClick={() => {
-            setDrawMode(activeDrawMode === 'line' ? 'none' : 'line');
-            setTopologyMode('none');
-          }}
-          title={lang === 'th' ? 'วาดเส้น / วัดระยะทาง (LineString)' : 'Draw Line / Measure Distance'}
-          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
-        >
-          <Activity size={13} color={activeDrawMode === 'line' ? '#fff' : '#f59e0b'} /> {lang === 'th' ? 'เส้น' : 'Line'}
-        </button>
-
-        <button
-          type="button"
-          className={`basemap-btn ${activeDrawMode === 'polygon' ? 'active' : ''}`}
-          onClick={() => {
-            setDrawMode(activeDrawMode === 'polygon' ? 'none' : 'polygon');
-            setTopologyMode('none');
-          }}
-          title={lang === 'th' ? 'วาดพื้นที่ / วัดขนาดแปลง (Polygon)' : 'Draw Polygon / Area'}
-          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
-        >
-          <Square size={13} color={activeDrawMode === 'polygon' ? '#fff' : '#10b981'} /> {lang === 'th' ? 'พื้นที่' : 'Polygon'}
-        </button>
-
-        <button
-          type="button"
-          className={`basemap-btn ${topologyMode === 'reshape' || editingRoadId ? 'active' : ''}`}
-          onClick={() => {
-            if (editingRoadId) {
-              drawRef.current?.deleteAll();
-              setEditingRoadId(null);
-              setEditingRoadName('');
-              setActiveDrawMode('none');
-              onFinishReshaping?.();
-            }
-            setTopologyMode(topologyMode === 'reshape' ? 'none' : 'reshape');
-            setMergeFirstFeature(null);
-            setDrawMode('none');
-          }}
-          title={lang === 'th' ? 'คลิกเพื่อดัดจุดยอดแนวเส้นทาง/อาคาร (Reshape Line)' : 'Reshape Line'}
-          style={{
-            padding: '6px 10px', fontSize: '0.74rem', fontWeight: 700,
-            borderLeft: '1px solid rgba(255,255,255,0.2)', marginLeft: 2, paddingLeft: 8,
-            color: topologyMode === 'reshape' || editingRoadId ? '#fff' : '#38bdf8',
-            background: topologyMode === 'reshape' || editingRoadId ? '#0284c7' : 'rgba(56, 189, 248, 0.12)',
-            borderRadius: 6
-          }}
-        >
-          <Pencil size={13} color={topologyMode === 'reshape' || editingRoadId ? '#fff' : '#38bdf8'} />
-          <span>{lang === 'th' ? 'ดัดเส้น (Reshape)' : 'Reshape'}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`basemap-btn ${topologyMode === 'split' ? 'active' : ''}`}
-          onClick={() => {
-            setTopologyMode(topologyMode === 'split' ? 'none' : 'split');
-            setMergeFirstFeature(null);
-            setDrawMode('none');
-          }}
-          title={lang === 'th' ? 'ตัดเส้นทางออกเป็น 2 ตอน (Split Line)' : 'Split Line'}
-          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
-        >
-          <Scissors size={13} color={topologyMode === 'split' ? '#fff' : '#ef4444'} /> {lang === 'th' ? 'ตัดเส้น' : 'Split'}
-        </button>
-
-        <button
-          type="button"
-          className={`basemap-btn ${topologyMode === 'merge' ? 'active' : ''}`}
-          onClick={() => {
-            setTopologyMode(topologyMode === 'merge' ? 'none' : 'merge');
-            setMergeFirstFeature(null);
-            setDrawMode('none');
-          }}
-          title={lang === 'th' ? 'ต่อ/รวมเส้นทาง 2 เส้นเข้าด้วยกัน (Merge Lines)' : 'Merge Lines'}
-          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
-        >
-          <GitMerge size={13} color={topologyMode === 'merge' ? '#fff' : '#a855f7'} /> {lang === 'th' ? 'ต่อเส้น' : 'Merge'}
-        </button>
-
-        <button
-          type="button"
-          className={`basemap-btn ${topologyMode === 'delete' ? 'active' : ''}`}
-          onClick={() => {
-            setTopologyMode(topologyMode === 'delete' ? 'none' : 'delete');
-            setMergeFirstFeature(null);
-            setDrawMode('none');
-          }}
-          title={lang === 'th' ? 'คลิกลบเส้นทางหรือสถานที่บนแผนที่ (Delete Feature)' : 'Delete Feature'}
-          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
-        >
-          <Trash2 size={13} color={topologyMode === 'delete' ? '#fff' : '#f87171'} /> {lang === 'th' ? 'ลบเส้น' : 'Delete'}
-        </button>
-
-        <button
-          type="button"
-          className={`basemap-btn ${snapEnabled ? 'active' : ''}`}
-          onClick={() => setSnapEnabled(!snapEnabled)}
-          title={lang === 'th' ? `ระบบดูดจุดยอดอัตโนมัติ (Snapping): ${snapEnabled ? 'เปิดใช้งานอยู่ (คลิกเพื่อปิด)' : 'ปิดอยู่ (คลิกเพื่อเปิด)'}` : `Snap to Vertex: ${snapEnabled ? 'ON' : 'OFF'}`}
-          style={{
-            padding: '6px 9px', fontSize: '0.72rem',
-            borderLeft: '1px solid rgba(255,255,255,0.2)', marginLeft: 2, paddingLeft: 8,
-            color: snapEnabled ? '#10b981' : '#94a3b8',
-            background: snapEnabled ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
-            display: 'flex', alignItems: 'center', gap: 4
-          }}
-        >
-          <Magnet size={13} color={snapEnabled ? '#10b981' : '#94a3b8'} />
-          <span style={{ fontWeight: 600 }}>{snapEnabled ? (lang === 'th' ? '🧲 Snap' : 'Snap ON') : (lang === 'th' ? 'Snap ปิด' : 'Snap OFF')}</span>
-        </button>
-
-        {measureInfo && (
-          <>
+      ) : (
+        /* ── Editor Studio Toolbars (Top Left Basemap + Top Right Digitizing Toolbar) ── */
+        <>
+          {/* Basemap Switcher (Top Left in Editor Mode) */}
+          <div className="map-floating-panel" style={{
+            position: 'absolute', top: 14, left: 16, zIndex: 1200,
+            display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px',
+            background: 'rgba(13, 20, 36, 0.94)', backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 8
+          }}>
+            {[
+              { key: 'uav',       icon: <Plane size={14} />,     label: 'UAV' },
+              { key: 'satellite', icon: <Globe size={14} />,     label: 'Sat' },
+              { key: 'dark',      icon: <Layers size={14} />,    label: 'Dark' },
+              { key: 'osm',       icon: <Compass size={14} />,   label: 'OSM' },
+            ].map(({ key, icon, label }) => (
+              <button
+                key={key}
+                type="button"
+                className={`basemap-btn ${currentBasemap === key ? 'active' : ''}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  changeBasemap(key);
+                }}
+              >
+                {icon} {label}
+              </button>
+            ))}
             <button
               type="button"
               className="basemap-btn"
-              onClick={handleTrash}
-              style={{ color: '#f87171', padding: '6px 8px' }}
-              title={lang === 'th' ? 'ลบรูปทรงที่เลือก' : 'Delete Selected Shape'}
+              onClick={(e) => {
+                e.preventDefault();
+                zoomToRooftops();
+              }}
+              style={{ borderLeft: '1px solid rgba(255,255,255,0.18)', marginLeft: 4, paddingLeft: 6 }}
+              title={lang === 'th' ? 'ซูมขอบเขตเด่นชัย' : 'Fit to Denchai'}
             >
-              <Trash2 size={13} />
+              <Focus size={14} color="#38bdf8" />
+            </button>
+          </div>
+
+          {/* Full Digitizing & Topology Toolkit (Top Right in Editor Mode) */}
+          <div className="map-floating-panel" style={{
+            position: 'absolute', top: 14, right: 16, zIndex: 1500,
+            display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px',
+            background: 'rgba(13, 20, 36, 0.94)', backdropFilter: 'blur(16px)',
+            border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 8
+          }}>
+            <button
+              type="button"
+              className={`basemap-btn ${activeDrawMode === 'point' ? 'active' : ''}`}
+              onClick={() => {
+                setDrawMode(activeDrawMode === 'point' ? 'none' : 'point');
+                setTopologyMode('none');
+              }}
+              title={lang === 'th' ? 'วาด/ปักหมุดจุดพิกัด (Point)' : 'Draw Point'}
+              style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+            >
+              <MapPin size={13} color={activeDrawMode === 'point' ? '#fff' : '#38bdf8'} /> {lang === 'th' ? 'จุด' : 'Point'}
             </button>
 
             <button
               type="button"
-              className="basemap-btn"
-              onClick={handleExportDrawn}
-              style={{ color: '#38bdf8', padding: '6px 8px' }}
-              title={lang === 'th' ? 'ส่งออก GeoJSON ที่วาด' : 'Export Drawn GeoJSON'}
+              className={`basemap-btn ${activeDrawMode === 'line' ? 'active' : ''}`}
+              onClick={() => {
+                setDrawMode(activeDrawMode === 'line' ? 'none' : 'line');
+                setTopologyMode('none');
+              }}
+              title={lang === 'th' ? 'วาดเส้น / วัดระยะทาง (LineString)' : 'Draw Line / Measure'}
+              style={{ padding: '6px 9px', fontSize: '0.72rem' }}
             >
-              <Download size={13} />
+              <Activity size={13} color={activeDrawMode === 'line' ? '#fff' : '#f59e0b'} /> {lang === 'th' ? 'เส้น' : 'Line'}
             </button>
-          </>
-        )}
-      </div>
+
+            <button
+              type="button"
+              className={`basemap-btn ${activeDrawMode === 'polygon' ? 'active' : ''}`}
+              onClick={() => {
+                setDrawMode(activeDrawMode === 'polygon' ? 'none' : 'polygon');
+                setTopologyMode('none');
+              }}
+              title={lang === 'th' ? 'วาดพื้นที่ / วัดขนาดแปลง (Polygon)' : 'Draw Polygon'}
+              style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+            >
+              <Square size={13} color={activeDrawMode === 'polygon' ? '#fff' : '#10b981'} /> {lang === 'th' ? 'พื้นที่' : 'Polygon'}
+            </button>
+
+            <button
+              type="button"
+              className={`basemap-btn ${topologyMode === 'reshape' || editingRoadId ? 'active' : ''}`}
+              onClick={() => {
+                if (editingRoadId) {
+                  drawRef.current?.deleteAll();
+                  setEditingRoadId(null);
+                  setEditingRoadName('');
+                  setActiveDrawMode('none');
+                  onFinishReshaping?.();
+                }
+                setTopologyMode(topologyMode === 'reshape' ? 'none' : 'reshape');
+                setMergeFirstFeature(null);
+                setDrawMode('none');
+              }}
+              title={lang === 'th' ? 'ดัดจุดยอดแนวเส้นทาง (Reshape Line)' : 'Reshape Line'}
+              style={{
+                padding: '6px 10px', fontSize: '0.74rem', fontWeight: 700,
+                borderLeft: '1px solid rgba(255,255,255,0.2)', marginLeft: 2, paddingLeft: 8,
+                color: topologyMode === 'reshape' || editingRoadId ? '#fff' : '#38bdf8',
+                background: topologyMode === 'reshape' || editingRoadId ? '#0284c7' : 'rgba(56, 189, 248, 0.12)',
+                borderRadius: 6
+              }}
+            >
+              <Pencil size={13} color={topologyMode === 'reshape' || editingRoadId ? '#fff' : '#38bdf8'} />
+              <span>{lang === 'th' ? 'ดัดเส้น' : 'Reshape'}</span>
+            </button>
+
+            <button
+              type="button"
+              className={`basemap-btn ${topologyMode === 'split' ? 'active' : ''}`}
+              onClick={() => {
+                setTopologyMode(topologyMode === 'split' ? 'none' : 'split');
+                setMergeFirstFeature(null);
+                setDrawMode('none');
+              }}
+              title={lang === 'th' ? 'ตัดเส้นทางออกเป็น 2 ตอน (Split Line)' : 'Split Line'}
+              style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+            >
+              <Scissors size={13} color={topologyMode === 'split' ? '#fff' : '#ef4444'} /> {lang === 'th' ? 'ตัดเส้น' : 'Split'}
+            </button>
+
+            <button
+              type="button"
+              className={`basemap-btn ${topologyMode === 'merge' ? 'active' : ''}`}
+              onClick={() => {
+                setTopologyMode(topologyMode === 'merge' ? 'none' : 'merge');
+                setMergeFirstFeature(null);
+                setDrawMode('none');
+              }}
+              title={lang === 'th' ? 'ต่อรวมเส้นทาง 2 เส้นเข้าด้วยกัน (Merge Lines)' : 'Merge Lines'}
+              style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+            >
+              <GitMerge size={13} color={topologyMode === 'merge' ? '#fff' : '#a855f7'} /> {lang === 'th' ? 'ต่อเส้น' : 'Merge'}
+            </button>
+
+            <button
+              type="button"
+              className={`basemap-btn ${topologyMode === 'delete' ? 'active' : ''}`}
+              onClick={() => {
+                setTopologyMode(topologyMode === 'delete' ? 'none' : 'delete');
+                setMergeFirstFeature(null);
+                setDrawMode('none');
+              }}
+              title={lang === 'th' ? 'ลบเส้นทางหรือสถานที่บนแผนที่' : 'Delete Feature'}
+              style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+            >
+              <Trash2 size={13} color={topologyMode === 'delete' ? '#fff' : '#f87171'} /> {lang === 'th' ? 'ลบเส้น' : 'Delete'}
+            </button>
+
+            <button
+              type="button"
+              className={`basemap-btn ${snapEnabled ? 'active' : ''}`}
+              onClick={() => setSnapEnabled(!snapEnabled)}
+              title={lang === 'th' ? `ระบบดูดจุดยอดอัตโนมัติ (Snapping): ${snapEnabled ? 'เปิดอยู่' : 'ปิดอยู่'}` : `Snap: ${snapEnabled ? 'ON' : 'OFF'}`}
+              style={{
+                padding: '6px 9px', fontSize: '0.72rem',
+                borderLeft: '1px solid rgba(255,255,255,0.2)', marginLeft: 2, paddingLeft: 8,
+                color: snapEnabled ? '#10b981' : '#94a3b8',
+                background: snapEnabled ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
+                display: 'flex', alignItems: 'center', gap: 4
+              }}
+            >
+              <Magnet size={13} color={snapEnabled ? '#10b981' : '#94a3b8'} />
+              <span style={{ fontWeight: 600 }}>{snapEnabled ? '🧲 Snap' : 'Snap ปิด'}</span>
+            </button>
+          </div>
+        </>
+      )}
 
       {/* ── Real-time Measurement HUD Card ── */}
       {measureInfo && (
         <div style={{
-          position: 'absolute', top: 62, right: 54, zIndex: 1400,
+          position: 'absolute', top: isEditorMode ? 62 : 62, right: 16, zIndex: 1400,
           background: 'rgba(13, 20, 36, 0.95)', backdropFilter: 'blur(16px)',
           border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: 12,
-          padding: '12px 16px', color: 'white', minWidth: 250, maxWidth: 330,
+          padding: '12px 16px', color: 'white', minWidth: 260, maxWidth: 330,
           boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5)', animation: 'slideDown 0.2s ease-out'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 6 }}>
             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: 6 }}>
-              {measureInfo.type === 'line' ? '📏 ผลการวัดระยะทาง (Line)'
-               : measureInfo.type === 'polygon' ? '📐 ผลการคำนวณพื้นที่ (Polygon)'
-               : '📍 พิกัดจุด (Point)'}
+              {measureInfo.type === 'line'
+                ? (activeDrawMode === 'bearing' ? '🧭 ผลการวัดมุมและทิศทาง (Azimuth)' : '📏 ผลการวัดระยะทาง (Distance)')
+                : measureInfo.type === 'polygon' ? '📐 ผลการคำนวณพื้นที่ (Area)'
+                : '📍 พิกัดจุด (Point)'}
             </span>
             <button
               type="button"
-              onClick={() => setMeasureInfo(null)}
+              onClick={() => {
+                setMeasureInfo(null);
+                drawRef.current?.deleteAll();
+                setActiveDrawMode('none');
+              }}
               style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 2 }}
+              title="ล้างการวัด"
             >
-              <X size={13} />
+              <X size={14} />
             </button>
           </div>
 
           {measureInfo.type === 'line' && (
             <div>
               <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>ระยะทางรวม:</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#38bdf8' }}>
-                {measureInfo.lengthKm} <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>กม.</span>
+              <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#38bdf8' }}>
+                {measureInfo.lengthKm} <span style={{ fontSize: '0.78rem', fontWeight: 500 }}>กม.</span>
+                <span style={{ fontSize: '0.74rem', fontWeight: 400, color: '#cbd5e1', marginLeft: 6 }}>({measureInfo.lengthM} ม.)</span>
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginTop: 2 }}>
-                ({measureInfo.lengthM} เมตร)
-              </div>
-              {onEditFeature && (
+
+              {measureInfo.bearing && (
+                <div style={{ marginTop: 8, padding: '6px 10px', background: 'rgba(245, 158, 11, 0.15)', borderRadius: 8, border: '1px solid rgba(245, 158, 11, 0.3)' }}>
+                  <div style={{ fontSize: '0.68rem', color: '#fcd34d' }}>🧭 ทิศทางและมุมองศา (Bearing):</div>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#fbbf24', marginTop: 2 }}>
+                    {measureInfo.bearing.angle}° {measureInfo.bearing.dirText}
+                  </div>
+                </div>
+              )}
+
+              {/* Only show Add/Save buttons if in isEditorMode */}
+              {isEditorMode && onEditFeature && (
                 <button
                   type="button"
                   className="btn btn-primary"
-                  style={{ width: '100%', marginTop: 10, padding: '6px 10px', fontSize: '0.74rem', justifyContent: 'center' }}
+                  style={{ width: '100%', marginTop: 10, padding: '7px 10px', fontSize: '0.76rem', justifyContent: 'center' }}
                   onClick={() => {
                     const newRoadFeat = {
                       type: 'Feature',
@@ -2426,15 +2370,16 @@ export default function MapViewer({
           {measureInfo.type === 'polygon' && (
             <div>
               <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>ขนาดพื้นที่รวม:</div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#4ade80' }}>
-                {measureInfo.areaSqm} <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>ตร.ม.</span>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#4ade80' }}>
+                {measureInfo.areaSqm} <span style={{ fontSize: '0.78rem', fontWeight: 500 }}>ตร.ม.</span>
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginTop: 2 }}>
+              <div style={{ fontSize: '0.74rem', color: '#cbd5e1', marginTop: 2 }}>
                 {measureInfo.thaiArea}
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
-                {onEditFeature && (
+              {/* Only show Add/Save buttons if in isEditorMode */}
+              {isEditorMode && onEditFeature && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
                   <button
                     type="button"
                     className="btn btn-primary"
@@ -2477,9 +2422,7 @@ export default function MapViewer({
                   >
                     ☀️ + บันทึกและกำหนดคุณสมบัติหลังคาโซลาร์
                   </button>
-                )}
 
-                {onEditFeature && (
                   <button
                     type="button"
                     className="btn btn-primary"
@@ -2487,7 +2430,7 @@ export default function MapViewer({
                       width: '100%', padding: '7px 10px', fontSize: '0.76rem',
                       fontWeight: 700, justifyContent: 'center',
                       background: 'linear-gradient(135deg, #0284c7, #0369a1)',
-                      border: 'none', boxShadow: '0 2px 8px rgba(2,132,199,0.4)'
+                      border: 'none'
                     }}
                     onClick={() => {
                       const areaM2 = Number(measureInfo.areaSqm) || turf.area(measureInfo.feature);
@@ -2513,23 +2456,8 @@ export default function MapViewer({
                   >
                     💧 + บันทึกและกำหนดคุณสมบัติแหล่งน้ำ
                   </button>
-                )}
-
-                {setUploadedBoundary && (
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    style={{
-                      width: '100%', padding: '5px 10px', fontSize: '0.72rem',
-                      justifyContent: 'center', background: 'rgba(255,255,255,0.1)',
-                      border: '1px solid rgba(255,255,255,0.2)'
-                    }}
-                    onClick={() => handleApplyAsAOI(measureInfo.feature)}
-                  >
-                    ☀️ วิเคราะห์โซลาร์ในแปลงนี้
-                  </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -2539,7 +2467,7 @@ export default function MapViewer({
               <div style={{ fontSize: '0.78rem', fontFamily: 'monospace', color: '#fcd34d', margin: '4px 0 8px' }}>
                 {measureInfo.coords[0].toFixed(6)}, {measureInfo.coords[1].toFixed(6)}
               </div>
-              {onAddFeature && (
+              {isEditorMode && onAddFeature && (
                 <button
                   type="button"
                   className="btn btn-primary"
@@ -2569,7 +2497,7 @@ export default function MapViewer({
               style={{ flex: 1, justifyContent: 'center', fontSize: '0.68rem', padding: '4px 6px', color: '#f87171' }}
               onClick={handleClearAll}
             >
-              <Trash2 size={11} /> ล้างทั้งหมด
+              <Trash2 size={11} /> ล้างการวัด
             </button>
           </div>
         </div>

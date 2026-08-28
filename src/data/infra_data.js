@@ -6,31 +6,31 @@ export const INFRA_CATEGORIES = {
   "highway": {
     "name_th": "ทางหลวงแผ่นดิน (ทล.11/101)",
     "name_en": "National Highways",
-    "color": "#f97316",
+    "color": "#ea580c",
     "icon": "🛣️"
   },
   "rural_road": {
     "name_th": "ทางหลวงชนบท (ทช.)",
     "name_en": "Rural Roads",
-    "color": "#f59e0b",
+    "color": "#0284c7",
     "icon": "🚗"
   },
   "main_road": {
     "name_th": "ถนนสายหลักเทศบาล (สายประธาน)",
     "name_en": "Primary Municipal Arterials",
-    "color": "#eab308",
+    "color": "#f59e0b",
     "icon": "🏙️"
   },
   "collector_road": {
     "name_th": "ถนนสายรอง/เชื่อมชุมชน",
     "name_en": "Secondary / Collector Roads",
-    "color": "#38bdf8",
+    "color": "#fb923c",
     "icon": "🏘️"
   },
   "local_road": {
     "name_th": "ถนนซอย/บริการชุมชน",
     "name_en": "Local & Access Sois",
-    "color": "#94a3b8",
+    "color": "#64748b",
     "icon": "🏡"
   },
   "agri_road": {
@@ -48,13 +48,13 @@ export const INFRA_CATEGORIES = {
   "rail": {
     "name_th": "ทางรถไฟสายเหนือ",
     "name_en": "Northern Railway Line",
-    "color": "#8b5cf6",
+    "color": "#581c87",
     "icon": "🚆"
   },
   "bridge": {
     "name_th": "สะพาน",
     "name_en": "Bridges",
-    "color": "#ef4444",
+    "color": "#dc2626",
     "icon": "🌉"
   },
   "water": {
