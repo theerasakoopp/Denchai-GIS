@@ -9,9 +9,9 @@ import { translations } from '../translations';
 import {
   Layers, Globe, Compass, SunMedium, Focus, Plane,
   MapPin, Activity, Square, Pencil, Trash2, Download, X, Ruler, CheckCircle2,
-  Scissors, GitMerge, Plus
+  Scissors, GitMerge, Plus, Magnet
 } from 'lucide-react';
-import { splitLineAtPoint, mergeTwoLines } from '../utils/gisTopology';
+import { splitLineAtPoint, mergeTwoLines, findSnapTarget } from '../utils/gisTopology';
 import MUNICIPAL_BOUNDARY from '../data/boundary.json';
 import { POI_DATA, POI_CATEGORIES } from '../data/poi_data';
 import { INFRA_DATA, INFRA_CATEGORIES } from '../data/infra_data';
@@ -365,14 +365,21 @@ export default function MapViewer({
   const [activeDrawMode, setActiveDrawMode] = useState('none');
   const [measureInfo, setMeasureInfo] = useState(null);
   const [editingRoadId, setEditingRoadId] = useState(null);
-  const [editingRoadName, setEditingRoadName] = useState('');
-  const [topologyMode, setTopologyMode] = useState('none'); // 'none' | 'split' | 'merge'
+  const [topologyMode, setTopologyMode] = useState('none'); // 'none' | 'reshape' | 'split' | 'merge' | 'delete'
   const [mergeFirstFeature, setMergeFirstFeature] = useState(null);
+  const [snapEnabled, setSnapEnabled] = useState(true);
   const topologyModeRef = useRef('none');
   const mergeFirstFeatureRef = useRef(null);
+  const snapEnabledRef = useRef(true);
+  const currentSnapCoordsRef = useRef(null);
+  const activeDrawModeRef = useRef('none');
+  const editingRoadIdRef = useRef(null);
 
   useEffect(() => { topologyModeRef.current = topologyMode; }, [topologyMode]);
   useEffect(() => { mergeFirstFeatureRef.current = mergeFirstFeature; }, [mergeFirstFeature]);
+  useEffect(() => { snapEnabledRef.current = snapEnabled; }, [snapEnabled]);
+  useEffect(() => { activeDrawModeRef.current = activeDrawMode; }, [activeDrawMode]);
+  useEffect(() => { editingRoadIdRef.current = editingRoadId; }, [editingRoadId]);
 
   useEffect(() => {
     if (triggerDrawRoad && drawRef.current) {
@@ -896,6 +903,48 @@ export default function MapViewer({
     });
 
     mapInstance.on('mousemove', (e) => {
+      // 1. Live Snapping Detection
+      if (snapEnabledRef.current) {
+        const isEditingOrDrawing = (
+          activeDrawModeRef.current !== 'none' ||
+          topologyModeRef.current === 'reshape' ||
+          editingRoadIdRef.current !== null ||
+          isPickingLocationRef.current
+        );
+
+        if (isEditingOrDrawing) {
+          const target = findSnapTarget(
+            [e.lngLat.lng, e.lngLat.lat],
+            mapInstance,
+            infraDataRef.current,
+            buildingsDataRef.current,
+            24
+          );
+
+          const snapSrc = mapInstance.getSource('snap-src');
+          if (target) {
+            currentSnapCoordsRef.current = target.snappedCoords;
+            if (snapSrc) {
+              snapSrc.setData({
+                type: 'FeatureCollection',
+                features: [{
+                  type: 'Feature',
+                  geometry: { type: 'Point', coordinates: target.snappedCoords },
+                  properties: { type: target.snappedType }
+                }]
+              });
+            }
+            mapInstance.getCanvas().style.cursor = 'crosshair';
+            return;
+          } else {
+            currentSnapCoordsRef.current = null;
+            if (snapSrc) {
+              snapSrc.setData({ type: 'FeatureCollection', features: [] });
+            }
+          }
+        }
+      }
+
       const allInteractiveLayers = [
         'poi-circle',
         'service-circle',
@@ -952,7 +1001,9 @@ export default function MapViewer({
         // ── Smart City Layers (In-memory ready) ──────────────
         'poi-src': { type: 'geojson', data: poiData || POI_DATA },
         'infra-src': { type: 'geojson', data: infraData || INFRA_DATA },
-        'service-src': { type: 'geojson', data: serviceData || SERVICE_DATA }
+        'service-src': { type: 'geojson', data: serviceData || SERVICE_DATA },
+        // ── Snap Indicator Source ────────────────────────────
+        'snap-src': { type: 'geojson', data: { type: 'FeatureCollection', features: [] } }
       },
       layers: [
         // ── 1. Base Satellite (Underneath UAV) ───────────────
@@ -1216,6 +1267,39 @@ export default function MapViewer({
             'line-width': 1.5,
             'line-dasharray': [4, 3],
             'line-opacity': 1.0
+          }
+        },
+
+        // ── 11. TOPMOST: Snap Target Glowing Indicator ───────
+        {
+          id: 'snap-glow',
+          type: 'circle',
+          source: 'snap-src',
+          paint: {
+            'circle-radius': 16,
+            'circle-color': '#06b6d4',
+            'circle-opacity': 0.35,
+            'circle-blur': 0.6
+          }
+        },
+        {
+          id: 'snap-ring',
+          type: 'circle',
+          source: 'snap-src',
+          paint: {
+            'circle-radius': 8.5,
+            'circle-color': 'rgba(6, 182, 212, 0.25)',
+            'circle-stroke-width': 2.5,
+            'circle-stroke-color': '#38bdf8'
+          }
+        },
+        {
+          id: 'snap-dot',
+          type: 'circle',
+          source: 'snap-src',
+          paint: {
+            'circle-radius': 3.5,
+            'circle-color': '#ffffff'
           }
         }
       ]
@@ -1897,6 +1981,23 @@ export default function MapViewer({
           style={{ padding: '6px 9px', fontSize: '0.72rem' }}
         >
           <Trash2 size={13} color={topologyMode === 'delete' ? '#fff' : '#f87171'} /> {lang === 'th' ? 'ลบเส้น' : 'Delete'}
+        </button>
+
+        <button
+          type="button"
+          className={`basemap-btn ${snapEnabled ? 'active' : ''}`}
+          onClick={() => setSnapEnabled(!snapEnabled)}
+          title={lang === 'th' ? `ระบบดูดจุดยอดอัตโนมัติ (Snapping): ${snapEnabled ? 'เปิดใช้งานอยู่ (คลิกเพื่อปิด)' : 'ปิดอยู่ (คลิกเพื่อเปิด)'}` : `Snap to Vertex: ${snapEnabled ? 'ON' : 'OFF'}`}
+          style={{
+            padding: '6px 9px', fontSize: '0.72rem',
+            borderLeft: '1px solid rgba(255,255,255,0.2)', marginLeft: 2, paddingLeft: 8,
+            color: snapEnabled ? '#10b981' : '#94a3b8',
+            background: snapEnabled ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
+            display: 'flex', alignItems: 'center', gap: 4
+          }}
+        >
+          <Magnet size={13} color={snapEnabled ? '#10b981' : '#94a3b8'} />
+          <span style={{ fontWeight: 600 }}>{snapEnabled ? (lang === 'th' ? '🧲 Snap' : 'Snap ON') : (lang === 'th' ? 'Snap ปิด' : 'Snap OFF')}</span>
         </button>
 
         {measureInfo && (

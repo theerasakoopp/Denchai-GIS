@@ -143,3 +143,85 @@ export function mergeTwoLines(line1, line2) {
     }
   };
 }
+
+/**
+ * Find the nearest vertex from existing features within a pixel tolerance for snapping.
+ * @param {Array<number>} currentLngLat - [lng, lat]
+ * @param {Object} mapInstance - MapLibre Map instance
+ * @param {Object} infraData - GeoJSON FeatureCollection of infrastructure
+ * @param {Object} buildingsData - GeoJSON FeatureCollection of buildings
+ * @param {number} pixelTolerance - snap radius in screen pixels (default: 22)
+ * @returns {{ snappedCoords: [number, number], snappedType: 'vertex' | 'endpoint' | 'midpoint', targetFeature: Object, distancePx: number } | null}
+ */
+export function findSnapTarget(currentLngLat, mapInstance, infraData, buildingsData = null, pixelTolerance = 22) {
+  if (!currentLngLat || !mapInstance) return null;
+
+  try {
+    const mousePoint = mapInstance.project(currentLngLat);
+    let bestCandidate = null;
+    let minPixelDist = pixelTolerance;
+
+    const testCoords = (coord, feat, type) => {
+      if (!coord || coord.length < 2) return;
+      const pt = mapInstance.project(coord);
+      const dx = pt.x - mousePoint.x;
+      const dy = pt.y - mousePoint.y;
+      const distPx = Math.sqrt(dx * dx + dy * dy);
+
+      if (distPx < minPixelDist) {
+        minPixelDist = distPx;
+        bestCandidate = {
+          snappedCoords: [Number(coord[0].toFixed(6)), Number(coord[1].toFixed(6))],
+          snappedType: type,
+          targetFeature: feat,
+          distancePx: distPx
+        };
+      }
+    };
+
+    // 1. Check all infrastructure lines & points (roads, railways, etc.)
+    if (infraData?.features) {
+      for (const feat of infraData.features) {
+        const geom = feat.geometry;
+        if (!geom) continue;
+
+        if (geom.type === 'LineString' && geom.coordinates) {
+          const coords = geom.coordinates;
+          for (let i = 0; i < coords.length; i++) {
+            const type = (i === 0 || i === coords.length - 1) ? 'endpoint' : 'vertex';
+            testCoords(coords[i], feat, type);
+          }
+        } else if (geom.type === 'MultiLineString' && geom.coordinates) {
+          for (const line of geom.coordinates) {
+            for (let i = 0; i < line.length; i++) {
+              const type = (i === 0 || i === line.length - 1) ? 'endpoint' : 'vertex';
+              testCoords(line[i], feat, type);
+            }
+          }
+        } else if (geom.type === 'Point' && geom.coordinates) {
+          testCoords(geom.coordinates, feat, 'endpoint');
+        }
+      }
+    }
+
+    // 2. Check building corners if within view
+    if (buildingsData?.features && minPixelDist > 8) {
+      for (const feat of buildingsData.features) {
+        const geom = feat.geometry;
+        if (!geom) continue;
+        if (geom.type === 'Polygon' && geom.coordinates) {
+          for (const ring of geom.coordinates) {
+            for (const coord of ring) {
+              testCoords(coord, feat, 'vertex');
+            }
+          }
+        }
+      }
+    }
+
+    return bestCandidate;
+  } catch (err) {
+    console.warn('Snapping calculation error:', err);
+    return null;
+  }
+}
