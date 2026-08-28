@@ -21,12 +21,22 @@ export default function FeatureEditModal({
     id: '',
     name_th: '',
     name_en: '',
-    category: Object.keys(categories || {})[0] || 'temple',
+    category: Object.keys(categories || {})[0] || 'main_road',
     lon: 100.055,
     lat: 17.985,
     description_th: '',
     description_en: '',
-    phone: ''
+    phone: '',
+    // Municipal Road Planning Attributes
+    surface_type: 'concrete',
+    condition: 'good',
+    width_m: 6.0,
+    right_of_way_m: 8.0,
+    lanes: 2,
+    drainage: 'none',
+    lighting: 'none',
+    plan_status: 'completed',
+    fiscal_year: '2567'
   });
 
   const [error, setError] = useState('');
@@ -43,24 +53,42 @@ export default function FeatureEditModal({
         id: p.id || `custom-${Date.now()}`,
         name_th: p.name_th || '',
         name_en: p.name_en || '',
-        category: p.category || Object.keys(categories || {})[0] || 'road',
+        category: p.category || Object.keys(categories || {})[0] || 'main_road',
         lon: Number(coords[0]) || 100.055,
         lat: Number(coords[1]) || 17.985,
         description_th: p.description_th || '',
         description_en: p.description_en || '',
-        phone: p.phone || ''
+        phone: p.phone || '',
+        surface_type: p.surface_type || 'concrete',
+        condition: p.condition || 'good',
+        width_m: p.width_m || 6.0,
+        right_of_way_m: p.right_of_way_m || 8.0,
+        lanes: p.lanes || 2,
+        drainage: p.drainage || 'none',
+        lighting: p.lighting || 'none',
+        plan_status: p.plan_status || 'completed',
+        fiscal_year: p.fiscal_year || '2567'
       });
     } else {
       setFormData({
         id: `custom-${Date.now()}`,
         name_th: '',
         name_en: '',
-        category: Object.keys(categories || {})[0] || (datasetType === 'infra' ? 'highway' : 'temple'),
+        category: Object.keys(categories || {})[0] || (datasetType === 'infra' ? 'main_road' : 'temple'),
         lon: pickedCoords ? Number(pickedCoords[0]) : 100.055,
         lat: pickedCoords ? Number(pickedCoords[1]) : 17.985,
         description_th: '',
         description_en: '',
-        phone: ''
+        phone: '',
+        surface_type: 'concrete',
+        condition: 'good',
+        width_m: 6.0,
+        right_of_way_m: 8.0,
+        lanes: 2,
+        drainage: 'none',
+        lighting: 'none',
+        plan_status: 'in_5year_plan',
+        fiscal_year: '2568'
       });
     }
     setError('');
@@ -104,7 +132,18 @@ export default function FeatureEditModal({
         category: formData.category,
         description_th: formData.description_th.trim(),
         description_en: formData.description_en.trim(),
-        ...(formData.phone ? { phone: formData.phone.trim() } : {})
+        ...(formData.phone ? { phone: formData.phone.trim() } : {}),
+        ...(datasetType === 'infra' ? {
+          surface_type: formData.surface_type,
+          condition: formData.condition,
+          width_m: Number(formData.width_m) || 6.0,
+          right_of_way_m: Number(formData.right_of_way_m) || 8.0,
+          lanes: Number(formData.lanes) || 2,
+          drainage: formData.drainage,
+          lighting: formData.lighting,
+          plan_status: formData.plan_status,
+          fiscal_year: formData.fiscal_year
+        } : {})
       }
     };
 
@@ -328,6 +367,151 @@ export default function FeatureEditModal({
                       border: '1px solid var(--border-subtle)', fontSize: '0.82rem',
                       background: 'white', fontFamily: 'monospace'
                     }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Municipal Road Development & Engineering Attributes */}
+          {datasetType === 'infra' && (
+            <div style={{
+              background: '#f1f5f9', border: '1px solid #cbd5e1',
+              borderRadius: 10, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10
+            }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>📋</span> {lang === 'th' ? 'ข้อมูลวิศวกรรมและการวางแผนพัฒนาเทศบาล' : 'Municipal Road Engineering & Planning'}
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {/* Surface Type */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? 'ประเภทผิวจราจร' : 'Surface Type'}
+                  </label>
+                  <select
+                    value={formData.surface_type || 'concrete'}
+                    onChange={e => setFormData({ ...formData, surface_type: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem', background: 'white' }}
+                  >
+                    <option value="concrete">{lang === 'th' ? 'คอนกรีตเสริมเหล็ก (คสล.)' : 'Reinforced Concrete'}</option>
+                    <option value="asphalt">{lang === 'th' ? 'แอสฟัลต์ติก (ลาดยาง)' : 'Asphalt Concrete'}</option>
+                    <option value="gravel">{lang === 'th' ? 'หินคลุก / ลูกรัง' : 'Gravel / Laterite'}</option>
+                    <option value="dirt">{lang === 'th' ? 'ดินธรรมชาติ / ดินลูกรัง' : 'Dirt Road'}</option>
+                    <option value="paving_block">{lang === 'th' ? 'บล็อกตัวหนอน / ทางเดินเท้า' : 'Paving Block'}</option>
+                  </select>
+                </div>
+
+                {/* Condition */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? 'สภาพผิวทาง' : 'Pavement Condition'}
+                  </label>
+                  <select
+                    value={formData.condition || 'good'}
+                    onChange={e => setFormData({ ...formData, condition: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem', background: 'white' }}
+                  >
+                    <option value="good">{lang === 'th' ? '🟢 ดีมาก / สมบูรณ์' : '🟢 Good'}</option>
+                    <option value="fair">{lang === 'th' ? '🟡 ปานกลาง (พอใช้)' : '🟡 Fair'}</option>
+                    <option value="poor">{lang === 'th' ? '🔴 ชำรุด / ต้องปรับปรุง' : '🔴 Poor / Needs Repair'}</option>
+                    <option value="under_construction">{lang === 'th' ? '🚧 อยู่ระหว่างก่อสร้าง' : '🚧 Under Construction'}</option>
+                  </select>
+                </div>
+
+                {/* Width (m) */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? 'ความกว้างผิวจราจร (เมตร)' : 'Carriageway Width (m)'}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={formData.width_m || ''}
+                    onChange={e => setFormData({ ...formData, width_m: parseFloat(e.target.value) || 0 })}
+                    placeholder="เช่น 6.0"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem', background: 'white' }}
+                  />
+                </div>
+
+                {/* Right of Way (m) */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? 'เขตทางทั้งหมด (เมตร)' : 'Right-of-Way (m)'}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    value={formData.right_of_way_m || ''}
+                    onChange={e => setFormData({ ...formData, right_of_way_m: parseFloat(e.target.value) || 0 })}
+                    placeholder="เช่น 8.0"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem', background: 'white' }}
+                  />
+                </div>
+
+                {/* Drainage */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? 'ระบบระบายน้ำ' : 'Drainage System'}
+                  </label>
+                  <select
+                    value={formData.drainage || 'none'}
+                    onChange={e => setFormData({ ...formData, drainage: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem', background: 'white' }}
+                  >
+                    <option value="concrete_pipe">{lang === 'th' ? 'มีท่อระบายน้ำ คสล.' : 'Concrete Pipe'}</option>
+                    <option value="concrete_gutter">{lang === 'th' ? 'มีรางระบายน้ำ คสล.' : 'Concrete Gutter'}</option>
+                    <option value="open_ditch">{lang === 'th' ? 'รางดินเปิด' : 'Open Ditch'}</option>
+                    <option value="none">{lang === 'th' ? 'ไม่มีระบบระบายน้ำ' : 'None'}</option>
+                  </select>
+                </div>
+
+                {/* Lighting */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? 'ไฟฟ้าส่องสว่าง' : 'Street Lighting'}
+                  </label>
+                  <select
+                    value={formData.lighting || 'none'}
+                    onChange={e => setFormData({ ...formData, lighting: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem', background: 'white' }}
+                  >
+                    <option value="led">{lang === 'th' ? 'มีโคมไฟถนน LED' : 'LED Lighting'}</option>
+                    <option value="solar">{lang === 'th' ? 'มีเสาไฟโซลาร์เซลล์' : 'Solar Street Light'}</option>
+                    <option value="none">{lang === 'th' ? 'ไม่มีไฟฟ้าส่องสว่าง' : 'No Lighting'}</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Development Plan Status & Fiscal Year */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 10, marginTop: 4 }}>
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? 'สถานะแผนพัฒนาเทศบาล' : 'Development Plan Status'}
+                  </label>
+                  <select
+                    value={formData.plan_status || 'completed'}
+                    onChange={e => setFormData({ ...formData, plan_status: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem', background: 'white' }}
+                  >
+                    <option value="completed">{lang === 'th' ? '✅ ก่อสร้างแล้วเสร็จ / พร้อมใช้งาน' : 'Completed'}</option>
+                    <option value="in_5year_plan">{lang === 'th' ? '📋 บรรจุในแผนพัฒนาท้องถิ่น (5 ปี)' : 'In 5-Year Plan'}</option>
+                    <option value="budgeted">{lang === 'th' ? '💰 ได้รับงบประมาณแล้ว (เตรียมก่อสร้าง)' : 'Budget Allocated'}</option>
+                    <option value="requested">{lang === 'th' ? '⏳ เสนอขอรับเงินอุดหนุน' : 'Budget Requested'}</option>
+                    <option value="no_plan">{lang === 'th' ? '⚪ ยังไม่มีแผนพัฒนา' : 'No Plan'}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? 'ปีงบประมาณ' : 'Fiscal Year'}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.fiscal_year || ''}
+                    onChange={e => setFormData({ ...formData, fiscal_year: e.target.value })}
+                    placeholder="เช่น 2568"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem', background: 'white' }}
                   />
                 </div>
               </div>

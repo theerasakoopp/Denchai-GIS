@@ -162,12 +162,16 @@ const INFRA_COLOR_MATCH = [
   'match',
   ['get', 'category'],
   'highway', '#f97316',
+  'rural_road', '#f59e0b',
   'main_road', '#eab308',
+  'collector_road', '#38bdf8',
   'local_road', '#94a3b8',
+  'agri_road', '#10b981',
+  'planned_road', '#ec4899',
   'rail', '#a855f7',
   'bridge', '#ef4444',
   'water', '#06b6d4',
-  'electric', '#eab308',
+  'electric', '#facc15',
   '#f97316'
 ];
 
@@ -692,6 +696,44 @@ export default function MapViewer({
               <span style="color:#94a3b8">${curLang === 'th' ? 'หมวดหมู่' : 'Category'}</span>
               <span style="color:${color};font-weight:600;text-transform:capitalize">${cat}</span>
             </div>
+            ${layerId === 'infra-line' ? `
+              <div style="background:rgba(255,255,255,0.06);border-radius:6px;padding:6px 8px;margin-top:6px;font-size:0.73rem;display:flex;flex-direction:column;gap:3px">
+                <div style="display:flex;justify-content:space-between">
+                  <span style="color:#94a3b8">🏗️ ผิวจราจร:</span>
+                  <span style="color:#f8fafc;font-weight:600">
+                    ${p.surface_type === 'concrete' ? 'คอนกรีต (คสล.)'
+                      : p.surface_type === 'asphalt' ? 'แอสฟัลต์ (ลาดยาง)'
+                      : p.surface_type === 'gravel' ? 'หินคลุก/ลูกรัง'
+                      : p.surface_type === 'dirt' ? 'ดินธรรมชาติ'
+                      : p.surface_type === 'paving_block' ? 'บล็อกตัวหนอน'
+                      : 'คอนกรีต (คสล.)'}
+                  </span>
+                </div>
+                <div style="display:flex;justify-content:space-between">
+                  <span style="color:#94a3b8">📊 สภาพทาง:</span>
+                  <span style="color:${p.condition === 'poor' ? '#ef4444' : p.condition === 'fair' ? '#f59e0b' : p.condition === 'under_construction' ? '#ec4899' : '#22c55e'};font-weight:600">
+                    ${p.condition === 'poor' ? '🔴 ชำรุด/ต้องซ่อม'
+                      : p.condition === 'fair' ? '🟡 ปานกลาง'
+                      : p.condition === 'under_construction' ? '🚧 อยู่ระหว่างก่อสร้าง'
+                      : '🟢 ดีมาก/สมบูรณ์'}
+                  </span>
+                </div>
+                <div style="display:flex;justify-content:space-between">
+                  <span style="color:#94a3b8">📐 ผิว/เขตทาง:</span>
+                  <span style="color:#38bdf8">${p.width_m || 6} ม. / ${p.right_of_way_m || 8} ม. (${p.lanes || 2} เลน)</span>
+                </div>
+                <div style="display:flex;justify-content:space-between">
+                  <span style="color:#94a3b8">📋 แผนพัฒนา:</span>
+                  <span style="color:#e2e8f0">
+                    ${p.plan_status === 'in_5year_plan' ? '📋 ในแผนพัฒนา 5 ปี'
+                      : p.plan_status === 'budgeted' ? '💰 ได้รับงบประมาณแล้ว'
+                      : p.plan_status === 'requested' ? '⏳ เสนอขอรับงบ'
+                      : p.plan_status === 'no_plan' ? '⚪ ยังไม่มีแผน'
+                      : '✅ ก่อสร้างแล้วเสร็จ'}
+                  </span>
+                </div>
+              </div>
+            ` : ''}
             ${layerId === 'infra-line' ? `
               <button id="btn-direct-reshape-road" style="margin-top:8px;width:100%;padding:7px 10px;border-radius:6px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:white;font-size:0.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 6px rgba(217,119,6,0.3)">
                 🛣️ ${curLang === 'th' ? 'ดัดจุดยอดแนวถนนบนแผนที่' : 'Reshape Road on Map'}

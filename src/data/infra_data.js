@@ -9,17 +9,41 @@ export const INFRA_CATEGORIES = {
     "color": "#f97316",
     "icon": "🛣️"
   },
-  "main_road": {
-    "name_th": "ถนนสายหลักในเทศบาล",
-    "name_en": "Main Municipal Roads",
-    "color": "#eab308",
+  "rural_road": {
+    "name_th": "ทางหลวงชนบท (ทช.)",
+    "name_en": "Rural Roads",
+    "color": "#f59e0b",
     "icon": "🚗"
   },
-  "local_road": {
-    "name_th": "ถนนซอย/ชุมชน",
-    "name_en": "Local & Access Roads",
-    "color": "#94a3b8",
+  "main_road": {
+    "name_th": "ถนนสายหลักเทศบาล (สายประธาน)",
+    "name_en": "Primary Municipal Arterials",
+    "color": "#eab308",
+    "icon": "🏙️"
+  },
+  "collector_road": {
+    "name_th": "ถนนสายรอง/เชื่อมชุมชน",
+    "name_en": "Secondary / Collector Roads",
+    "color": "#38bdf8",
     "icon": "🏘️"
+  },
+  "local_road": {
+    "name_th": "ถนนซอย/บริการชุมชน",
+    "name_en": "Local & Access Sois",
+    "color": "#94a3b8",
+    "icon": "🏡"
+  },
+  "agri_road": {
+    "name_th": "ถนนเพื่อการเกษตร/คันคลอง",
+    "name_en": "Agricultural & Canal Roads",
+    "color": "#10b981",
+    "icon": "🌾"
+  },
+  "planned_road": {
+    "name_th": "ถนนโครงการตามแผนพัฒนา/ผังเมือง",
+    "name_en": "Planned / Development Projects",
+    "color": "#ec4899",
+    "icon": "🚧"
   },
   "rail": {
     "name_th": "ทางรถไฟสายเหนือ",
@@ -42,7 +66,7 @@ export const INFRA_CATEGORIES = {
   "electric": {
     "name_th": "ระบบไฟฟ้า/สถานีย่อย",
     "name_en": "Electrical Substation",
-    "color": "#eab308",
+    "color": "#facc15",
     "icon": "⚡"
   }
 };
