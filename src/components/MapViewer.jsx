@@ -935,12 +935,26 @@ export default function MapViewer({
     const map = mapRef.current;
     if (!map) return;
     const pushData = () => {
-      if (poiData) map.getSource('poi-src')?.setData(poiData);
-      if (infraData) map.getSource('infra-src')?.setData(infraData);
-      if (serviceData) map.getSource('service-src')?.setData(serviceData);
+      try {
+        if (poiData && map.getSource('poi-src')) {
+          map.getSource('poi-src').setData(poiData);
+        }
+        if (infraData && map.getSource('infra-src')) {
+          map.getSource('infra-src').setData(infraData);
+        }
+        if (serviceData && map.getSource('service-src')) {
+          map.getSource('service-src').setData(serviceData);
+        }
+      } catch (e) {
+        console.warn('Map setData error:', e);
+      }
     };
-    if (map.isStyleLoaded()) pushData();
-    else map.once('load', pushData);
+
+    if (map.getSource('poi-src')) {
+      pushData();
+    } else {
+      map.once('load', pushData);
+    }
   }, [poiData, infraData, serviceData, mapLoaded]);
 
   // ── Filter POI/Infra/Service by category visibility ──────────
