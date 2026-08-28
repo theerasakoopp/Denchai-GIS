@@ -228,6 +228,30 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
     }
   };
 
+  const handleSplitFeature = (oldId, [feat1, feat2], datasetType = 'infra') => {
+    if (datasetType === 'infra') {
+      setInfraData(prev => {
+        const filtered = (prev.features || []).filter(f => f.properties?.id !== oldId && f.id !== oldId);
+        const newCol = { type: 'FeatureCollection', features: [feat1, feat2, ...filtered] };
+        localStorage.setItem('denchai_infra_data', JSON.stringify(newCol));
+        return newCol;
+      });
+    }
+  };
+
+  const handleMergeFeatures = (oldId1, oldId2, mergedFeat, datasetType = 'infra') => {
+    if (datasetType === 'infra') {
+      setInfraData(prev => {
+        const filtered = (prev.features || []).filter(
+          f => f.properties?.id !== oldId1 && f.id !== oldId1 && f.properties?.id !== oldId2 && f.id !== oldId2
+        );
+        const newCol = { type: 'FeatureCollection', features: [mergedFeat, ...filtered] };
+        localStorage.setItem('denchai_infra_data', JSON.stringify(newCol));
+        return newCol;
+      });
+    }
+  };
+
   const handleResetData = (datasetType) => {
     if (window.confirm(lang === 'th' ? 'คุณต้องการคืนค่าเริ่มต้นทั้งหมดใช่หรือไม่?' : 'Reset to default data?')) {
       if (datasetType === 'poi') {
@@ -372,6 +396,8 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         onSaveFeature={handleSaveFeature}
         triggerDrawRoad={triggerDrawRoad}
         onResetTriggerDrawRoad={() => setTriggerDrawRoad(false)}
+        onSplitFeature={handleSplitFeature}
+        onMergeFeatures={handleMergeFeatures}
       />
 
       {/* Feature Edit / Add Modal */}

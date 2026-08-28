@@ -8,8 +8,10 @@ import { ROOF_CLASSES } from '../App';
 import { translations } from '../translations';
 import {
   Layers, Globe, Compass, SunMedium, Focus, Plane,
-  MapPin, Activity, Square, Pencil, Trash2, Download, X, Ruler, CheckCircle2
+  MapPin, Activity, Square, Pencil, Trash2, Download, X, Ruler, CheckCircle2,
+  Scissors, GitMerge, Plus
 } from 'lucide-react';
+import { splitLineAtPoint, mergeTwoLines } from '../utils/gisTopology';
 import MUNICIPAL_BOUNDARY from '../data/boundary.json';
 import { POI_DATA, POI_CATEGORIES } from '../data/poi_data';
 import { INFRA_DATA, INFRA_CATEGORIES } from '../data/infra_data';
@@ -311,6 +313,8 @@ export default function MapViewer({
   onSaveFeature = null,
   triggerDrawRoad = false,
   onResetTriggerDrawRoad = null,
+  onSplitFeature = null,
+  onMergeFeatures = null,
 }) {
   const t = translations[lang] || translations.th;
   const langRef = useRef(lang);
@@ -326,6 +330,8 @@ export default function MapViewer({
   const isPickingLocationRef = useRef(isPickingLocation);
   const onLocationPickedRef = useRef(onLocationPicked);
   const onEditFeatureRef = useRef(onEditFeature);
+  const onSplitFeatureRef = useRef(onSplitFeature);
+  const onMergeFeaturesRef = useRef(onMergeFeatures);
 
   useEffect(() => { langRef.current = lang; }, [lang]);
   useEffect(() => { tariffRef.current = tariff; }, [tariff]);
@@ -340,6 +346,8 @@ export default function MapViewer({
   useEffect(() => { isPickingLocationRef.current = isPickingLocation; }, [isPickingLocation]);
   useEffect(() => { onLocationPickedRef.current = onLocationPicked; }, [onLocationPicked]);
   useEffect(() => { onEditFeatureRef.current = onEditFeature; }, [onEditFeature]);
+  useEffect(() => { onSplitFeatureRef.current = onSplitFeature; }, [onSplitFeature]);
+  useEffect(() => { onMergeFeaturesRef.current = onMergeFeatures; }, [onMergeFeatures]);
 
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -351,6 +359,13 @@ export default function MapViewer({
   const [measureInfo, setMeasureInfo] = useState(null);
   const [editingRoadId, setEditingRoadId] = useState(null);
   const [editingRoadName, setEditingRoadName] = useState('');
+  const [topologyMode, setTopologyMode] = useState('none'); // 'none' | 'split' | 'merge'
+  const [mergeFirstFeature, setMergeFirstFeature] = useState(null);
+  const topologyModeRef = useRef('none');
+  const mergeFirstFeatureRef = useRef(null);
+
+  useEffect(() => { topologyModeRef.current = topologyMode; }, [topologyMode]);
+  useEffect(() => { mergeFirstFeatureRef.current = mergeFirstFeature; }, [mergeFirstFeature]);
 
   useEffect(() => {
     if (triggerDrawRoad && drawRef.current) {
@@ -581,6 +596,56 @@ export default function MapViewer({
         return;
       }
 
+      // 0.1 Topology: Split line mode
+      if (topologyModeRef.current === 'split') {
+        const lineFeats = mapInstance.queryRenderedFeatures(e.point, { layers: ['infra-line'] });
+        if (lineFeats?.length) {
+          const clickedTileFeat = lineFeats[0];
+          const p = clickedTileFeat.properties;
+          const origFeat = infraDataRef.current?.features?.find(f => (f.properties?.id || f.id) === (p.id || clickedTileFeat.id)) || clickedTileFeat;
+          const splitParts = splitLineAtPoint(origFeat, [e.lngLat.lng, e.lngLat.lat]);
+          if (splitParts && splitParts.length === 2) {
+            onSplitFeatureRef.current?.(origFeat.properties?.id || origFeat.id, splitParts, 'infra');
+            alert(`✂️ ตัดเส้นทาง "${origFeat.properties?.name_th || 'ถนน'}" ออกเป็น 2 ตอนเรียบร้อยแล้ว!\n- ตอน 1: ${splitParts[0].properties.length_km} กม.\n- ตอน 2: ${splitParts[1].properties.length_km} กม.`);
+          } else {
+            alert('ไม่สามารถตัดเส้นทาง ณ จุดนี้ได้ กรุณาลองคลิกใหม่อีกครั้ง');
+          }
+          setTopologyMode('none');
+          return;
+        }
+      }
+
+      // 0.2 Topology: Merge lines mode
+      if (topologyModeRef.current === 'merge') {
+        const lineFeats = mapInstance.queryRenderedFeatures(e.point, { layers: ['infra-line'] });
+        if (lineFeats?.length) {
+          const clickedTileFeat = lineFeats[0];
+          const p = clickedTileFeat.properties;
+          const origFeat = infraDataRef.current?.features?.find(f => (f.properties?.id || f.id) === (p.id || clickedTileFeat.id)) || clickedTileFeat;
+
+          if (!mergeFirstFeatureRef.current) {
+            setMergeFirstFeature(origFeat);
+            return;
+          } else {
+            const firstFeat = mergeFirstFeatureRef.current;
+            const firstId = firstFeat.properties?.id || firstFeat.id;
+            const secondId = origFeat.properties?.id || origFeat.id;
+            if (firstId === secondId) {
+              alert('ท่านเลือกถนนเส้นเดิม กรุณาคลิกเลือกถนนเส้นอื่นที่ต้องการนำมาเชื่อมต่อ');
+              return;
+            }
+            const merged = mergeTwoLines(firstFeat, origFeat);
+            if (merged) {
+              onMergeFeaturesRef.current?.(firstId, secondId, merged, 'infra');
+              alert(`🔗 รวมเส้นทาง "${firstFeat.properties?.name_th || 'ถนน'}" และ "${origFeat.properties?.name_th || 'ถนน'}" เรียบร้อยแล้ว!\nความยาวรวม: ${merged.properties.length_km} กม.`);
+            }
+            setTopologyMode('none');
+            setMergeFirstFeature(null);
+            return;
+          }
+        }
+      }
+
       const allInteractiveLayers = [
         'poi-circle',
         'service-circle',
@@ -631,6 +696,14 @@ export default function MapViewer({
               <button id="btn-direct-reshape-road" style="margin-top:8px;width:100%;padding:7px 10px;border-radius:6px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:white;font-size:0.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 6px rgba(217,119,6,0.3)">
                 🛣️ ${curLang === 'th' ? 'ดัดจุดยอดแนวถนนบนแผนที่' : 'Reshape Road on Map'}
               </button>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:5px">
+                <button id="btn-popup-split-road" style="padding:6px 6px;border-radius:6px;background:#ef4444;border:none;color:white;font-size:0.72rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+                  ✂️ ${curLang === 'th' ? 'ตัดเส้นตรงนี้' : 'Split Here'}
+                </button>
+                <button id="btn-popup-merge-road" style="padding:6px 6px;border-radius:6px;background:#8b5cf6;border:none;color:white;font-size:0.72rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+                  🔗 ${curLang === 'th' ? 'ต่อรวมเส้น' : 'Merge'}
+                </button>
+              </div>
             ` : ''}
             <button id="btn-edit-popup-place" style="margin-top:6px;width:100%;padding:6px 10px;border-radius:6px;background:rgba(59,130,246,0.2);border:1px solid #3b82f6;color:#60a5fa;font-size:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
               ✏️ ${curLang === 'th' ? 'แก้ไขชื่อและรายละเอียด' : 'Edit Info'}
@@ -642,8 +715,31 @@ export default function MapViewer({
           const reshapeBtn = document.getElementById('btn-direct-reshape-road');
           if (reshapeBtn) {
             reshapeBtn.onclick = () => {
-              const originalFeat = infraDataRef.current?.features?.find(f => f.properties?.id === p.id) || feat;
+              const originalFeat = infraDataRef.current?.features?.find(f => (f.properties?.id || f.id) === (p.id || feat.id)) || feat;
               startReshapingRoad(originalFeat);
+              popupRef.current.remove();
+            };
+          }
+
+          const splitBtn = document.getElementById('btn-popup-split-road');
+          if (splitBtn) {
+            splitBtn.onclick = () => {
+              const originalFeat = infraDataRef.current?.features?.find(f => (f.properties?.id || f.id) === (p.id || feat.id)) || feat;
+              const splitParts = splitLineAtPoint(originalFeat, [e.lngLat.lng, e.lngLat.lat]);
+              if (splitParts && splitParts.length === 2) {
+                onSplitFeatureRef.current?.(originalFeat.properties?.id || originalFeat.id, splitParts, 'infra');
+                alert(`✂️ ตัดเส้นทาง "${originalFeat.properties?.name_th || 'ถนน'}" ออกเป็น 2 ตอนเรียบร้อยแล้ว!\n- ตอน 1: ${splitParts[0].properties.length_km} กม.\n- ตอน 2: ${splitParts[1].properties.length_km} กม.`);
+              }
+              popupRef.current.remove();
+            };
+          }
+
+          const mergeBtn = document.getElementById('btn-popup-merge-road');
+          if (mergeBtn) {
+            mergeBtn.onclick = () => {
+              const originalFeat = infraDataRef.current?.features?.find(f => (f.properties?.id || f.id) === (p.id || feat.id)) || feat;
+              setMergeFirstFeature(originalFeat);
+              setTopologyMode('merge');
               popupRef.current.remove();
             };
           }
@@ -653,7 +749,7 @@ export default function MapViewer({
             editBtn.onclick = () => {
               const dsType = layerId.startsWith('service') ? 'service' : layerId.startsWith('infra') ? 'infra' : 'poi';
               const fullDataset = dsType === 'infra' ? infraDataRef.current : dsType === 'service' ? serviceDataRef.current : poiDataRef.current;
-              const originalFeat = fullDataset?.features?.find(f => f.properties?.id === p.id) || feat;
+              const originalFeat = fullDataset?.features?.find(f => (f.properties?.id || f.id) === (p.id || feat.id)) || feat;
               onEditFeatureRef.current?.(originalFeat, dsType);
               popupRef.current.remove();
             };
@@ -1482,6 +1578,63 @@ export default function MapViewer({
         </div>
       )}
 
+      {/* Split Line Active Banner */}
+      {topologyMode === 'split' && (
+        <div style={{
+          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 5500, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
+          color: 'white', border: '2px solid #ef4444', borderRadius: 30,
+          padding: '8px 20px', display: 'flex', alignItems: 'center', gap: 14,
+          boxShadow: '0 8px 32px rgba(239, 68, 68, 0.35)'
+        }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#fca5a5' }}>
+            ✂️ โหมดตัดเส้นทาง: คลิกที่จุดบนเส้นถนนที่ต้องการตัดออกเป็น 2 ตอน
+          </span>
+          <button
+            type="button"
+            style={{
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
+              color: 'white', borderRadius: 20, padding: '4px 10px', fontSize: '0.75rem',
+              cursor: 'pointer', fontWeight: 600
+            }}
+            onClick={() => setTopologyMode('none')}
+          >
+            ยกเลิก
+          </button>
+        </div>
+      )}
+
+      {/* Merge Line Active Banner */}
+      {topologyMode === 'merge' && (
+        <div style={{
+          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 5500, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
+          color: 'white', border: '2px solid #a855f7', borderRadius: 30,
+          padding: '8px 20px', display: 'flex', alignItems: 'center', gap: 14,
+          boxShadow: '0 8px 32px rgba(168, 85, 247, 0.35)'
+        }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#d8b4fe' }}>
+            {mergeFirstFeature
+              ? `🔗 กำลังเลือก: "${mergeFirstFeature.properties?.name_th || 'ถนน'}" ➡️ คลิกถนนเส้นที่ 2 เพื่อต่อเชื่อม`
+              : '🔗 โหมดต่อรวมเส้นทาง: คลิกเลือกถนนเส้นที่ 1 บนแผนที่'}
+          </span>
+          <button
+            type="button"
+            style={{
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
+              color: 'white', borderRadius: 20, padding: '4px 10px', fontSize: '0.75rem',
+              cursor: 'pointer', fontWeight: 600
+            }}
+            onClick={() => {
+              setTopologyMode('none');
+              setMergeFirstFeature(null);
+            }}
+          >
+            ยกเลิก
+          </button>
+        </div>
+      )}
+
       {/* ── MapLibre Drawing & Geometry Editor Toolbar ── */}
       <div className="map-floating-panel" style={{
         position: 'absolute', top: 14, right: 54, zIndex: 1500,
@@ -1492,7 +1645,10 @@ export default function MapViewer({
         <button
           type="button"
           className={`basemap-btn ${activeDrawMode === 'point' ? 'active' : ''}`}
-          onClick={() => setDrawMode(activeDrawMode === 'point' ? 'none' : 'point')}
+          onClick={() => {
+            setDrawMode(activeDrawMode === 'point' ? 'none' : 'point');
+            setTopologyMode('none');
+          }}
           title={lang === 'th' ? 'วาด/ปักหมุดจุดพิกัด (Point)' : 'Draw Point'}
           style={{ padding: '6px 9px', fontSize: '0.72rem' }}
         >
@@ -1502,7 +1658,10 @@ export default function MapViewer({
         <button
           type="button"
           className={`basemap-btn ${activeDrawMode === 'line' ? 'active' : ''}`}
-          onClick={() => setDrawMode(activeDrawMode === 'line' ? 'none' : 'line')}
+          onClick={() => {
+            setDrawMode(activeDrawMode === 'line' ? 'none' : 'line');
+            setTopologyMode('none');
+          }}
           title={lang === 'th' ? 'วาดเส้น / วัดระยะทาง (LineString)' : 'Draw Line / Measure Distance'}
           style={{ padding: '6px 9px', fontSize: '0.72rem' }}
         >
@@ -1512,7 +1671,10 @@ export default function MapViewer({
         <button
           type="button"
           className={`basemap-btn ${activeDrawMode === 'polygon' ? 'active' : ''}`}
-          onClick={() => setDrawMode(activeDrawMode === 'polygon' ? 'none' : 'polygon')}
+          onClick={() => {
+            setDrawMode(activeDrawMode === 'polygon' ? 'none' : 'polygon');
+            setTopologyMode('none');
+          }}
           title={lang === 'th' ? 'วาดพื้นที่ / วัดขนาดแปลง (Polygon)' : 'Draw Polygon / Area'}
           style={{ padding: '6px 9px', fontSize: '0.72rem' }}
         >
@@ -1522,11 +1684,42 @@ export default function MapViewer({
         <button
           type="button"
           className={`basemap-btn ${activeDrawMode === 'select' ? 'active' : ''}`}
-          onClick={() => setDrawMode(activeDrawMode === 'select' ? 'none' : 'select')}
+          onClick={() => {
+            setDrawMode(activeDrawMode === 'select' ? 'none' : 'select');
+            setTopologyMode('none');
+          }}
           title={lang === 'th' ? 'เลือก / ดึงจุดดัดรูปทรง (Select & Reshape)' : 'Select & Reshape'}
           style={{ padding: '6px 9px', fontSize: '0.72rem' }}
         >
           <Pencil size={13} color={activeDrawMode === 'select' ? '#fff' : '#cbd5e1'} /> {lang === 'th' ? 'ดัดทรง' : 'Edit'}
+        </button>
+
+        <button
+          type="button"
+          className={`basemap-btn ${topologyMode === 'split' ? 'active' : ''}`}
+          onClick={() => {
+            setTopologyMode(topologyMode === 'split' ? 'none' : 'split');
+            setMergeFirstFeature(null);
+            setDrawMode('none');
+          }}
+          title={lang === 'th' ? 'ตัดเส้นทางออกเป็น 2 ตอน (Split Line)' : 'Split Line'}
+          style={{ padding: '6px 9px', fontSize: '0.72rem', borderLeft: '1px solid rgba(255,255,255,0.15)', marginLeft: 2, paddingLeft: 8 }}
+        >
+          <Scissors size={13} color={topologyMode === 'split' ? '#fff' : '#ef4444'} /> {lang === 'th' ? 'ตัดเส้น' : 'Split'}
+        </button>
+
+        <button
+          type="button"
+          className={`basemap-btn ${topologyMode === 'merge' ? 'active' : ''}`}
+          onClick={() => {
+            setTopologyMode(topologyMode === 'merge' ? 'none' : 'merge');
+            setMergeFirstFeature(null);
+            setDrawMode('none');
+          }}
+          title={lang === 'th' ? 'ต่อ/รวมเส้นทาง 2 เส้นเข้าด้วยกัน (Merge Lines)' : 'Merge Lines'}
+          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+        >
+          <GitMerge size={13} color={topologyMode === 'merge' ? '#fff' : '#a855f7'} /> {lang === 'th' ? 'ต่อเส้น' : 'Merge'}
         </button>
 
         {measureInfo && (
