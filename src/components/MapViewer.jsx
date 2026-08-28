@@ -1373,6 +1373,31 @@ export default function MapViewer({
               <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginTop: 2 }}>
                 ({measureInfo.lengthM} เมตร)
               </div>
+              {onEditFeature && (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ width: '100%', marginTop: 10, padding: '6px 10px', fontSize: '0.74rem', justifyContent: 'center' }}
+                  onClick={() => {
+                    const newRoadFeat = {
+                      type: 'Feature',
+                      id: `road-${Date.now()}`,
+                      geometry: measureInfo.feature.geometry,
+                      properties: {
+                        id: `road-${Date.now()}`,
+                        name_th: '',
+                        name_en: '',
+                        category: 'main_road',
+                        description_th: `ถนนที่วาดใหม่ ความยาว ${measureInfo.lengthKm} กม.`,
+                        length_km: Number(measureInfo.lengthKm)
+                      }
+                    };
+                    onEditFeature(newRoadFeat, 'infra');
+                  }}
+                >
+                  + บันทึกเป็นถนนเส้นทางใหม่
+                </button>
+              )}
             </div>
           )}
 

@@ -176,6 +176,17 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         localStorage.setItem('denchai_poi_data', JSON.stringify(newCol));
         return newCol;
       });
+    } else if (datasetType === 'infra') {
+      setInfraData(prev => {
+        const existing = prev.features || [];
+        const idx = existing.findIndex(f => f.properties.id === savedFeature.properties.id);
+        const updated = idx >= 0
+          ? existing.map(f => f.properties.id === savedFeature.properties.id ? savedFeature : f)
+          : [...existing, savedFeature];
+        const newCol = { type: 'FeatureCollection', features: updated };
+        localStorage.setItem('denchai_infra_data', JSON.stringify(newCol));
+        return newCol;
+      });
     } else if (datasetType === 'service') {
       setServiceData(prev => {
         const existing = prev.features || [];
@@ -198,6 +209,13 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         localStorage.setItem('denchai_poi_data', JSON.stringify(newCol));
         return newCol;
       });
+    } else if (datasetType === 'infra') {
+      setInfraData(prev => {
+        const updated = (prev.features || []).filter(f => f.properties.id !== featureId);
+        const newCol = { type: 'FeatureCollection', features: updated };
+        localStorage.setItem('denchai_infra_data', JSON.stringify(newCol));
+        return newCol;
+      });
     } else if (datasetType === 'service') {
       setServiceData(prev => {
         const updated = (prev.features || []).filter(f => f.properties.id !== featureId);
@@ -213,6 +231,9 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
       if (datasetType === 'poi') {
         localStorage.removeItem('denchai_poi_data');
         setPoiData(POI_DATA);
+      } else if (datasetType === 'infra') {
+        localStorage.removeItem('denchai_infra_data');
+        setInfraData(INFRA_DATA);
       } else if (datasetType === 'service') {
         localStorage.removeItem('denchai_service_data');
         setServiceData(SERVICE_DATA);

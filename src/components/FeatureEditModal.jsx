@@ -30,15 +30,19 @@ export default function FeatureEditModal({
 
   const [error, setError] = useState('');
 
+  const isLineOrPolygon = feature?.geometry?.type === 'LineString' || feature?.geometry?.type === 'Polygon';
+
   useEffect(() => {
     if (feature) {
       const p = feature.properties || {};
-      const coords = feature.geometry?.coordinates || [100.055, 17.985];
+      const isPoint = !feature.geometry || feature.geometry.type === 'Point';
+      const coords = isPoint ? (feature.geometry?.coordinates || [100.055, 17.985]) : [100.055, 17.985];
+
       setFormData({
         id: p.id || `custom-${Date.now()}`,
         name_th: p.name_th || '',
         name_en: p.name_en || '',
-        category: p.category || Object.keys(categories || {})[0] || 'temple',
+        category: p.category || Object.keys(categories || {})[0] || 'road',
         lon: Number(coords[0]) || 100.055,
         lat: Number(coords[1]) || 17.985,
         description_th: p.description_th || '',
@@ -50,7 +54,7 @@ export default function FeatureEditModal({
         id: `custom-${Date.now()}`,
         name_th: '',
         name_en: '',
-        category: Object.keys(categories || {})[0] || 'temple',
+        category: Object.keys(categories || {})[0] || (datasetType === 'infra' ? 'highway' : 'temple'),
         lon: pickedCoords ? Number(pickedCoords[0]) : 100.055,
         lat: pickedCoords ? Number(pickedCoords[1]) : 17.985,
         description_th: '',
@@ -59,7 +63,7 @@ export default function FeatureEditModal({
       });
     }
     setError('');
-  }, [feature, isOpen, categories]);
+  }, [feature, isOpen, categories, datasetType]);
 
   // Update coords if picked from map
   useEffect(() => {
@@ -79,17 +83,20 @@ export default function FeatureEditModal({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.name_th.trim() && !formData.name_en.trim()) {
-      setError(lang === 'th' ? 'กรุณากรอกชื่อสถานที่' : 'Please enter place name');
+      setError(lang === 'th' ? 'กรุณากรอกชื่อ' : 'Please enter name');
       return;
     }
 
     const updatedFeature = {
       type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: [Number(formData.lon), Number(formData.lat)]
-      },
+      geometry: feature?.geometry && feature.geometry.type !== 'Point'
+        ? feature.geometry
+        : {
+            type: 'Point',
+            coordinates: [Number(formData.lon), Number(formData.lat)]
+          },
       properties: {
+        ...(feature?.properties || {}),
         id: formData.id || `custom-${Date.now()}`,
         name_th: formData.name_th.trim() || formData.name_en.trim(),
         name_en: formData.name_en.trim() || formData.name_th.trim(),
@@ -230,62 +237,83 @@ export default function FeatureEditModal({
             </div>
           </div>
 
-          {/* Coordinates & Pick button */}
-          <div style={{
-            background: '#f8fafc', border: '1px solid var(--border-subtle)',
-            borderRadius: 10, padding: '10px 12px'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-main)' }}>
-                📍 {lang === 'th' ? 'พิกัดทางภูมิศาสตร์ (Lat / Lon)' : 'Coordinates'}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  onPickOnMap();
-                }}
-                style={{
-                  background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
-                  color: 'white', border: 'none', borderRadius: 6,
-                  padding: '4px 10px', fontSize: '0.72rem', fontWeight: 600,
-                  display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer',
-                  boxShadow: '0 2px 4px rgba(37,99,235,0.2)'
-                }}
-              >
-                <Crosshair size={13} /> {lang === 'th' ? 'คลิกชี้จุดบนแผนที่ UAV' : 'Pick on UAV Map'}
-              </button>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {/* Coordinates or Line/Polygon Info */}
+          {isLineOrPolygon ? (
+            <div style={{
+              background: '#f8fafc', border: '1px solid var(--border-subtle)',
+              borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+            }}>
               <div>
-                <label style={{ fontSize: '0.7rem', color: 'var(--text-sub)', display: 'block', marginBottom: 2 }}>Longitude (X)</label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={formData.lon}
-                  onChange={e => setFormData({ ...formData, lon: parseFloat(e.target.value) || 0 })}
-                  style={{
-                    width: '100%', padding: '6px 8px', borderRadius: 6,
-                    border: '1px solid var(--border-subtle)', fontSize: '0.82rem',
-                    background: 'white', fontFamily: 'monospace'
-                  }}
-                />
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)', display: 'block' }}>
+                  🛣️ {lang === 'th' ? 'รูปทรงแนวเส้นทาง / โครงสร้าง' : 'Geometry (LineString / Polygon)'}
+                </span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-sub)' }}>
+                  {lang === 'th'
+                    ? `จำนวนจุดพิกัดแนวเส้น: ${feature?.geometry?.coordinates?.length || 0} จุด`
+                    : `Vertices count: ${feature?.geometry?.coordinates?.length || 0}`}
+                </span>
               </div>
-              <div>
-                <label style={{ fontSize: '0.7rem', color: 'var(--text-sub)', display: 'block', marginBottom: 2 }}>Latitude (Y)</label>
-                <input
-                  type="number"
-                  step="0.000001"
-                  value={formData.lat}
-                  onChange={e => setFormData({ ...formData, lat: parseFloat(e.target.value) || 0 })}
-                  style={{
-                    width: '100%', padding: '6px 8px', borderRadius: 6,
-                    border: '1px solid var(--border-subtle)', fontSize: '0.82rem',
-                    background: 'white', fontFamily: 'monospace'
-                  }}
-                />
+              <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#d97706', background: '#fef3c7', padding: '4px 8px', borderRadius: 6 }}>
+                {lang === 'th' ? 'แนวเส้นจริงตรงตามภาพโดรน UAV' : 'Aligned to UAV Imagery'}
               </div>
             </div>
-          </div>
+          ) : (
+            <div style={{
+              background: '#f8fafc', border: '1px solid var(--border-subtle)',
+              borderRadius: 10, padding: '10px 12px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                  📍 {lang === 'th' ? 'พิกัดทางภูมิศาสตร์ (Lat / Lon)' : 'Coordinates'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onPickOnMap();
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #2563eb, #3b82f6)',
+                    color: 'white', border: 'none', borderRadius: 6,
+                    padding: '4px 10px', fontSize: '0.72rem', fontWeight: 600,
+                    display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer',
+                    boxShadow: '0 2px 4px rgba(37,99,235,0.2)'
+                  }}
+                >
+                  <Crosshair size={13} /> {lang === 'th' ? 'คลิกชี้จุดบนแผนที่ UAV' : 'Pick on UAV Map'}
+                </button>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <div>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-sub)', display: 'block', marginBottom: 2 }}>Longitude (X)</label>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    value={formData.lon}
+                    onChange={e => setFormData({ ...formData, lon: parseFloat(e.target.value) || 0 })}
+                    style={{
+                      width: '100%', padding: '6px 8px', borderRadius: 6,
+                      border: '1px solid var(--border-subtle)', fontSize: '0.82rem',
+                      background: 'white', fontFamily: 'monospace'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-sub)', display: 'block', marginBottom: 2 }}>Latitude (Y)</label>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    value={formData.lat}
+                    onChange={e => setFormData({ ...formData, lat: parseFloat(e.target.value) || 0 })}
+                    style={{
+                      width: '100%', padding: '6px 8px', borderRadius: 6,
+                      border: '1px solid var(--border-subtle)', fontSize: '0.82rem',
+                      background: 'white', fontFamily: 'monospace'
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Description & Phone */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
