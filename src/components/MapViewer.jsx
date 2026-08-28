@@ -389,9 +389,8 @@ export default function MapViewer({
   const topologyModeRef = useRef('none');
   const mergeFirstFeatureRef = useRef(null);
   const snapEnabledRef = useRef(true);
-  const currentSnapCoordsRef = useRef(null);
-  const activeDrawModeRef = useRef('none');
   const editingRoadIdRef = useRef(null);
+  const drawingDatasetTypeRef = useRef(null);
 
   useEffect(() => { topologyModeRef.current = topologyMode; }, [topologyMode]);
   useEffect(() => { mergeFirstFeatureRef.current = mergeFirstFeature; }, [mergeFirstFeature]);
@@ -401,6 +400,7 @@ export default function MapViewer({
 
   useEffect(() => {
     if (triggerDrawRoad && drawRef.current) {
+      drawingDatasetTypeRef.current = 'infra';
       setDrawMode('line');
       onResetTriggerDrawRoad?.();
     }
@@ -408,6 +408,7 @@ export default function MapViewer({
 
   useEffect(() => {
     if (triggerDrawWater && drawRef.current) {
+      drawingDatasetTypeRef.current = 'water';
       setDrawMode('polygon');
       onResetTriggerDrawWater?.();
     }
@@ -1507,7 +1508,66 @@ export default function MapViewer({
         map.addControl(drawInstance, 'top-right');
         drawRef.current = drawInstance;
 
-        map.on('draw.create', updateMeasurements);
+        map.on('draw.create', (e) => {
+          updateMeasurements();
+          const targetFeat = e.features?.[0];
+          if (!targetFeat) return;
+
+          const activeDs = drawingDatasetTypeRef.current || (activeTabRef.current === 'water' ? 'water' : activeTabRef.current === 'infra' ? 'infra' : null);
+
+          if (activeDs === 'water' && targetFeat.geometry?.type === 'Polygon') {
+            const areaM2 = turf.area(targetFeat);
+            const newWaterFeat = {
+              type: 'Feature',
+              id: `water-${Date.now()}`,
+              geometry: targetFeat.geometry,
+              properties: {
+                id: `water-${Date.now()}`,
+                name_th: '',
+                name_en: '',
+                category: 'pond',
+                area_sqm: Number(areaM2.toFixed(1)),
+                area_rai: formatThaiArea(areaM2),
+                capacity_m3: Math.round(areaM2 * 2.5),
+                water_quality: 'good',
+                purpose: 'อุปโภค-บริโภค / ชลประทาน',
+                description_th: `แหล่งน้ำที่วาดใหม่ พื้นที่ ${formatThaiArea(areaM2)}`
+              }
+            };
+            drawingDatasetTypeRef.current = null;
+            setTimeout(() => {
+              onEditFeatureRef.current?.(newWaterFeat, 'water');
+            }, 100);
+          } else if (activeDs === 'infra' && targetFeat.geometry?.type === 'LineString') {
+            const lenKm = turf.length(targetFeat, { units: 'kilometers' });
+            const newRoadFeat = {
+              type: 'Feature',
+              id: `road-${Date.now()}`,
+              geometry: targetFeat.geometry,
+              properties: {
+                id: `road-${Date.now()}`,
+                name_th: '',
+                name_en: '',
+                category: 'main_road',
+                surface_type: 'concrete',
+                condition: 'good',
+                width_m: 6.0,
+                right_of_way_m: 8.0,
+                lanes: 2,
+                drainage: 'concrete_pipe',
+                lighting: 'led',
+                plan_status: 'completed',
+                fiscal_year: '2567',
+                length_km: Number(lenKm.toFixed(3)),
+                description_th: `ถนนที่วาดใหม่ ความยาว ${lenKm.toFixed(2)} กม.`
+              }
+            };
+            drawingDatasetTypeRef.current = null;
+            setTimeout(() => {
+              onEditFeatureRef.current?.(newRoadFeat, 'infra');
+            }, 100);
+          }
+        });
         map.on('draw.update', updateMeasurements);
         map.on('draw.delete', updateMeasurements);
         map.on('draw.selectionchange', updateMeasurements);
@@ -2272,16 +2332,58 @@ export default function MapViewer({
                 {measureInfo.thaiArea}
               </div>
 
-              {setUploadedBoundary && (
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  style={{ width: '100%', marginTop: 10, padding: '6px 10px', fontSize: '0.74rem', justifyContent: 'center' }}
-                  onClick={() => handleApplyAsAOI(measureInfo.feature)}
-                >
-                  ☀️ วิเคราะห์โซลาร์ในแปลงนี้
-                </button>
-              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
+                {onEditFeature && (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{
+                      width: '100%', padding: '7px 10px', fontSize: '0.76rem',
+                      fontWeight: 700, justifyContent: 'center',
+                      background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+                      border: 'none', boxShadow: '0 2px 8px rgba(2,132,199,0.4)'
+                    }}
+                    onClick={() => {
+                      const areaM2 = Number(measureInfo.areaSqm) || turf.area(measureInfo.feature);
+                      const newWaterFeat = {
+                        type: 'Feature',
+                        id: `water-${Date.now()}`,
+                        geometry: measureInfo.feature.geometry,
+                        properties: {
+                          id: `water-${Date.now()}`,
+                          name_th: '',
+                          name_en: '',
+                          category: 'pond',
+                          area_sqm: Number(areaM2.toFixed(1)),
+                          area_rai: formatThaiArea(areaM2),
+                          capacity_m3: Math.round(areaM2 * 2.5),
+                          water_quality: 'good',
+                          purpose: 'อุปโภค-บริโภค / ชลประทาน',
+                          description_th: `แหล่งน้ำที่วาดใหม่ พื้นที่ ${formatThaiArea(areaM2)}`
+                        }
+                      };
+                      onEditFeature(newWaterFeat, 'water');
+                    }}
+                  >
+                    💧 + บันทึกและกำหนดคุณสมบัติแหล่งน้ำ
+                  </button>
+                )}
+
+                {setUploadedBoundary && (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{
+                      width: '100%', padding: '5px 10px', fontSize: '0.72rem',
+                      justifyContent: 'center', background: 'rgba(255,255,255,0.1)',
+                      border: '1px solid rgba(255,255,255,0.2)'
+                    }}
+                    onClick={() => handleApplyAsAOI(measureInfo.feature)}
+                  >
+                    ☀️ วิเคราะห์โซลาร์ในแปลงนี้
+                  </button>
+                )}
+              </div>
             </div>
           )}
 

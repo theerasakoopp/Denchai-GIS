@@ -332,6 +332,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
 
   const currentCategories = editDatasetType === 'poi' ? POI_CATEGORIES
     : editDatasetType === 'infra' ? INFRA_CATEGORIES
+    : editDatasetType === 'water' ? WATER_CATEGORIES
     : SERVICE_CATEGORIES;
 
   return (
