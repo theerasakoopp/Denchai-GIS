@@ -175,10 +175,107 @@ const ENERGY_LEGEND = [
   { color: '#64748b', label: 'U-Roof / Unclassified' },
 ];
 
-const CAPACITY_LEGEND = [
-  { color: '#22c55e', label: '< 5.0 kWp' },
-  { color: '#f97316', label: '≥ 5.0 kWp' },
-  { color: '#64748b', label: 'U-Roof' },
+const MAPLIBRE_DRAW_THEME = [
+  // Polygon Fill (Inactive)
+  {
+    id: 'gl-draw-polygon-fill-inactive',
+    type: 'fill',
+    filter: ['all', ['==', '$type', 'Polygon'], ['!=', 'mode', 'static'], ['==', 'active', 'false']],
+    paint: {
+      'fill-color': '#38bdf8',
+      'fill-outline-color': '#38bdf8',
+      'fill-opacity': 0.2
+    }
+  },
+  // Polygon Fill (Active)
+  {
+    id: 'gl-draw-polygon-fill-active',
+    type: 'fill',
+    filter: ['all', ['==', '$type', 'Polygon'], ['!=', 'mode', 'static'], ['==', 'active', 'true']],
+    paint: {
+      'fill-color': '#f59e0b',
+      'fill-outline-color': '#f59e0b',
+      'fill-opacity': 0.25
+    }
+  },
+  // Line & Polygon Stroke (Inactive)
+  {
+    id: 'gl-draw-line-inactive',
+    type: 'line',
+    filter: ['all', ['any', ['==', '$type', 'LineString'], ['==', '$type', 'Polygon']], ['!=', 'mode', 'static'], ['==', 'active', 'false']],
+    layout: {
+      'line-cap': 'round',
+      'line-join': 'round'
+    },
+    paint: {
+      'line-color': '#38bdf8',
+      'line-width': 3.5
+    }
+  },
+  // Line & Polygon Stroke (Active)
+  {
+    id: 'gl-draw-line-active',
+    type: 'line',
+    filter: ['all', ['any', ['==', '$type', 'LineString'], ['==', '$type', 'Polygon']], ['!=', 'mode', 'static'], ['==', 'active', 'true']],
+    layout: {
+      'line-cap': 'round',
+      'line-join': 'round'
+    },
+    paint: {
+      'line-color': '#f59e0b',
+      'line-width': 4.5
+    }
+  },
+  // Point Outer
+  {
+    id: 'gl-draw-point-outer',
+    type: 'circle',
+    filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'feature']],
+    paint: {
+      'circle-radius': 9,
+      'circle-color': '#ffffff'
+    }
+  },
+  // Point Inner
+  {
+    id: 'gl-draw-point-inner',
+    type: 'circle',
+    filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'feature']],
+    paint: {
+      'circle-radius': 6,
+      'circle-color': ['case', ['==', ['get', 'active'], 'true'], '#f59e0b', '#38bdf8']
+    }
+  },
+  // Vertex Outer (during direct_select)
+  {
+    id: 'gl-draw-vertex-outer',
+    type: 'circle',
+    filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'vertex']],
+    paint: {
+      'circle-radius': 8,
+      'circle-color': '#ffffff'
+    }
+  },
+  // Vertex Inner (during direct_select)
+  {
+    id: 'gl-draw-vertex-inner',
+    type: 'circle',
+    filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'vertex']],
+    paint: {
+      'circle-radius': 5,
+      'circle-color': ['case', ['==', ['get', 'active'], 'true'], '#ef4444', '#f59e0b']
+    }
+  },
+  // Midpoint (between vertices for adding new points)
+  {
+    id: 'gl-draw-midpoint',
+    type: 'circle',
+    filter: ['all', ['==', '$type', 'Point'], ['==', 'meta', 'midpoint']],
+    paint: {
+      'circle-radius': 4,
+      'circle-color': '#f59e0b'
+    }
+  }
 ];
 
 const fmt = (n) => new Intl.NumberFormat('en-US').format(Math.round(n || 0));
@@ -942,7 +1039,8 @@ export default function MapViewer({
             polygon: false,
             trash: false
           },
-          defaultMode: 'simple_select'
+          defaultMode: 'simple_select',
+          styles: MAPLIBRE_DRAW_THEME
         });
         map.addControl(drawInstance, 'top-right');
         drawRef.current = drawInstance;
