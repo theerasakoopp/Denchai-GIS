@@ -333,6 +333,8 @@ export default function MapViewer({
   onResetTriggerDrawRoad = null,
   triggerDrawWater = false,
   onResetTriggerDrawWater = null,
+  triggerDrawRoof = false,
+  onResetTriggerDrawRoof = null,
   onSplitFeature = null,
   onMergeFeatures = null,
   onDeleteFeature = null,
@@ -412,10 +414,10 @@ export default function MapViewer({
       setActiveDrawMode('select');
       setEditingRoadId(targetId);
       editingRoadFeatRef.current = feat;
-      setEditingRoadName(feat.properties?.name_th || feat.properties?.name_en || 'ถนน');
+      setEditingRoadName(feat.properties?.name_th || feat.properties?.name_en || feat.properties?.class_name || 'ผืนหลังคา/ถนน');
 
       const centroid = turf.centroid(feat);
-      mapRef.current.flyTo({ center: centroid.geometry.coordinates, zoom: 17, duration: 800 });
+      mapRef.current.flyTo({ center: centroid.geometry.coordinates, zoom: 18, duration: 800 });
     } catch (e) {
       console.warn('start reshaping error:', e);
     }
@@ -436,6 +438,14 @@ export default function MapViewer({
       onResetTriggerDrawWater?.();
     }
   }, [triggerDrawWater]);
+
+  useEffect(() => {
+    if (triggerDrawRoof && drawRef.current) {
+      drawingDatasetTypeRef.current = 'solar';
+      setDrawMode('polygon');
+      onResetTriggerDrawRoof?.();
+    }
+  }, [triggerDrawRoof]);
 
   useEffect(() => {
     if (!reshapingFeature || !drawRef.current || !mapRef.current) return;
@@ -1021,8 +1031,53 @@ export default function MapViewer({
             <span style="color:#38bdf8">🌿 ${curT.popupCo2}</span>
             <span style="color:#38bdf8">${co2.toFixed(2)} t/y</span>
           </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:8px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.12)">
+            <button id="btn-edit-popup-roof" style="padding:6px 8px;border-radius:6px;background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;color:white;font-size:0.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+              ✏️ ${curLang === 'th' ? 'แก้ไขหลังคา' : 'Edit Roof'}
+            </button>
+            <button id="btn-reshape-popup-roof" style="padding:6px 8px;border-radius:6px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:white;font-size:0.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+              📐 ${curLang === 'th' ? 'ดัดรูปแปลง' : 'Reshape'}
+            </button>
+          </div>
+          <button id="btn-delete-popup-roof" style="width:100%;margin-top:4px;padding:5px 8px;border-radius:6px;background:rgba(239,68,68,0.15);border:1px solid #ef4444;color:#fca5a5;font-size:0.72rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+            🗑️ ${curLang === 'th' ? 'ลบผืนหลังคานี้' : 'Delete Roof'}
+          </button>
         </div>
       `).addTo(mapInstance);
+
+      setTimeout(() => {
+        const editRoofBtn = document.getElementById('btn-edit-popup-roof');
+        if (editRoofBtn) {
+          editRoofBtn.onclick = () => {
+            const fullDataset = facetsDataRef.current;
+            const originalFeat = fullDataset?.features?.find(f => (f.properties?.id || f.id) === (p.id || feat.id)) || feat;
+            onEditFeatureRef.current?.(originalFeat, 'solar');
+            popupRef.current.remove();
+          };
+        }
+
+        const reshapeRoofBtn = document.getElementById('btn-reshape-popup-roof');
+        if (reshapeRoofBtn) {
+          reshapeRoofBtn.onclick = () => {
+            const fullDataset = facetsDataRef.current;
+            const originalFeat = fullDataset?.features?.find(f => (f.properties?.id || f.id) === (p.id || feat.id)) || feat;
+            startReshapingRoad(originalFeat);
+            popupRef.current.remove();
+          };
+        }
+
+        const deleteRoofBtn = document.getElementById('btn-delete-popup-roof');
+        if (deleteRoofBtn) {
+          deleteRoofBtn.onclick = () => {
+            const targetId = p.id || feat.id;
+            if (window.confirm(curLang === 'th' ? `คุณต้องการลบผืนหลังคานี้ (${clsName}) ออกจากระบบใช่หรือไม่?` : `Delete this roof facet (${clsName})?`)) {
+              onDeleteFeatureRef.current?.(targetId, 'solar');
+              popupRef.current.remove();
+            }
+          };
+        }
+      }, 50);
     });
 
     mapInstance.on('mousemove', (e) => {
@@ -1522,7 +1577,7 @@ export default function MapViewer({
           const targetFeat = e.features?.[0];
           if (!targetFeat) return;
 
-          const activeDs = drawingDatasetTypeRef.current || (activeTabRef.current === 'water' ? 'water' : activeTabRef.current === 'infra' ? 'infra' : null);
+          const activeDs = drawingDatasetTypeRef.current || (activeTabRef.current === 'water' ? 'water' : activeTabRef.current === 'infra' ? 'infra' : activeTabRef.current === 'solar' ? 'solar' : null);
 
           if (activeDs === 'water' && targetFeat.geometry?.type === 'Polygon') {
             const areaM2 = turf.area(targetFeat);
@@ -1546,6 +1601,38 @@ export default function MapViewer({
             drawingDatasetTypeRef.current = null;
             setTimeout(() => {
               onEditFeatureRef.current?.(newWaterFeat, 'water');
+            }, 100);
+          } else if (activeDs === 'solar' && targetFeat.geometry?.type === 'Polygon') {
+            const areaM2 = turf.area(targetFeat);
+            const cap = Number(((areaM2 * 0.18) * 0.20).toFixed(2));
+            const eng = Math.round(cap * 1420);
+            const sav = Math.round(eng * 4.2);
+            const newRoofFeat = {
+              type: 'Feature',
+              id: `roof-${Date.now()}`,
+              geometry: targetFeat.geometry,
+              properties: {
+                id: `roof-${Date.now()}`,
+                name_th: 'ผืนหลังคาใหม่',
+                name_en: 'New Roof Facet',
+                class_id: 3,
+                class_name: 'S-Roof',
+                color: '#3b82f6',
+                area_3d: Number(areaM2.toFixed(1)),
+                area_2d: Number((areaM2 * Math.cos(20 * Math.PI / 180)).toFixed(1)),
+                slope_deg: 20.0,
+                aspect_deg: 180.0,
+                capacity_kwp: cap,
+                energy_kwh: eng,
+                energy_corrected_kwh: eng,
+                savings_thb: sav,
+                building_id: '',
+                description_th: `ผืนหลังคาวาดใหม่ พื้นที่ ${areaM2.toFixed(1)} ตร.ม.`
+              }
+            };
+            drawingDatasetTypeRef.current = null;
+            setTimeout(() => {
+              onEditFeatureRef.current?.(newRoofFeat, 'solar');
             }, 100);
           } else if (activeDs === 'infra' && targetFeat.geometry?.type === 'LineString') {
             const lenKm = turf.length(targetFeat, { units: 'kilometers' });
@@ -2347,6 +2434,51 @@ export default function MapViewer({
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 10 }}>
+                {onEditFeature && (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{
+                      width: '100%', padding: '7px 10px', fontSize: '0.76rem',
+                      fontWeight: 700, justifyContent: 'center',
+                      background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                      border: 'none', boxShadow: '0 2px 8px rgba(245,158,11,0.4)'
+                    }}
+                    onClick={() => {
+                      const areaM2 = Number(measureInfo.areaSqm) || turf.area(measureInfo.feature);
+                      const cap = Number(((areaM2 * 0.18) * 0.20).toFixed(2));
+                      const eng = Math.round(cap * 1420);
+                      const sav = Math.round(eng * 4.2);
+                      const newRoofFeat = {
+                        type: 'Feature',
+                        id: `roof-${Date.now()}`,
+                        geometry: measureInfo.feature.geometry,
+                        properties: {
+                          id: `roof-${Date.now()}`,
+                          name_th: 'ผืนหลังคาใหม่',
+                          name_en: 'New Roof Facet',
+                          class_id: 3,
+                          class_name: 'S-Roof',
+                          color: '#3b82f6',
+                          area_3d: Number(areaM2.toFixed(1)),
+                          area_2d: Number((areaM2 * Math.cos(20 * Math.PI / 180)).toFixed(1)),
+                          slope_deg: 20.0,
+                          aspect_deg: 180.0,
+                          capacity_kwp: cap,
+                          energy_kwh: eng,
+                          energy_corrected_kwh: eng,
+                          savings_thb: sav,
+                          building_id: '',
+                          description_th: `ผืนหลังคาวาดใหม่ พื้นที่ ${areaM2.toFixed(1)} ตร.ม.`
+                        }
+                      };
+                      onEditFeature(newRoofFeat, 'solar');
+                    }}
+                  >
+                    ☀️ + บันทึกและกำหนดคุณสมบัติหลังคาโซลาร์
+                  </button>
+                )}
+
                 {onEditFeature && (
                   <button
                     type="button"

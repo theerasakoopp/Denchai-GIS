@@ -110,12 +110,13 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   // ── Editor & Modal State ──
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingFeature, setEditingFeature] = useState(null);
-  const [editDatasetType, setEditDatasetType] = useState('poi'); // 'poi' | 'infra' | 'service' | 'water'
+  const [editDatasetType, setEditDatasetType] = useState('poi'); // 'poi' | 'infra' | 'service' | 'water' | 'solar'
   const [isPickingLocation, setIsPickingLocation] = useState(false);
   const [pickedCoordinates, setPickedCoordinates] = useState(null);
   const [reshapingFeature, setReshapingFeature] = useState(null);
   const [triggerDrawRoad, setTriggerDrawRoad] = useState(false);
   const [triggerDrawWater, setTriggerDrawWater] = useState(false);
+  const [triggerDrawRoof, setTriggerDrawRoof] = useState(false);
 
   // ── Layer visibility for POI/Infra/Service/Water categories ──
   const [poiVisible, setPoiVisible] = useState(
@@ -137,8 +138,23 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
     async function loadData() {
       setLoading(true);
       try {
+        // Check localStorage for edited rooftop facets first!
+        const savedFacets = localStorage.getItem('denchai_rooftop_facets');
+        let facetsPromise = null;
+        if (savedFacets) {
+          try {
+            const parsed = JSON.parse(savedFacets);
+            if (parsed?.features && Array.isArray(parsed.features)) {
+              facetsPromise = Promise.resolve(parsed);
+            }
+          } catch {}
+        }
+        if (!facetsPromise) {
+          facetsPromise = fetchWithFallback('rooftop_facets.geojson');
+        }
+
         const [facets, bldgs, boundary] = await Promise.allSettled([
-          fetchWithFallback('rooftop_facets.geojson'),
+          facetsPromise,
           fetchWithFallback('buildings.geojson'),
           fetchWithFallback('boundary.geojson')
         ]);
@@ -226,6 +242,17 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         localStorage.setItem('denchai_water_data', JSON.stringify(newCol));
         return newCol;
       });
+    } else if (datasetType === 'solar' || datasetType === 'roof') {
+      setGeoDataFacets(prev => {
+        const existing = prev?.features || [];
+        const idx = existing.findIndex(f => (f.properties?.id || f.id) === targetId);
+        const updated = idx >= 0
+          ? existing.map(f => (f.properties?.id || f.id) === targetId ? savedFeature : f)
+          : [...existing, savedFeature];
+        const newCol = { type: 'FeatureCollection', features: updated };
+        localStorage.setItem('denchai_rooftop_facets', JSON.stringify(newCol));
+        return newCol;
+      });
     }
   };
 
@@ -256,6 +283,13 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         const updated = (prev.features || []).filter(f => (f.properties?.id || f.id) !== featureId);
         const newCol = { type: 'FeatureCollection', features: updated };
         localStorage.setItem('denchai_water_data', JSON.stringify(newCol));
+        return newCol;
+      });
+    } else if (datasetType === 'solar' || datasetType === 'roof') {
+      setGeoDataFacets(prev => {
+        const updated = (prev?.features || []).filter(f => (f.properties?.id || f.id) !== featureId);
+        const newCol = { type: 'FeatureCollection', features: updated };
+        localStorage.setItem('denchai_rooftop_facets', JSON.stringify(newCol));
         return newCol;
       });
     }
@@ -299,6 +333,11 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
       } else if (datasetType === 'water') {
         localStorage.removeItem('denchai_water_data');
         setWaterData(WATER_DATA);
+      } else if (datasetType === 'solar' || datasetType === 'roof') {
+        localStorage.removeItem('denchai_rooftop_facets');
+        fetchWithFallback('rooftop_facets.geojson').then(data => {
+          if (data) setGeoDataFacets(data);
+        });
       }
     }
   };
@@ -310,7 +349,9 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         ? infraData
         : datasetType === 'water'
           ? waterData
-          : serviceData;
+          : datasetType === 'solar' || datasetType === 'roof'
+            ? geoDataFacets
+            : serviceData;
     const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -334,6 +375,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   const currentCategories = editDatasetType === 'poi' ? POI_CATEGORIES
     : editDatasetType === 'infra' ? INFRA_CATEGORIES
     : editDatasetType === 'water' ? WATER_CATEGORIES
+    : editDatasetType === 'solar' || editDatasetType === 'roof' ? ROOF_CLASSES
     : SERVICE_CATEGORIES;
 
   return (
@@ -412,6 +454,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         onExportData={handleExportData}
         onStartDrawRoad={() => setTriggerDrawRoad(true)}
         onStartDrawWater={() => setTriggerDrawWater(true)}
+        onStartDrawRoof={() => setTriggerDrawRoof(true)}
         onReshapeRoad={(feat) => setReshapingFeature(feat)}
       />
       <MapViewer
@@ -450,6 +493,8 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         onResetTriggerDrawRoad={() => setTriggerDrawRoad(false)}
         triggerDrawWater={triggerDrawWater}
         onResetTriggerDrawWater={() => setTriggerDrawWater(false)}
+        triggerDrawRoof={triggerDrawRoof}
+        onResetTriggerDrawRoof={() => setTriggerDrawRoof(false)}
       />
 
       {/* Feature Edit / Add Modal */}

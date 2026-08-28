@@ -492,6 +492,7 @@ export default function Sidebar({
   onExportData,
   onStartDrawRoad,
   onStartDrawWater,
+  onStartDrawRoof,
   onReshapeRoad = null,
 }) {
   const t = translations[lang] || translations.th;
@@ -744,6 +745,62 @@ export default function Sidebar({
         {/* ═══════════ TAB: SOLAR POTENTIAL (Original Content) ═══════════ */}
         {activeTab === 'solar' && (
           <>
+            {/* Rooftop Solar Action Toolbar */}
+            <div style={{
+              background: 'rgba(30, 41, 59, 0.7)', border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 12, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.2)'
+            }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#fcd34d', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <SunMedium size={16} color="#eab308" />
+                  <span>{lang === 'th' ? 'การจัดการผืนหลังคาโซลาร์' : 'Rooftop Management'}</span>
+                </div>
+                <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>
+                  {geoData?.features?.length || 0} {lang === 'th' ? 'ผืน' : 'facets'}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{
+                  width: '100%', justifyContent: 'center', padding: '8px 10px',
+                  fontSize: '0.78rem', fontWeight: 700, gap: 6,
+                  background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                  border: 'none', boxShadow: '0 2px 8px rgba(245,158,11,0.3)'
+                }}
+                onClick={() => onStartDrawRoof?.()}
+              >
+                ☀️ {lang === 'th' ? '+ วาดหลังคาโซลาร์ใหม่' : '+ Draw Solar Roof'}
+              </button>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                {onExportData && (
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    style={{ justifyContent: 'center', fontSize: '0.72rem', padding: '5px 6px' }}
+                    onClick={() => onExportData('solar')}
+                    title="Export Rooftop GeoJSON"
+                  >
+                    <Download size={12} /> {lang === 'th' ? 'ส่งออก GeoJSON' : 'Export'}
+                  </button>
+                )}
+                {onResetData && (
+                  <button
+                    type="button"
+                    className="btn btn-sm"
+                    style={{ justifyContent: 'center', fontSize: '0.72rem', padding: '5px 6px', color: '#94a3b8' }}
+                    onClick={() => onResetData('solar')}
+                    title="Reset to default rooftop data"
+                  >
+                    🔄 {lang === 'th' ? 'รีเซ็ตข้อมูล' : 'Reset'}
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* View Mode & Color Mode Selector */}
             <div>
               <div className="section-title">{t.viewMode}</div>

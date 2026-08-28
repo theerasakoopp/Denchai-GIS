@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Trash2, Save, Crosshair, Check, AlertCircle } from 'lucide-react';
+import { X, MapPin, Trash2, Save, Crosshair, Check, AlertCircle, SunMedium, Zap, DollarSign, Leaf } from 'lucide-react';
 import { translations } from '../translations';
+import { ROOF_CLASSES } from '../App';
 
 export default function FeatureEditModal({
   isOpen,
   onClose,
   feature,
   categories,
-  datasetType = 'poi', // 'poi' | 'infra' | 'service'
+  datasetType = 'poi', // 'poi' | 'infra' | 'service' | 'water' | 'solar'
   onSave,
   onDelete,
   onPickOnMap,
@@ -41,12 +42,21 @@ export default function FeatureEditModal({
     area_sqm: 10000,
     capacity_m3: 25000,
     water_quality: 'good',
-    purpose: 'อุปโภค-บริโภค / ชลประทาน'
+    purpose: 'อุปโภค-บริโภค / ชลประทาน',
+    // Solar Rooftop Attributes
+    class_id: 3,
+    area_3d: 50.0,
+    slope_deg: 20.0,
+    aspect_deg: 180.0,
+    building_id: '',
+    capacity_kwp: 1.8,
+    energy_kwh: 2500
   });
 
   const [error, setError] = useState('');
 
   const isLineOrPolygon = feature?.geometry?.type === 'LineString' || feature?.geometry?.type === 'Polygon';
+  const isSolar = datasetType === 'solar' || datasetType === 'roof';
 
   useEffect(() => {
     if (feature) {
@@ -54,11 +64,16 @@ export default function FeatureEditModal({
       const isPoint = !feature.geometry || feature.geometry.type === 'Point';
       const coords = isPoint ? (feature.geometry?.coordinates || [100.055, 17.985]) : [100.055, 17.985];
 
+      const cid = Number(p.class_id) || 3;
+      const area = Number(p.area_3d || p.area_2d || 50.0);
+      const cap = Number(p.capacity_kwp || ((area * 0.18) * 0.20));
+      const eng = Number(p.energy_corrected_kwh || p.energy_kwh || (cap * 1350));
+
       setFormData({
         id: p.id || `custom-${Date.now()}`,
-        name_th: p.name_th || '',
-        name_en: p.name_en || '',
-        category: p.category || Object.keys(categories || {})[0] || (datasetType === 'water' ? 'pond' : 'main_road'),
+        name_th: p.name_th || (isSolar ? (p.building_id ? `หลังคาอาคาร ${p.building_id}` : (p.class_name || 'ผืนหลังคาโซลาร์')) : ''),
+        name_en: p.name_en || (isSolar ? (p.building_id ? `Roof ${p.building_id}` : (p.class_name || 'Roof Facet')) : ''),
+        category: String(p.category || (isSolar ? cid : Object.keys(categories || {})[0] || (datasetType === 'water' ? 'pond' : 'main_road'))),
         lon: Number(coords[0]) || 100.055,
         lat: Number(coords[1]) || 17.985,
         description_th: p.description_th || '',
@@ -76,13 +91,20 @@ export default function FeatureEditModal({
         area_sqm: p.area_sqm || 10000,
         capacity_m3: p.capacity_m3 || 25000,
         water_quality: p.water_quality || 'good',
-        purpose: p.purpose || 'อุปโภค-บริโภค / ชลประทาน'
+        purpose: p.purpose || 'อุปโภค-บริโภค / ชลประทาน',
+        class_id: cid,
+        area_3d: Number(area.toFixed(1)),
+        slope_deg: Number((p.slope_deg || 20.0).toFixed ? p.slope_deg.toFixed(1) : 20.0),
+        aspect_deg: Number((p.aspect_deg || 180.0).toFixed ? p.aspect_deg.toFixed(1) : 180.0),
+        building_id: p.building_id || '',
+        capacity_kwp: Number(cap.toFixed(2)),
+        energy_kwh: Number(eng.toFixed(0))
       });
     } else {
       setFormData({
         id: `custom-${Date.now()}`,
-        name_th: '',
-        name_en: '',
+        name_th: isSolar ? 'ผืนหลังคาใหม่' : '',
+        name_en: isSolar ? 'New Roof Facet' : '',
         category: Object.keys(categories || {})[0] || (datasetType === 'water' ? 'pond' : datasetType === 'infra' ? 'main_road' : 'temple'),
         lon: pickedCoords ? Number(pickedCoords[0]) : 100.055,
         lat: pickedCoords ? Number(pickedCoords[1]) : 17.985,
@@ -101,7 +123,14 @@ export default function FeatureEditModal({
         area_sqm: 10000,
         capacity_m3: 25000,
         water_quality: 'good',
-        purpose: 'อุปโภค-บริโภค / ชลประทาน'
+        purpose: 'อุปโภค-บริโภค / ชลประทาน',
+        class_id: 3,
+        area_3d: 50.0,
+        slope_deg: 20.0,
+        aspect_deg: 180.0,
+        building_id: '',
+        capacity_kwp: 1.8,
+        energy_kwh: 2500
       });
     }
     setError('');
@@ -124,13 +153,22 @@ export default function FeatureEditModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name_th.trim() && !formData.name_en.trim()) {
+    if (!formData.name_th.trim() && !formData.name_en.trim() && !isSolar) {
       setError(lang === 'th' ? 'กรุณากรอกชื่อ' : 'Please enter name');
       return;
     }
 
+    const cid = Number(formData.class_id) || 3;
+    const clsMeta = ROOF_CLASSES[cid] || { name: 'S-Roof', color: '#3b82f6' };
+    const area = Number(formData.area_3d) || 50.0;
+    const cap = Number(formData.capacity_kwp) || Number(((area * 0.18) * 0.20).toFixed(2));
+    const yieldFactor = cid === 3 ? 1420 : cid === 5 ? 1380 : cid === 2 ? 1320 : cid === 4 ? 1300 : cid === 1 ? 1120 : cid === 7 ? 1400 : 1250;
+    const eng = Math.round(cap * yieldFactor);
+    const sav = Math.round(eng * 4.2);
+
     const updatedFeature = {
       type: 'Feature',
+      id: formData.id || feature?.id || `custom-${Date.now()}`,
       geometry: feature?.geometry && feature.geometry.type !== 'Point'
         ? feature.geometry
         : {
@@ -139,10 +177,10 @@ export default function FeatureEditModal({
           },
       properties: {
         ...(feature?.properties || {}),
-        id: formData.id || `custom-${Date.now()}`,
-        name_th: formData.name_th.trim() || formData.name_en.trim(),
-        name_en: formData.name_en.trim() || formData.name_th.trim(),
-        category: formData.category,
+        id: formData.id || feature?.properties?.id || feature?.id || `custom-${Date.now()}`,
+        name_th: formData.name_th.trim() || formData.name_en.trim() || clsMeta.name,
+        name_en: formData.name_en.trim() || formData.name_th.trim() || clsMeta.name,
+        category: isSolar ? String(cid) : formData.category,
         description_th: formData.description_th.trim(),
         description_en: formData.description_en.trim(),
         ...(formData.phone ? { phone: formData.phone.trim() } : {}),
@@ -162,6 +200,20 @@ export default function FeatureEditModal({
           capacity_m3: Number(formData.capacity_m3) || 25000,
           water_quality: formData.water_quality,
           purpose: formData.purpose
+        } : {}),
+        ...(isSolar ? {
+          class_id: cid,
+          class_name: clsMeta.name,
+          color: clsMeta.color,
+          area_3d: area,
+          area_2d: Number((area * Math.cos((Number(formData.slope_deg) || 20) * Math.PI / 180)).toFixed(1)),
+          slope_deg: Number(formData.slope_deg) || 20.0,
+          aspect_deg: Number(formData.aspect_deg) || 180.0,
+          capacity_kwp: cap,
+          energy_kwh: eng,
+          energy_corrected_kwh: eng,
+          savings_thb: sav,
+          building_id: formData.building_id || ''
         } : {})
       }
     };
@@ -612,6 +664,177 @@ export default function FeatureEditModal({
                   </select>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ═══════════ Solar Rooftop Attributes (When datasetType === 'solar' or 'roof') ═══════════ */}
+          {isSolar && (
+            <div style={{
+              background: 'linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)',
+              border: '1.5px solid #bfdbfe', borderRadius: 12, padding: '14px',
+              display: 'flex', flexDirection: 'column', gap: 12,
+              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.08)'
+            }}>
+              <div style={{ fontSize: '0.86rem', fontWeight: 700, color: '#1e40af', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <SunMedium size={18} color="#eab308" />
+                <span>{lang === 'th' ? 'ข้อมูลผืนหลังคาและศักยภาพโซลาร์เซลล์' : 'Rooftop Solar Potential Parameters'}</span>
+              </div>
+
+              {/* Roof Class Selection */}
+              <div>
+                <label style={{ fontSize: '0.74rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: 6 }}>
+                  {lang === 'th' ? '🧭 ทิศทางและประเภทหลังคา (Orientation & Type):' : 'Orientation & Roof Type:'}
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
+                  {Object.entries(ROOF_CLASSES).map(([cid, info]) => {
+                    const isSelected = Number(formData.class_id) === Number(cid);
+                    return (
+                      <button
+                        key={cid}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, class_id: Number(cid) })}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 6,
+                          padding: '6px 8px', borderRadius: 8, fontSize: '0.74rem',
+                          textAlign: 'left',
+                          border: isSelected ? `2px solid ${info.color}` : '1px solid #cbd5e1',
+                          background: isSelected ? `${info.color}20` : 'white',
+                          color: isSelected ? '#0f172a' : '#475569',
+                          fontWeight: isSelected ? 800 : 500,
+                          cursor: 'pointer', transition: 'all 0.15s',
+                          boxShadow: isSelected ? `0 2px 8px ${info.color}40` : 'none'
+                        }}
+                      >
+                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: info.color, flexShrink: 0 }} />
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {info.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Area, Slope, Aspect, Building ID */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {/* 3D Area */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#1e40af', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? '📐 ขนาดพื้นที่หลังคา 3D (ตร.ม.)' : '3D Roof Area (sqm)'}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={formData.area_3d || ''}
+                    onChange={e => setFormData({ ...formData, area_3d: parseFloat(e.target.value) || 0 })}
+                    placeholder="เช่น 65.5"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #93c5fd', fontSize: '0.8rem', background: 'white' }}
+                  />
+                </div>
+
+                {/* Slope */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#1e40af', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? '📐 ความลาดชัน (องศา °)' : 'Slope Degree (°)'}
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={formData.slope_deg || ''}
+                    onChange={e => setFormData({ ...formData, slope_deg: parseFloat(e.target.value) || 0 })}
+                    placeholder="เช่น 15.0"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #93c5fd', fontSize: '0.8rem', background: 'white' }}
+                  />
+                </div>
+
+                {/* Building ID */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#1e40af', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? '🏢 รหัสอาคาร (Building ID)' : 'Building ID'}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.building_id || ''}
+                    onChange={e => setFormData({ ...formData, building_id: e.target.value })}
+                    placeholder="เช่น BLD-102"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #93c5fd', fontSize: '0.8rem', background: 'white' }}
+                  />
+                </div>
+
+                {/* Aspect */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#1e40af', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? '🧭 ทิศทางหันหลังคา (°)' : 'Aspect (°)'}
+                  </label>
+                  <input
+                    type="number"
+                    step="1"
+                    value={formData.aspect_deg || ''}
+                    onChange={e => setFormData({ ...formData, aspect_deg: parseFloat(e.target.value) || 0 })}
+                    placeholder="เช่น 180"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #93c5fd', fontSize: '0.8rem', background: 'white' }}
+                  />
+                </div>
+              </div>
+
+              {/* Live Solar KPI Summary Card */}
+              {(() => {
+                const cid = Number(formData.class_id) || 3;
+                const area = Number(formData.area_3d) || 0;
+                const cap = Number(((area * 0.18) * 0.20).toFixed(2));
+                const yieldFactor = cid === 3 ? 1420 : cid === 5 ? 1380 : cid === 2 ? 1320 : cid === 4 ? 1300 : cid === 1 ? 1120 : cid === 7 ? 1400 : 1250;
+                const eng = Math.round(cap * yieldFactor);
+                const sav = Math.round(eng * 4.2);
+                const co2 = Number(((eng * 0.4999) / 1000).toFixed(2));
+
+                return (
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    border: '1px solid #93c5fd', borderRadius: 10, padding: '10px 12px',
+                    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Zap size={15} color="#eab308" />
+                      <div>
+                        <div style={{ fontSize: '0.68rem', color: '#64748b' }}>กำลังติดตั้ง:</div>
+                        <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
+                          {cap} <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>kWp</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <SunMedium size={15} color="#f97316" />
+                      <div>
+                        <div style={{ fontSize: '0.68rem', color: '#64748b' }}>พลังงานผลิตได้:</div>
+                        <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#15803d' }}>
+                          {eng.toLocaleString()} <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>kWh/ปี</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <DollarSign size={15} color="#22c55e" />
+                      <div>
+                        <div style={{ fontSize: '0.68rem', color: '#64748b' }}>ประหยัดค่าไฟ:</div>
+                        <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#047857' }}>
+                          ~{sav.toLocaleString()} <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>บาท/ปี</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Leaf size={15} color="#10b981" />
+                      <div>
+                        <div style={{ fontSize: '0.68rem', color: '#64748b' }}>ลดก๊าซคาร์บอน:</div>
+                        <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0369a1' }}>
+                          ~{co2} <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>tCO₂/ปี</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
