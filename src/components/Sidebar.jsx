@@ -100,7 +100,7 @@ function CategoryListPanel({
   lang, t, summaryIcon, summaryLabel, onItemClick,
   datasetType = 'poi',
   onAddFeature, onEditFeature, onDeleteFeature,
-  onResetData, onExportData, onStartDrawRoad
+  onResetData, onExportData, onStartDrawRoad, onReshapeRoad
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCatFilter, setSelectedCatFilter] = useState('all');
@@ -382,6 +382,24 @@ function CategoryListPanel({
 
                       {/* Quick action buttons */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                        {datasetType === 'infra' && item.geometry?.type === 'LineString' && onReshapeRoad && (
+                          <button
+                            type="button"
+                            className="btn-icon-subtle"
+                            style={{
+                              background: 'none', border: 'none', padding: '3px 4px',
+                              cursor: 'pointer', borderRadius: 4, color: '#0284c7',
+                              display: 'flex', alignItems: 'center', fontSize: '0.78rem'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onReshapeRoad(item);
+                            }}
+                            title={lang === 'th' ? 'ดัดจุดยอดแนวถนนบนแผนที่ (Reshape Vertices)' : 'Reshape Vertices on Map'}
+                          >
+                            📐
+                          </button>
+                        )}
                         {onEditFeature && (
                           <button
                             type="button"
@@ -457,6 +475,7 @@ export default function Sidebar({
   onResetData,
   onExportData,
   onStartDrawRoad,
+  onReshapeRoad = null,
 }) {
   const t = translations[lang] || translations.th;
   const fileInputRef = useRef();
@@ -656,6 +675,7 @@ export default function Sidebar({
             onResetData={onResetData}
             onExportData={onExportData}
             onStartDrawRoad={onStartDrawRoad}
+            onReshapeRoad={onReshapeRoad}
           />
         )}
 

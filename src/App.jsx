@@ -366,6 +366,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         onResetData={handleResetData}
         onExportData={handleExportData}
         onStartDrawRoad={() => setTriggerDrawRoad(true)}
+        onReshapeRoad={(feat) => setReshapingFeature(feat)}
       />
       <MapViewer
         facetsData={geoDataFacets}

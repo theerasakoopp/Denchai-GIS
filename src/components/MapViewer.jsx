@@ -1844,10 +1844,17 @@ export default function MapViewer({
             setMergeFirstFeature(null);
             setDrawMode('none');
           }}
-          title={lang === 'th' ? 'ดัดจุดยอดแนวเส้นทาง/อาคาร (Reshape Line)' : 'Reshape Line'}
-          style={{ padding: '6px 9px', fontSize: '0.72rem', borderLeft: '1px solid rgba(255,255,255,0.15)', marginLeft: 2, paddingLeft: 8 }}
+          title={lang === 'th' ? 'คลิกเพื่อดัดจุดยอดแนวเส้นทาง/อาคาร (Reshape Line)' : 'Reshape Line'}
+          style={{
+            padding: '6px 10px', fontSize: '0.74rem', fontWeight: 700,
+            borderLeft: '1px solid rgba(255,255,255,0.2)', marginLeft: 2, paddingLeft: 8,
+            color: topologyMode === 'reshape' || editingRoadId ? '#fff' : '#38bdf8',
+            background: topologyMode === 'reshape' || editingRoadId ? '#0284c7' : 'rgba(56, 189, 248, 0.12)',
+            borderRadius: 6
+          }}
         >
-          <Pencil size={13} color={topologyMode === 'reshape' || editingRoadId ? '#fff' : '#38bdf8'} /> {lang === 'th' ? 'ดัดเส้น' : 'Reshape'}
+          <Pencil size={13} color={topologyMode === 'reshape' || editingRoadId ? '#fff' : '#38bdf8'} />
+          <span>{lang === 'th' ? 'ดัดเส้น (Reshape)' : 'Reshape'}</span>
         </button>
 
         <button
