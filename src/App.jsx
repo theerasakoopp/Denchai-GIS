@@ -398,6 +398,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         onResetTriggerDrawRoad={() => setTriggerDrawRoad(false)}
         onSplitFeature={handleSplitFeature}
         onMergeFeatures={handleMergeFeatures}
+        onDeleteFeature={handleDeleteFeature}
       />
 
       {/* Feature Edit / Add Modal */}

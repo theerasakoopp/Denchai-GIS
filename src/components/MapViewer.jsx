@@ -319,6 +319,7 @@ export default function MapViewer({
   onResetTriggerDrawRoad = null,
   onSplitFeature = null,
   onMergeFeatures = null,
+  onDeleteFeature = null,
 }) {
   const t = translations[lang] || translations.th;
   const langRef = useRef(lang);
@@ -336,6 +337,7 @@ export default function MapViewer({
   const onEditFeatureRef = useRef(onEditFeature);
   const onSplitFeatureRef = useRef(onSplitFeature);
   const onMergeFeaturesRef = useRef(onMergeFeatures);
+  const onDeleteFeatureRef = useRef(onDeleteFeature);
 
   useEffect(() => { langRef.current = lang; }, [lang]);
   useEffect(() => { tariffRef.current = tariff; }, [tariff]);
@@ -352,6 +354,7 @@ export default function MapViewer({
   useEffect(() => { onEditFeatureRef.current = onEditFeature; }, [onEditFeature]);
   useEffect(() => { onSplitFeatureRef.current = onSplitFeature; }, [onSplitFeature]);
   useEffect(() => { onMergeFeaturesRef.current = onMergeFeatures; }, [onMergeFeatures]);
+  useEffect(() => { onDeleteFeatureRef.current = onDeleteFeature; }, [onDeleteFeature]);
 
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -650,6 +653,27 @@ export default function MapViewer({
         }
       }
 
+      // 0.3 Topology: Delete mode
+      if (topologyModeRef.current === 'delete') {
+        const delLayers = ['infra-line', 'infra-circle', 'poi-circle', 'service-circle'].filter(
+          id => mapInstance.getLayer(id) && mapInstance.getLayoutProperty(id, 'visibility') !== 'none'
+        );
+        const delFeats = mapInstance.queryRenderedFeatures(e.point, { layers: delLayers });
+        if (delFeats?.length) {
+          const clickedFeat = delFeats[0];
+          const p = clickedFeat.properties;
+          const name = curLang === 'th' ? (p.name_th || p.name_en) : (p.name_en || p.name_th);
+          const dsType = clickedFeat.layer.id.startsWith('service') ? 'service' : clickedFeat.layer.id.startsWith('infra') ? 'infra' : 'poi';
+          const targetId = p.id || clickedFeat.id;
+          if (window.confirm(`คุณต้องการลบ "${name || 'รายการนี้'}" ออกจากระบบใช่หรือไม่?`)) {
+            onDeleteFeatureRef.current?.(targetId, dsType);
+            alert(`🗑️ ลบ "${name || 'รายการนี้'}" เรียบร้อยแล้ว!`);
+          }
+          setTopologyMode('none');
+          return;
+        }
+      }
+
       const allInteractiveLayers = [
         'poi-circle',
         'service-circle',
@@ -747,9 +771,14 @@ export default function MapViewer({
                 </button>
               </div>
             ` : ''}
-            <button id="btn-edit-popup-place" style="margin-top:6px;width:100%;padding:6px 10px;border-radius:6px;background:rgba(59,130,246,0.2);border:1px solid #3b82f6;color:#60a5fa;font-size:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-              ✏️ ${curLang === 'th' ? 'แก้ไขชื่อและรายละเอียด' : 'Edit Info'}
-            </button>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:6px">
+              <button id="btn-edit-popup-place" style="padding:6px 8px;border-radius:6px;background:rgba(59,130,246,0.2);border:1px solid #3b82f6;color:#60a5fa;font-size:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
+                ✏️ ${curLang === 'th' ? 'แก้ไข' : 'Edit'}
+              </button>
+              <button id="btn-delete-popup-place" style="padding:6px 8px;border-radius:6px;background:rgba(239,68,68,0.2);border:1px solid #ef4444;color:#fca5a5;font-size:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px">
+                🗑️ ${curLang === 'th' ? 'ลบทั้งเส้น/จุด' : 'Delete'}
+              </button>
+            </div>
           </div>
         `).addTo(mapInstance);
 
@@ -794,6 +823,18 @@ export default function MapViewer({
               const originalFeat = fullDataset?.features?.find(f => (f.properties?.id || f.id) === (p.id || feat.id)) || feat;
               onEditFeatureRef.current?.(originalFeat, dsType);
               popupRef.current.remove();
+            };
+          }
+
+          const delBtn = document.getElementById('btn-delete-popup-place');
+          if (delBtn) {
+            delBtn.onclick = () => {
+              const dsType = layerId.startsWith('service') ? 'service' : layerId.startsWith('infra') ? 'infra' : 'poi';
+              const targetId = p.id || feat.id;
+              if (window.confirm(`คุณต้องการลบ "${name || 'รายการนี้'}" ออกจากระบบใช่หรือไม่?`)) {
+                onDeleteFeatureRef.current?.(targetId, dsType);
+                popupRef.current.remove();
+              }
             };
           }
         }, 50);
@@ -1677,6 +1718,32 @@ export default function MapViewer({
         </div>
       )}
 
+      {/* Delete Feature Active Banner */}
+      {topologyMode === 'delete' && (
+        <div style={{
+          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 5500, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
+          color: 'white', border: '2px solid #ef4444', borderRadius: 30,
+          padding: '8px 20px', display: 'flex', alignItems: 'center', gap: 14,
+          boxShadow: '0 8px 32px rgba(239, 68, 68, 0.35)'
+        }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#fca5a5' }}>
+            🗑️ โหมดลบข้อมูล: คลิกที่เส้นถนนหรือสถานที่บนแผนที่เพื่อลบออกทั้งเส้น
+          </span>
+          <button
+            type="button"
+            style={{
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
+              color: 'white', borderRadius: 20, padding: '4px 10px', fontSize: '0.75rem',
+              cursor: 'pointer', fontWeight: 600
+            }}
+            onClick={() => setTopologyMode('none')}
+          >
+            ยกเลิก
+          </button>
+        </div>
+      )}
+
       {/* ── MapLibre Drawing & Geometry Editor Toolbar ── */}
       <div className="map-floating-panel" style={{
         position: 'absolute', top: 14, right: 54, zIndex: 1500,
@@ -1762,6 +1829,20 @@ export default function MapViewer({
           style={{ padding: '6px 9px', fontSize: '0.72rem' }}
         >
           <GitMerge size={13} color={topologyMode === 'merge' ? '#fff' : '#a855f7'} /> {lang === 'th' ? 'ต่อเส้น' : 'Merge'}
+        </button>
+
+        <button
+          type="button"
+          className={`basemap-btn ${topologyMode === 'delete' ? 'active' : ''}`}
+          onClick={() => {
+            setTopologyMode(topologyMode === 'delete' ? 'none' : 'delete');
+            setMergeFirstFeature(null);
+            setDrawMode('none');
+          }}
+          title={lang === 'th' ? 'คลิกลบเส้นทางหรือสถานที่บนแผนที่ (Delete Feature)' : 'Delete Feature'}
+          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+        >
+          <Trash2 size={13} color={topologyMode === 'delete' ? '#fff' : '#f87171'} /> {lang === 'th' ? 'ลบเส้น' : 'Delete'}
         </button>
 
         {measureInfo && (
