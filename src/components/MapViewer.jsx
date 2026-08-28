@@ -309,6 +309,8 @@ export default function MapViewer({
   reshapingFeature = null,
   onFinishReshaping = null,
   onSaveFeature = null,
+  triggerDrawRoad = false,
+  onResetTriggerDrawRoad = null,
 }) {
   const t = translations[lang] || translations.th;
   const langRef = useRef(lang);
@@ -318,6 +320,9 @@ export default function MapViewer({
   const activeTabRef = useRef(activeTab);
   const facetsDataRef = useRef(facetsData);
   const buildingsDataRef = useRef(buildingsData);
+  const poiDataRef = useRef(poiData);
+  const infraDataRef = useRef(infraData);
+  const serviceDataRef = useRef(serviceData);
   const isPickingLocationRef = useRef(isPickingLocation);
   const onLocationPickedRef = useRef(onLocationPicked);
   const onEditFeatureRef = useRef(onEditFeature);
@@ -329,6 +334,9 @@ export default function MapViewer({
   useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
   useEffect(() => { facetsDataRef.current = facetsData; }, [facetsData]);
   useEffect(() => { buildingsDataRef.current = buildingsData; }, [buildingsData]);
+  useEffect(() => { poiDataRef.current = poiData; }, [poiData]);
+  useEffect(() => { infraDataRef.current = infraData; }, [infraData]);
+  useEffect(() => { serviceDataRef.current = serviceData; }, [serviceData]);
   useEffect(() => { isPickingLocationRef.current = isPickingLocation; }, [isPickingLocation]);
   useEffect(() => { onLocationPickedRef.current = onLocationPicked; }, [onLocationPicked]);
   useEffect(() => { onEditFeatureRef.current = onEditFeature; }, [onEditFeature]);
@@ -343,6 +351,13 @@ export default function MapViewer({
   const [measureInfo, setMeasureInfo] = useState(null);
   const [editingRoadId, setEditingRoadId] = useState(null);
   const [editingRoadName, setEditingRoadName] = useState('');
+
+  useEffect(() => {
+    if (triggerDrawRoad && drawRef.current) {
+      setDrawMode('line');
+      onResetTriggerDrawRoad?.();
+    }
+  }, [triggerDrawRoad]);
 
   useEffect(() => {
     if (!reshapingFeature || !drawRef.current || !mapRef.current) return;
@@ -612,18 +627,34 @@ export default function MapViewer({
               <span style="color:#94a3b8">${curLang === 'th' ? 'หมวดหมู่' : 'Category'}</span>
               <span style="color:${color};font-weight:600;text-transform:capitalize">${cat}</span>
             </div>
-            <button id="btn-edit-popup-place" style="margin-top:10px;width:100%;padding:6px 10px;border-radius:6px;background:rgba(59,130,246,0.2);border:1px solid #3b82f6;color:#60a5fa;font-size:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-              ✏️ ${curLang === 'th' ? 'แก้ไขข้อมูล / ย้ายตำแหน่ง' : 'Edit Info / Move Pin'}
+            ${layerId === 'infra-line' ? `
+              <button id="btn-direct-reshape-road" style="margin-top:8px;width:100%;padding:7px 10px;border-radius:6px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:white;font-size:0.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 2px 6px rgba(217,119,6,0.3)">
+                🛣️ ${curLang === 'th' ? 'ดัดจุดยอดแนวถนนบนแผนที่' : 'Reshape Road on Map'}
+              </button>
+            ` : ''}
+            <button id="btn-edit-popup-place" style="margin-top:6px;width:100%;padding:6px 10px;border-radius:6px;background:rgba(59,130,246,0.2);border:1px solid #3b82f6;color:#60a5fa;font-size:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+              ✏️ ${curLang === 'th' ? 'แก้ไขชื่อและรายละเอียด' : 'Edit Info'}
             </button>
           </div>
         `).addTo(mapInstance);
 
         setTimeout(() => {
+          const reshapeBtn = document.getElementById('btn-direct-reshape-road');
+          if (reshapeBtn) {
+            reshapeBtn.onclick = () => {
+              const originalFeat = infraDataRef.current?.features?.find(f => f.properties?.id === p.id) || feat;
+              startReshapingRoad(originalFeat);
+              popupRef.current.remove();
+            };
+          }
+
           const editBtn = document.getElementById('btn-edit-popup-place');
           if (editBtn) {
             editBtn.onclick = () => {
               const dsType = layerId.startsWith('service') ? 'service' : layerId.startsWith('infra') ? 'infra' : 'poi';
-              onEditFeatureRef.current?.(feat, dsType);
+              const fullDataset = dsType === 'infra' ? infraDataRef.current : dsType === 'service' ? serviceDataRef.current : poiDataRef.current;
+              const originalFeat = fullDataset?.features?.find(f => f.properties?.id === p.id) || feat;
+              onEditFeatureRef.current?.(originalFeat, dsType);
               popupRef.current.remove();
             };
           }

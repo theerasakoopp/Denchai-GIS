@@ -100,7 +100,7 @@ function CategoryListPanel({
   lang, t, summaryIcon, summaryLabel, onItemClick,
   datasetType = 'poi',
   onAddFeature, onEditFeature, onDeleteFeature,
-  onResetData, onExportData
+  onResetData, onExportData, onStartDrawRoad
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCatFilter, setSelectedCatFilter] = useState('all');
@@ -182,22 +182,50 @@ function CategoryListPanel({
         borderRadius: 10, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8,
         flexShrink: 0
       }}>
-        {onAddFeature && (
-          <button
-            type="button"
-            className="btn btn-primary"
-            style={{
-              width: '100%', justifyContent: 'center', padding: '8px 12px',
-              fontSize: '0.82rem', fontWeight: 600, gap: 6,
-              background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-              boxShadow: '0 2px 6px rgba(37,99,235,0.25)'
-            }}
-            onClick={() => onAddFeature(datasetType)}
-          >
-            {datasetType === 'poi' ? t.addPoiBtn
-             : datasetType === 'infra' ? t.addInfraBtn
-             : t.addServiceBtn}
-          </button>
+        {datasetType === 'infra' ? (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{
+                justifyContent: 'center', padding: '8px 6px',
+                fontSize: '0.76rem', fontWeight: 700, gap: 5,
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                border: 'none', boxShadow: '0 2px 6px rgba(217,119,6,0.3)'
+              }}
+              onClick={() => onStartDrawRoad?.()}
+            >
+              🛣️ {lang === 'th' ? '+ วาดถนนใหม่' : '+ Draw Road'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{
+                justifyContent: 'center', padding: '8px 6px',
+                fontSize: '0.76rem', fontWeight: 600, gap: 5,
+                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)'
+              }}
+              onClick={() => onAddFeature(datasetType)}
+            >
+              📍 {lang === 'th' ? '+ เพิ่มสิ่งก่อสร้าง' : '+ Add Facility'}
+            </button>
+          </div>
+        ) : (
+          onAddFeature && (
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{
+                width: '100%', justifyContent: 'center', padding: '8px 12px',
+                fontSize: '0.82rem', fontWeight: 600, gap: 6,
+                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+                boxShadow: '0 2px 6px rgba(37,99,235,0.25)'
+              }}
+              onClick={() => onAddFeature(datasetType)}
+            >
+              {datasetType === 'poi' ? t.addPoiBtn : t.addServiceBtn}
+            </button>
+          )
         )}
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
@@ -428,6 +456,7 @@ export default function Sidebar({
   onDeleteFeature,
   onResetData,
   onExportData,
+  onStartDrawRoad,
 }) {
   const t = translations[lang] || translations.th;
   const fileInputRef = useRef();
@@ -626,6 +655,7 @@ export default function Sidebar({
             onDeleteFeature={onDeleteFeature}
             onResetData={onResetData}
             onExportData={onExportData}
+            onStartDrawRoad={onStartDrawRoad}
           />
         )}
 

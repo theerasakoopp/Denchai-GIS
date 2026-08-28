@@ -104,6 +104,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   const [isPickingLocation, setIsPickingLocation] = useState(false);
   const [pickedCoordinates, setPickedCoordinates] = useState(null);
   const [reshapingFeature, setReshapingFeature] = useState(null);
+  const [triggerDrawRoad, setTriggerDrawRoad] = useState(false);
 
   // ── Layer visibility for POI/Infra/Service categories ──
   const [poiVisible, setPoiVisible] = useState(
@@ -340,6 +341,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         onDeleteFeature={handleDeleteFeature}
         onResetData={handleResetData}
         onExportData={handleExportData}
+        onStartDrawRoad={() => setTriggerDrawRoad(true)}
       />
       <MapViewer
         facetsData={geoDataFacets}
@@ -368,6 +370,8 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         reshapingFeature={reshapingFeature}
         onFinishReshaping={() => setReshapingFeature(null)}
         onSaveFeature={handleSaveFeature}
+        triggerDrawRoad={triggerDrawRoad}
+        onResetTriggerDrawRoad={() => setTriggerDrawRoad(false)}
       />
 
       {/* Feature Edit / Add Modal */}
