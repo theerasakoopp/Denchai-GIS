@@ -209,6 +209,9 @@ export default function MapViewer({
   onLocationPicked = null,
   onEditFeature = null,
   onAddFeature = null,
+  reshapingFeature = null,
+  onFinishReshaping = null,
+  onSaveFeature = null,
 }) {
   const t = translations[lang] || translations.th;
   const langRef = useRef(lang);
@@ -241,6 +244,27 @@ export default function MapViewer({
   const [currentBasemap, setCurrentBasemap] = useState('uav');
   const [activeDrawMode, setActiveDrawMode] = useState('none');
   const [measureInfo, setMeasureInfo] = useState(null);
+  const [editingRoadId, setEditingRoadId] = useState(null);
+  const [editingRoadName, setEditingRoadName] = useState('');
+
+  useEffect(() => {
+    if (!reshapingFeature || !drawRef.current || !mapRef.current) return;
+    const draw = drawRef.current;
+    try {
+      draw.deleteAll();
+      const ids = draw.add(reshapingFeature);
+      const targetId = ids && ids.length ? ids[0] : reshapingFeature.id || reshapingFeature.properties?.id;
+      draw.changeMode('direct_select', { featureId: targetId });
+      setActiveDrawMode('select');
+      setEditingRoadId(targetId);
+      setEditingRoadName(reshapingFeature.properties?.name_th || reshapingFeature.properties?.name_en || 'ถนน');
+
+      const centroid = turf.centroid(reshapingFeature);
+      mapRef.current.flyTo({ center: centroid.geometry.coordinates, zoom: 17, duration: 800 });
+    } catch (e) {
+      console.warn('start reshaping error:', e);
+    }
+  }, [reshapingFeature]);
 
   const updateMeasurements = () => {
     if (!drawRef.current) return;
@@ -1040,13 +1064,13 @@ export default function MapViewer({
     if (map.getLayer('poi-circle')) map.setLayoutProperty('poi-circle', 'visibility', isPoi ? 'visible' : 'none');
     if (map.getLayer('poi-label')) map.setLayoutProperty('poi-label', 'visibility', isPoi ? 'visible' : 'none');
 
-    // Infra layers
+    // Infra layers (Road lines always visible on all tabs so users can see full road network!)
     const isInfra = activeTab === 'infra';
-    if (map.getLayer('infra-line-glow')) map.setLayoutProperty('infra-line-glow', 'visibility', isInfra ? 'visible' : 'none');
-    if (map.getLayer('infra-line')) map.setLayoutProperty('infra-line', 'visibility', isInfra ? 'visible' : 'none');
+    if (map.getLayer('infra-line-glow')) map.setLayoutProperty('infra-line-glow', 'visibility', 'visible');
+    if (map.getLayer('infra-line')) map.setLayoutProperty('infra-line', 'visibility', 'visible');
     if (map.getLayer('infra-circle-glow')) map.setLayoutProperty('infra-circle-glow', 'visibility', isInfra ? 'visible' : 'none');
     if (map.getLayer('infra-circle')) map.setLayoutProperty('infra-circle', 'visibility', isInfra ? 'visible' : 'none');
-    if (map.getLayer('infra-label')) map.setLayoutProperty('infra-label', 'visibility', isInfra ? 'visible' : 'none');
+    if (map.getLayer('infra-label')) map.setLayoutProperty('infra-label', 'visibility', isInfra || activeTab === 'poi' ? 'visible' : 'none');
 
     // Service layers
     const isService = activeTab === 'service';
@@ -1267,6 +1291,67 @@ export default function MapViewer({
           <Focus size={14} color="#38bdf8" /> {lang === 'th' ? 'ซูมขอบเขต' : 'Fit View'}
         </button>
       </div>
+
+      {/* Reshaping Road Active Banner */}
+      {editingRoadId && (
+        <div style={{
+          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 5500, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
+          color: 'white', border: '2px solid #f59e0b', borderRadius: 30,
+          padding: '8px 20px', display: 'flex', alignItems: 'center', gap: 14,
+          boxShadow: '0 8px 32px rgba(245, 158, 11, 0.3)'
+        }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#fcd34d' }}>
+            🛣️ กำลังดัดแนวเส้น: {editingRoadName} (คลิกลากจุดยอด Vertex บนแผนที่ได้เลย)
+          </span>
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{ padding: '5px 12px', fontSize: '0.75rem', background: '#22c55e', borderColor: '#16a34a' }}
+            onClick={() => {
+              const all = drawRef.current?.getAll();
+              const editedFeat = all?.features?.find(f => f.id === editingRoadId) || all?.features?.[0];
+              if (editedFeat) {
+                const lenKm = turf.length(editedFeat, { units: 'kilometers' });
+                const updated = {
+                  ...reshapingFeature,
+                  geometry: editedFeat.geometry,
+                  properties: {
+                    ...(reshapingFeature?.properties || {}),
+                    length_km: Number(lenKm.toFixed(3))
+                  }
+                };
+                onSaveFeature?.(updated, 'infra');
+                alert(`บันทึกแนวเส้นทาง ${editingRoadName} (ความยาว ${lenKm.toFixed(2)} กม.) เรียบร้อยแล้ว!`);
+              }
+              drawRef.current?.deleteAll();
+              setEditingRoadId(null);
+              setEditingRoadName('');
+              setActiveDrawMode('none');
+              onFinishReshaping?.();
+            }}
+          >
+            💾 บันทึกแนวถนน
+          </button>
+          <button
+            type="button"
+            style={{
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
+              color: 'white', borderRadius: 20, padding: '4px 10px', fontSize: '0.75rem',
+              cursor: 'pointer', fontWeight: 600
+            }}
+            onClick={() => {
+              drawRef.current?.deleteAll();
+              setEditingRoadId(null);
+              setEditingRoadName('');
+              setActiveDrawMode('none');
+              onFinishReshaping?.();
+            }}
+          >
+            ยกเลิก
+          </button>
+        </div>
+      )}
 
       {/* ── MapLibre Drawing & Geometry Editor Toolbar ── */}
       <div className="map-floating-panel" style={{

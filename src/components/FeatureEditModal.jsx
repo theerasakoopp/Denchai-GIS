@@ -11,6 +11,7 @@ export default function FeatureEditModal({
   onSave,
   onDelete,
   onPickOnMap,
+  onReshapeOnMap = null,
   pickedCoords = null,
   lang = 'th'
 }) {
@@ -241,21 +242,39 @@ export default function FeatureEditModal({
           {isLineOrPolygon ? (
             <div style={{
               background: '#f8fafc', border: '1px solid var(--border-subtle)',
-              borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+              borderRadius: 10, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10
             }}>
-              <div>
-                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)', display: 'block' }}>
-                  🛣️ {lang === 'th' ? 'รูปทรงแนวเส้นทาง / โครงสร้าง' : 'Geometry (LineString / Polygon)'}
-                </span>
-                <span style={{ fontSize: '0.72rem', color: 'var(--text-sub)' }}>
-                  {lang === 'th'
-                    ? `จำนวนจุดพิกัดแนวเส้น: ${feature?.geometry?.coordinates?.length || 0} จุด`
-                    : `Vertices count: ${feature?.geometry?.coordinates?.length || 0}`}
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)', display: 'block' }}>
+                    🛣️ {lang === 'th' ? 'รูปทรงแนวเส้นทาง (LineString)' : 'Geometry (LineString)'}
+                  </span>
+                  <span style={{ fontSize: '0.74rem', color: 'var(--text-sub)' }}>
+                    {lang === 'th'
+                      ? `จำนวนจุดพิกัดแนวเส้น: ${feature?.geometry?.coordinates?.length || 0} จุด`
+                      : `Vertices count: ${feature?.geometry?.coordinates?.length || 0}`}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#d97706', background: '#fef3c7', padding: '4px 8px', borderRadius: 6 }}>
+                  {lang === 'th' ? 'แนวเส้นถนนจริง' : 'Real Road Geometry'}
+                </div>
               </div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#d97706', background: '#fef3c7', padding: '4px 8px', borderRadius: 6 }}>
-                {lang === 'th' ? 'แนวเส้นจริงตรงตามภาพโดรน UAV' : 'Aligned to UAV Imagery'}
-              </div>
+
+              {onReshapeOnMap && (
+                <button
+                  type="button"
+                  onClick={() => onReshapeOnMap(feature)}
+                  style={{
+                    background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                    color: 'white', border: 'none', borderRadius: 8,
+                    padding: '8px 12px', fontSize: '0.78rem', fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(217,119,6,0.25)'
+                  }}
+                >
+                  ✏️ {lang === 'th' ? 'คลิกเพื่อดึงดัดจุดยอดแนวถนนบนแผนที่ UAV' : 'Reshape Road Vertices on Map'}
+                </button>
+              )}
             </div>
           ) : (
             <div style={{

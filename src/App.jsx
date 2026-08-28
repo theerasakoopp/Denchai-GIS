@@ -103,6 +103,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   const [editDatasetType, setEditDatasetType] = useState('poi'); // 'poi' | 'infra' | 'service'
   const [isPickingLocation, setIsPickingLocation] = useState(false);
   const [pickedCoordinates, setPickedCoordinates] = useState(null);
+  const [reshapingFeature, setReshapingFeature] = useState(null);
 
   // ── Layer visibility for POI/Infra/Service categories ──
   const [poiVisible, setPoiVisible] = useState(
@@ -364,6 +365,9 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         onEditFeature={handleOpenEdit}
         onAddFeature={handleOpenAdd}
         setUploadedBoundary={setUploadedBoundary}
+        reshapingFeature={reshapingFeature}
+        onFinishReshaping={() => setReshapingFeature(null)}
+        onSaveFeature={handleSaveFeature}
       />
 
       {/* Feature Edit / Add Modal */}
@@ -376,6 +380,10 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         onSave={handleSaveFeature}
         onDelete={handleDeleteFeature}
         onPickOnMap={handleStartPickLocation}
+        onReshapeOnMap={(feat) => {
+          setIsEditModalOpen(false);
+          setReshapingFeature(feat);
+        }}
         pickedCoords={pickedCoordinates}
         lang={lang}
       />
