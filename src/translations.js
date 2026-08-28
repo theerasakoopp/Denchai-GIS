@@ -37,6 +37,11 @@ export const translations = {
     serviceCount: 'แห่ง',
     servicePhone: 'โทรศัพท์',
     addServiceBtn: '+ เพิ่มหน่วยงาน/บริการ',
+
+    // Water Bodies Tab
+    waterHeader: 'แหล่งน้ำและแหล่งกักเก็บน้ำ',
+    waterCount: 'แห่ง',
+    addWaterBtn: '+ วาดแหล่งน้ำใหม่ (Polygon)',
     
     // View modes
     viewMode: 'โหมดมุมมองข้อมูล',
@@ -166,6 +171,11 @@ export const translations = {
     serviceCount: 'locations',
     servicePhone: 'Phone',
     addServiceBtn: '+ Add Service / Agency',
+
+    // Water Bodies Tab
+    waterHeader: 'Water Bodies & Reservoirs',
+    waterCount: 'locations',
+    addWaterBtn: '+ Draw New Water Body (Polygon)',
     
     // View modes
     viewMode: 'Data View Mode',

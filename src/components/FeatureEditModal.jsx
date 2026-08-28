@@ -36,7 +36,12 @@ export default function FeatureEditModal({
     drainage: 'none',
     lighting: 'none',
     plan_status: 'completed',
-    fiscal_year: '2567'
+    fiscal_year: '2567',
+    // Water Body Attributes
+    area_sqm: 10000,
+    capacity_m3: 25000,
+    water_quality: 'good',
+    purpose: 'อุปโภค-บริโภค / ชลประทาน'
   });
 
   const [error, setError] = useState('');
@@ -53,7 +58,7 @@ export default function FeatureEditModal({
         id: p.id || `custom-${Date.now()}`,
         name_th: p.name_th || '',
         name_en: p.name_en || '',
-        category: p.category || Object.keys(categories || {})[0] || 'main_road',
+        category: p.category || Object.keys(categories || {})[0] || (datasetType === 'water' ? 'pond' : 'main_road'),
         lon: Number(coords[0]) || 100.055,
         lat: Number(coords[1]) || 17.985,
         description_th: p.description_th || '',
@@ -67,14 +72,18 @@ export default function FeatureEditModal({
         drainage: p.drainage || 'none',
         lighting: p.lighting || 'none',
         plan_status: p.plan_status || 'completed',
-        fiscal_year: p.fiscal_year || '2567'
+        fiscal_year: p.fiscal_year || '2567',
+        area_sqm: p.area_sqm || 10000,
+        capacity_m3: p.capacity_m3 || 25000,
+        water_quality: p.water_quality || 'good',
+        purpose: p.purpose || 'อุปโภค-บริโภค / ชลประทาน'
       });
     } else {
       setFormData({
         id: `custom-${Date.now()}`,
         name_th: '',
         name_en: '',
-        category: Object.keys(categories || {})[0] || (datasetType === 'infra' ? 'main_road' : 'temple'),
+        category: Object.keys(categories || {})[0] || (datasetType === 'water' ? 'pond' : datasetType === 'infra' ? 'main_road' : 'temple'),
         lon: pickedCoords ? Number(pickedCoords[0]) : 100.055,
         lat: pickedCoords ? Number(pickedCoords[1]) : 17.985,
         description_th: '',
@@ -88,7 +97,11 @@ export default function FeatureEditModal({
         drainage: 'none',
         lighting: 'none',
         plan_status: 'in_5year_plan',
-        fiscal_year: '2568'
+        fiscal_year: '2568',
+        area_sqm: 10000,
+        capacity_m3: 25000,
+        water_quality: 'good',
+        purpose: 'อุปโภค-บริโภค / ชลประทาน'
       });
     }
     setError('');
@@ -143,6 +156,12 @@ export default function FeatureEditModal({
           lighting: formData.lighting,
           plan_status: formData.plan_status,
           fiscal_year: formData.fiscal_year
+        } : {}),
+        ...(datasetType === 'water' ? {
+          area_sqm: Number(formData.area_sqm) || 10000,
+          capacity_m3: Number(formData.capacity_m3) || 25000,
+          water_quality: formData.water_quality,
+          purpose: formData.purpose
         } : {})
       }
     };
@@ -513,6 +532,84 @@ export default function FeatureEditModal({
                     placeholder="เช่น 2568"
                     style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem', background: 'white' }}
                   />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════ Water Body Attributes (When datasetType === 'water') ═══════════ */}
+          {datasetType === 'water' && (
+            <div style={{
+              background: '#f0f9ff', border: '1px solid #bae6fd',
+              borderRadius: 10, padding: '12px', display: 'flex', flexDirection: 'column', gap: 10
+            }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0369a1', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>💧</span>
+                <span>{lang === 'th' ? 'ข้อมูลคุณลักษณะแหล่งน้ำ (Water Body Parameters)' : 'Water Body Parameters'}</span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {/* Surface Area (sqm) */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#0369a1', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? '📐 ขนาดพื้นที่ผิวน้ำ (ตร.ม.)' : 'Surface Area (sqm)'}
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.area_sqm || ''}
+                    onChange={e => setFormData({ ...formData, area_sqm: parseFloat(e.target.value) || 0 })}
+                    placeholder="เช่น 15000"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #7dd3fc', fontSize: '0.78rem', background: 'white' }}
+                  />
+                </div>
+
+                {/* Capacity (m3) */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#0369a1', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? '💧 ความจุน้ำ (ลบ.ม. m³)' : 'Storage Capacity (m³)'}
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.capacity_m3 || ''}
+                    onChange={e => setFormData({ ...formData, capacity_m3: parseFloat(e.target.value) || 0 })}
+                    placeholder="เช่น 45000"
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #7dd3fc', fontSize: '0.78rem', background: 'white' }}
+                  />
+                </div>
+
+                {/* Purpose */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#0369a1', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? '🎯 วัตถุประสงค์การใช้งาน' : 'Primary Purpose'}
+                  </label>
+                  <select
+                    value={formData.purpose || 'อุปโภค-บริโภค / ชลประทาน'}
+                    onChange={e => setFormData({ ...formData, purpose: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #7dd3fc', fontSize: '0.78rem', background: 'white' }}
+                  >
+                    <option value="อุปโภค-บริโภค / ชลประทาน">{lang === 'th' ? 'อุปโภค-บริโภค / ชลประทาน' : 'Potable & Irrigation'}</option>
+                    <option value="แหล่งน้ำต้นทุนสายหลัก">{lang === 'th' ? 'แหล่งน้ำต้นทุนสายหลัก' : 'Main River Reach'}</option>
+                    <option value="แก้มลิงชะลอน้ำหลาก / ป้องกันน้ำท่วม">{lang === 'th' ? 'แก้มลิงชะลอน้ำหลาก / ป้องกันน้ำท่วม' : 'Flood Retention Basin'}</option>
+                    <option value="น้ำเพื่อการเกษตรและปศุสัตว์">{lang === 'th' ? 'น้ำเพื่อการเกษตรและปศุสัตว์' : 'Agriculture & Livestock'}</option>
+                    <option value="สระพักน้ำดิบผลิตประปา">{lang === 'th' ? 'สระพักน้ำดิบผลิตประปา' : 'Potable Water Production'}</option>
+                    <option value="ประมงและพักผ่อนหย่อนใจ">{lang === 'th' ? 'ประมงและพักผ่อนหย่อนใจ' : 'Fishery & Recreation'}</option>
+                  </select>
+                </div>
+
+                {/* Water Quality */}
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#0369a1', display: 'block', marginBottom: 3 }}>
+                    {lang === 'th' ? '🧪 คุณภาพน้ำ' : 'Water Quality'}
+                  </label>
+                  <select
+                    value={formData.water_quality || 'good'}
+                    onChange={e => setFormData({ ...formData, water_quality: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #7dd3fc', fontSize: '0.78rem', background: 'white' }}
+                  >
+                    <option value="good">{lang === 'th' ? '🟢 ดี (มาตรฐาน)' : '🟢 Good'}</option>
+                    <option value="fair">{lang === 'th' ? '🟡 ปานกลาง (พอใช้)' : '🟡 Fair'}</option>
+                    <option value="poor">{lang === 'th' ? '🔴 ต้องเฝ้าระวัง' : '🔴 Monitoring / Substandard'}</option>
+                  </select>
                 </div>
               </div>
             </div>

@@ -16,6 +16,7 @@ import MUNICIPAL_BOUNDARY from '../data/boundary.json';
 import { POI_DATA, POI_CATEGORIES } from '../data/poi_data';
 import { INFRA_DATA, INFRA_CATEGORIES } from '../data/infra_data';
 import { SERVICE_DATA, SERVICE_CATEGORIES } from '../data/service_data';
+import { WATER_DATA, WATER_CATEGORIES } from '../data/water_data';
 
 // ── Thai Area Formatting Helper ──
 function formatThaiArea(sqm) {
@@ -175,6 +176,17 @@ const INFRA_COLOR_MATCH = [
   '#f97316'
 ];
 
+export const WATER_COLOR_MATCH = [
+  'match',
+  ['get', 'category'],
+  'river', '#0284c7',
+  'canal', '#06b6d4',
+  'reservoir', '#0ea5e9',
+  'pond', '#14b8a6',
+  'water_plant', '#3b82f6',
+  '#0284c7'
+];
+
 const ENERGY_LEGEND = [
   { color: '#22c55e', label: '< 7,500 kWh/y' },
   { color: '#f97316', label: '≥ 7,500 kWh/y' },
@@ -303,9 +315,11 @@ export default function MapViewer({
   poiData = POI_DATA,
   infraData = INFRA_DATA,
   serviceData = SERVICE_DATA,
+  waterData = WATER_DATA,
   poiVisible = {},
   infraVisible = {},
   serviceVisible = {},
+  waterVisible = {},
   selectedFeature = null,
   // Editor props
   isPickingLocation = false,
@@ -317,6 +331,8 @@ export default function MapViewer({
   onSaveFeature = null,
   triggerDrawRoad = false,
   onResetTriggerDrawRoad = null,
+  triggerDrawWater = false,
+  onResetTriggerDrawWater = null,
   onSplitFeature = null,
   onMergeFeatures = null,
   onDeleteFeature = null,
@@ -332,6 +348,7 @@ export default function MapViewer({
   const poiDataRef = useRef(poiData);
   const infraDataRef = useRef(infraData);
   const serviceDataRef = useRef(serviceData);
+  const waterDataRef = useRef(waterData);
   const isPickingLocationRef = useRef(isPickingLocation);
   const onLocationPickedRef = useRef(onLocationPicked);
   const onEditFeatureRef = useRef(onEditFeature);
@@ -349,6 +366,7 @@ export default function MapViewer({
   useEffect(() => { poiDataRef.current = poiData; }, [poiData]);
   useEffect(() => { infraDataRef.current = infraData; }, [infraData]);
   useEffect(() => { serviceDataRef.current = serviceData; }, [serviceData]);
+  useEffect(() => { waterDataRef.current = waterData; }, [waterData]);
   useEffect(() => { isPickingLocationRef.current = isPickingLocation; }, [isPickingLocation]);
   useEffect(() => { onLocationPickedRef.current = onLocationPicked; }, [onLocationPicked]);
   useEffect(() => { onEditFeatureRef.current = onEditFeature; }, [onEditFeature]);
@@ -387,6 +405,13 @@ export default function MapViewer({
       onResetTriggerDrawRoad?.();
     }
   }, [triggerDrawRoad]);
+
+  useEffect(() => {
+    if (triggerDrawWater && drawRef.current) {
+      setDrawMode('polygon');
+      onResetTriggerDrawWater?.();
+    }
+  }, [triggerDrawWater]);
 
   useEffect(() => {
     if (!reshapingFeature || !drawRef.current || !mapRef.current) return;
@@ -695,6 +720,7 @@ export default function MapViewer({
       }
 
       const allInteractiveLayers = [
+        'water-fill',
         'poi-circle',
         'service-circle',
         'infra-circle',
@@ -715,6 +741,93 @@ export default function MapViewer({
       const layerId = feat.layer.id;
       const curT = translations[langRef.current] || translations.th;
       const curLang = langRef.current || 'th';
+
+      // 0.9 Water Body Polygon popup
+      if (layerId === 'water-fill') {
+        const name = curLang === 'th' ? (p.name_th || p.name_en) : (p.name_en || p.name_th);
+        const desc = curLang === 'th' ? (p.description_th || p.description_en) : (p.description_en || p.description_th);
+        const cat = p.category || '';
+        const catMeta = WATER_CATEGORIES[cat] || { name_th: 'แหล่งน้ำ', name_en: 'Water Body', color: '#0284c7', icon: '💧' };
+        const areaSqm = p.area_sqm ? Number(p.area_sqm).toLocaleString() : '-';
+        const areaRai = p.area_rai || (p.area_sqm ? formatThaiArea(p.area_sqm) : '-');
+        const cap = p.capacity_m3 ? Number(p.capacity_m3).toLocaleString() : '-';
+        const purpose = p.purpose || '-';
+        const quality = p.water_quality === 'good' ? '🟢 ดี (มาตรฐาน)' : p.water_quality === 'fair' ? '🟡 ปานกลาง' : '🔵 เฝ้าระวัง';
+
+        popupRef.current
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <div style="font-family:'Prompt','Inter',sans-serif;min-width:240px;">
+              <div style="font-size:0.95rem;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:6px;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+                <span style="font-size:1.15rem">${catMeta.icon}</span>
+                <span style="color:#38bdf8;">${name || 'แหล่งน้ำ'}</span>
+              </div>
+              <div style="color:#0284c7;font-size:0.75rem;margin-top:-4px;margin-bottom:6px;font-weight:600;">
+                ${curLang === 'th' ? catMeta.name_th : catMeta.name_en}
+              </div>
+              ${desc ? `<div style="font-size:0.78rem;color:#cbd5e1;line-height:1.4;margin-bottom:8px;">${desc}</div>` : ''}
+
+              <div class="popup-body" style="margin-top:6px;font-size:0.8rem;border-top:1px solid rgba(255,255,255,0.08);padding-top:6px;">
+                <div class="popup-row" style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="color:#94a3b8">📐 ขนาดพื้นที่:</span>
+                  <span style="color:#38bdf8;font-weight:600">${areaRai} (${areaSqm} ตร.ม.)</span>
+                </div>
+                <div class="popup-row" style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="color:#94a3b8">💧 ความจุน้ำ:</span>
+                  <span style="color:#06b6d4;font-weight:700">~${cap} ลบ.ม. (m³)</span>
+                </div>
+                <div class="popup-row" style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="color:#94a3b8">🎯 วัตถุประสงค์:</span>
+                  <span style="color:#f8fafc;font-weight:500">${purpose}</span>
+                </div>
+                <div class="popup-row" style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <span style="color:#94a3b8">🧪 คุณภาพน้ำ:</span>
+                  <span style="color:#f8fafc;font-weight:600">${quality}</span>
+                </div>
+              </div>
+
+              <div style="margin-top:10px;display:flex;gap:6px;">
+                <button
+                  type="button"
+                  id="btn-edit-popup-water"
+                  style="flex:1;background:#0284c7;color:white;border:none;border-radius:6px;padding:5px 8px;font-size:0.75rem;font-weight:600;cursor:pointer;"
+                >
+                  ✏️ แก้ไขข้อมูล
+                </button>
+                <button
+                  type="button"
+                  id="btn-delete-popup-water"
+                  style="background:rgba(239,68,68,0.2);color:#ef4444;border:1px solid #ef4444;border-radius:6px;padding:5px 8px;font-size:0.75rem;font-weight:600;cursor:pointer;"
+                >
+                  🗑️ ลบ
+                </button>
+              </div>
+            </div>
+          `)
+          .addTo(mapInstance);
+
+        setTimeout(() => {
+          const editBtn = document.getElementById('btn-edit-popup-water');
+          if (editBtn) {
+            editBtn.onclick = () => {
+              popupRef.current.remove();
+              const origFeat = waterDataRef.current?.features?.find(f => (f.properties?.id || f.id) === (p.id || feat.id)) || feat;
+              onEditFeatureRef.current?.(origFeat, 'water');
+            };
+          }
+          const delBtn = document.getElementById('btn-delete-popup-water');
+          if (delBtn) {
+            delBtn.onclick = () => {
+              if (window.confirm(`คุณต้องการลบ "${name || 'แหล่งน้ำนี้'}" ใช่หรือไม่?`)) {
+                popupRef.current.remove();
+                onDeleteFeatureRef.current?.(p.id || feat.id, 'water');
+              }
+            };
+          }
+        }, 50);
+
+        return;
+      }
 
       // 1. POI & Service & Infra popups
       if (layerId === 'poi-circle' || layerId === 'service-circle' || layerId === 'infra-circle' || layerId === 'infra-line') {
@@ -1002,6 +1115,7 @@ export default function MapViewer({
         'poi-src': { type: 'geojson', data: poiData || POI_DATA },
         'infra-src': { type: 'geojson', data: infraData || INFRA_DATA },
         'service-src': { type: 'geojson', data: serviceData || SERVICE_DATA },
+        'water-src': { type: 'geojson', data: waterData || WATER_DATA },
         // ── Snap Indicator Source ────────────────────────────
         'snap-src': { type: 'geojson', data: { type: 'FeatureCollection', features: [] } }
       },
@@ -1040,6 +1154,47 @@ export default function MapViewer({
             'line-color': '#ffffff',
             'line-width': 1.0,
             'line-opacity': 0.6
+          }
+        },
+
+        // ── 5.0 Water Bodies (Polygons) ──────────────────────
+        {
+          id: 'water-fill',
+          type: 'fill',
+          source: 'water-src',
+          layout: { visibility: 'visible' },
+          paint: {
+            'fill-color': WATER_COLOR_MATCH,
+            'fill-opacity': 0.65
+          }
+        },
+        {
+          id: 'water-line',
+          type: 'line',
+          source: 'water-src',
+          layout: { visibility: 'visible' },
+          paint: {
+            'line-color': '#38bdf8',
+            'line-width': 2.0,
+            'line-opacity': 0.95
+          }
+        },
+        {
+          id: 'water-label',
+          type: 'symbol',
+          source: 'water-src',
+          layout: {
+            visibility: 'visible',
+            'text-field': ['get', 'name_th'],
+            'text-size': 11.5,
+            'text-offset': [0, 0],
+            'text-anchor': 'center',
+            'text-allow-overlap': false
+          },
+          paint: {
+            'text-color': '#bae6fd',
+            'text-halo-color': '#0369a1',
+            'text-halo-width': 2.5
           }
         },
 
@@ -1382,6 +1537,7 @@ export default function MapViewer({
       if (poiData) map.getSource('poi-src')?.setData(poiData);
       if (infraData) map.getSource('infra-src')?.setData(infraData);
       if (serviceData) map.getSource('service-src')?.setData(serviceData);
+      if (waterData) map.getSource('water-src')?.setData(waterData);
 
       map.getSource('bound-src')?.setData(MUNICIPAL_BOUNDARY);
       applyBasemap(map, currentBasemap);
@@ -1477,6 +1633,12 @@ export default function MapViewer({
     if (map.getLayer('infra-circle')) map.setLayoutProperty('infra-circle', 'visibility', isInfra ? 'visible' : 'none');
     if (map.getLayer('infra-label')) map.setLayoutProperty('infra-label', 'visibility', isInfra || activeTab === 'poi' ? 'visible' : 'none');
 
+    // Water layers (Water bodies always visible to enrich map visual and context)
+    const isWater = activeTab === 'water';
+    if (map.getLayer('water-fill')) map.setLayoutProperty('water-fill', 'visibility', 'visible');
+    if (map.getLayer('water-line')) map.setLayoutProperty('water-line', 'visibility', 'visible');
+    if (map.getLayer('water-label')) map.setLayoutProperty('water-label', 'visibility', isWater || activeTab === 'poi' ? 'visible' : 'none');
+
     // Service layers
     const isService = activeTab === 'service';
     if (map.getLayer('service-glow')) map.setLayoutProperty('service-glow', 'visibility', isService ? 'visible' : 'none');
@@ -1525,7 +1687,7 @@ export default function MapViewer({
     }
   }, [uploadedBoundary, mapLoaded]);
 
-  // ── Sync POI/Infra/Service data into map sources ─────────────
+  // ── Sync POI/Infra/Service/Water data into map sources ─────────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -1540,6 +1702,9 @@ export default function MapViewer({
         if (serviceData && map.getSource('service-src')) {
           map.getSource('service-src').setData(serviceData);
         }
+        if (waterData && map.getSource('water-src')) {
+          map.getSource('water-src').setData(waterData);
+        }
       } catch (e) {
         console.warn('Map setData error:', e);
       }
@@ -1550,9 +1715,9 @@ export default function MapViewer({
     } else {
       map.once('load', pushData);
     }
-  }, [poiData, infraData, serviceData, mapLoaded]);
+  }, [poiData, infraData, serviceData, waterData, mapLoaded]);
 
-  // ── Filter POI/Infra/Service by category visibility ──────────
+  // ── Filter POI/Infra/Service/Water by category visibility ──────────
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -1581,6 +1746,17 @@ export default function MapViewer({
         }
       }
     });
+
+    // Water filter
+    if (map.getLayer('water-fill') && waterVisible) {
+      const visWater = Object.entries(waterVisible).filter(([,v]) => v).map(([k]) => k);
+      const waterFilter = visWater.length === 0
+        ? ['==', ['get', 'category'], '__none__']
+        : ['in', ['get', 'category'], ['literal', visWater]];
+      ['water-fill', 'water-line', 'water-label'].forEach(id => {
+        if (map.getLayer(id)) map.setFilter(id, waterFilter);
+      });
+    }
 
     // Service filter
     if (map.getLayer('service-circle') && serviceVisible) {

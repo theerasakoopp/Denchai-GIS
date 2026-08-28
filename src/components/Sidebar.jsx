@@ -5,7 +5,7 @@ import {
 import {
   Zap, Home, Upload, Layers, SunMedium, X, MapPin,
   TrendingUp, Leaf, DollarSign, Settings2, Download, Printer,
-  Building2, HeartPulse, Navigation, Search, ChevronDown, ChevronRight
+  Building2, HeartPulse, Navigation, Search, ChevronDown, ChevronRight, Waves
 } from 'lucide-react';
 import { ROOF_CLASSES } from '../App';
 import { translations } from '../translations';
@@ -30,77 +30,63 @@ function applyFilters(geoData, filters, visibleLayers, boundary, viewMode) {
     Object.keys(ROOF_CLASSES).map(k => [k, { area: 0, energy: 0, capacity: 0, count: 0 }])
   );
 
-  let targetFeatures = geoData.features;
-  if (boundary && boundary.features && boundary.features.length > 0) {
-    try {
-      const boundaryPoly = boundary.features[0];
-      targetFeatures = targetFeatures.filter(f => {
-        try {
-          return turf.booleanPointInPolygon(turf.centroid(f), boundaryPoly);
-        } catch {
-          return true;
-        }
-      });
-    } catch {
-      targetFeatures = geoData.features;
-    }
-  }
-
-  const minArea = Number(filters?.minArea) || 0;
-  const minEnergy = Number(filters?.minEnergy) || 0;
-
-  for (const f of targetFeatures) {
+  for (const f of geoData.features) {
     const p = f.properties;
     if (!p) continue;
-    if (visibleLayers && visibleLayers[p.class_id] === false) continue;
+    const cid = p.class_id || 1;
+    if (visibleLayers && visibleLayers[cid] === false) continue;
 
-    const area = Number(p.area_3d || p.area_2d || 0);
-    const energy = Number(p.energy_corrected_kwh || p.energy_kwh || 0);
-    const capacity = Number(p.capacity_kwp || ((area * 0.18) * 0.20));
+    const area = p.area_3d || p.area_2d || 0;
+    const energy = p.energy_corrected_kwh || p.energy_kwh || 0;
+    const cap = p.capacity_kwp || 0;
+
+    const minArea = Number(filters?.minArea) || 0;
+    const minEnergy = Number(filters?.minEnergy) || 0;
 
     if (minArea > 0 && area < minArea) continue;
     if (minEnergy > 0 && energy < minEnergy) continue;
 
     totalArea += area;
     totalEnergy += energy;
-    totalCapacity += capacity;
+    totalCapacity += cap;
     count++;
 
-    const clsId = p.class_id || 6;
-    if (byCls[clsId]) {
-      byCls[clsId].area += area;
-      byCls[clsId].energy += energy;
-      byCls[clsId].capacity += capacity;
-      byCls[clsId].count++;
+    if (byCls[cid]) {
+      byCls[cid].area += area;
+      byCls[cid].energy += energy;
+      byCls[cid].capacity += cap;
+      byCls[cid].count++;
     }
   }
 
-  return { totalArea, totalEnergy, totalCapacity, count, byCls };
-}
-
-function calculateFinancials(stats, tariff, systemCostPerKwp) {
-  const annualSavingsTHB = stats.totalEnergy * tariff;
-  const initialCostTHB = stats.totalCapacity * systemCostPerKwp;
-  const paybackYears = annualSavingsTHB > 0 ? (initialCostTHB / annualSavingsTHB).toFixed(1) : 'N/A';
-  const co2ReductionTons = (stats.totalEnergy * 0.4999) / 1000;
-  const treesEquivalent = Math.round(co2ReductionTons * 45);
+  // Financial and environmental formulas
+  const totalInvestmentTHB = totalCapacity * 28000;
+  const annualSavingsTHB = totalEnergy * 4.20;
+  const paybackYears = annualSavingsTHB > 0 ? (totalInvestmentTHB / annualSavingsTHB).toFixed(1) : '-';
+  const co2ReductionTons = (totalEnergy * 0.4999) / 1000;
+  const treesEquivalent = Math.round(totalEnergy * 0.4999 / 20);
 
   return {
+    totalArea: Math.round(totalArea),
+    totalEnergy: Math.round(totalEnergy),
+    totalCapacity: Number(totalCapacity.toFixed(2)),
+    count,
+    byCls,
     annualSavingsTHB,
-    initialCostTHB,
+    totalInvestmentTHB,
     paybackYears,
     co2ReductionTons,
     treesEquivalent,
   };
 }
 
-// ── Category List Panel (reusable for POI/Infra/Service) ──
+// ── Category List Panel (reusable for POI/Infra/Service/Water) ──
 function CategoryListPanel({
   data, categories, visibleCats, setVisibleCats,
   lang, t, summaryIcon, summaryLabel, onItemClick,
   datasetType = 'poi',
   onAddFeature, onEditFeature, onDeleteFeature,
-  onResetData, onExportData, onStartDrawRoad, onReshapeRoad
+  onResetData, onExportData, onStartDrawRoad, onStartDrawWater, onReshapeRoad
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCatFilter, setSelectedCatFilter] = useState('all');
@@ -210,6 +196,34 @@ function CategoryListPanel({
               📍 {lang === 'th' ? '+ เพิ่มสิ่งก่อสร้าง' : '+ Add Facility'}
             </button>
           </div>
+        ) : datasetType === 'water' ? (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{
+                justifyContent: 'center', padding: '8px 6px',
+                fontSize: '0.76rem', fontWeight: 700, gap: 5,
+                background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+                border: 'none', boxShadow: '0 2px 6px rgba(2,132,199,0.3)'
+              }}
+              onClick={() => onStartDrawWater?.()}
+            >
+              💧 {lang === 'th' ? '+ วาดแหล่งน้ำ' : '+ Draw Water'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{
+                justifyContent: 'center', padding: '8px 6px',
+                fontSize: '0.76rem', fontWeight: 600, gap: 5,
+                background: 'linear-gradient(135deg, #06b6d4, #0891b2)'
+              }}
+              onClick={() => onAddFeature(datasetType)}
+            >
+              📍 {lang === 'th' ? '+ เพิ่มข้อมูลแหล่งน้ำ' : '+ Add Water Body'}
+            </button>
+          </div>
         ) : (
           onAddFeature && (
             <button
@@ -223,7 +237,7 @@ function CategoryListPanel({
               }}
               onClick={() => onAddFeature(datasetType)}
             >
-              {datasetType === 'poi' ? t.addPoiBtn : t.addServiceBtn}
+              {datasetType === 'service' ? t.addServiceBtn : t.addPoiBtn}
             </button>
           )
         )}
@@ -465,9 +479,11 @@ export default function Sidebar({
   poiData, poiCategories,
   infraData, infraCategories,
   serviceData, serviceCategories,
+  waterData, waterCategories,
   poiVisible, setPoiVisible,
   infraVisible, setInfraVisible,
   serviceVisible, setServiceVisible,
+  waterVisible, setWaterVisible,
   onSelectFeature,
   onAddFeature,
   onEditFeature,
@@ -475,6 +491,7 @@ export default function Sidebar({
   onResetData,
   onExportData,
   onStartDrawRoad,
+  onStartDrawWater,
   onReshapeRoad = null,
 }) {
   const t = translations[lang] || translations.th;
@@ -581,6 +598,7 @@ export default function Sidebar({
   const TABS = [
     { key: 'poi',     icon: '📍', lucide: <MapPin size={15} />,     label: t.tabPoi },
     { key: 'infra',   icon: '🏗️', lucide: <Building2 size={15} />,  label: t.tabInfra },
+    { key: 'water',   icon: '💧', lucide: <Waves size={15} />,      label: lang === 'th' ? 'แหล่งน้ำ' : 'Water' },
     { key: 'service', icon: '🏥', lucide: <HeartPulse size={15} />, label: t.tabService },
     { key: 'solar',   icon: '☀️', lucide: <SunMedium size={15} />,  label: t.tabSolar },
   ];
@@ -675,6 +693,29 @@ export default function Sidebar({
             onResetData={onResetData}
             onExportData={onExportData}
             onStartDrawRoad={onStartDrawRoad}
+            onReshapeRoad={onReshapeRoad}
+          />
+        )}
+
+        {/* ═══════════ TAB: WATER BODIES (POLYGON) ═══════════ */}
+        {activeTab === 'water' && waterData && waterCategories && (
+          <CategoryListPanel
+            data={waterData}
+            categories={waterCategories}
+            visibleCats={waterVisible || {}}
+            setVisibleCats={setWaterVisible || (() => {})}
+            lang={lang}
+            t={t}
+            summaryIcon="💧"
+            summaryLabel={t.waterHeader || 'แหล่งน้ำและแหล่งกักเก็บน้ำ'}
+            onItemClick={onSelectFeature}
+            datasetType="water"
+            onAddFeature={onAddFeature}
+            onEditFeature={onEditFeature}
+            onDeleteFeature={onDeleteFeature}
+            onResetData={onResetData}
+            onExportData={onExportData}
+            onStartDrawWater={onStartDrawWater}
             onReshapeRoad={onReshapeRoad}
           />
         )}

@@ -8,6 +8,7 @@ import { Loader2 } from 'lucide-react';
 import { POI_DATA, POI_CATEGORIES } from './data/poi_data';
 import { INFRA_DATA, INFRA_CATEGORIES } from './data/infra_data';
 import { SERVICE_DATA, SERVICE_CATEGORIES } from './data/service_data';
+import { WATER_DATA, WATER_CATEGORIES } from './data/water_data';
 import './index.css';
 
 const API = 'http://localhost:8000';
@@ -97,16 +98,26 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
     }
   });
 
+  const [waterData, setWaterData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('denchai_water_data');
+      return saved ? JSON.parse(saved) : WATER_DATA;
+    } catch {
+      return WATER_DATA;
+    }
+  });
+
   // ── Editor & Modal State ──
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingFeature, setEditingFeature] = useState(null);
-  const [editDatasetType, setEditDatasetType] = useState('poi'); // 'poi' | 'infra' | 'service'
+  const [editDatasetType, setEditDatasetType] = useState('poi'); // 'poi' | 'infra' | 'service' | 'water'
   const [isPickingLocation, setIsPickingLocation] = useState(false);
   const [pickedCoordinates, setPickedCoordinates] = useState(null);
   const [reshapingFeature, setReshapingFeature] = useState(null);
   const [triggerDrawRoad, setTriggerDrawRoad] = useState(false);
+  const [triggerDrawWater, setTriggerDrawWater] = useState(false);
 
-  // ── Layer visibility for POI/Infra/Service categories ──
+  // ── Layer visibility for POI/Infra/Service/Water categories ──
   const [poiVisible, setPoiVisible] = useState(
     Object.fromEntries(Object.keys(POI_CATEGORIES).map(k => [k, true]))
   );
@@ -115,6 +126,9 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   );
   const [serviceVisible, setServiceVisible] = useState(
     Object.fromEntries(Object.keys(SERVICE_CATEGORIES).map(k => [k, true]))
+  );
+  const [waterVisible, setWaterVisible] = useState(
+    Object.fromEntries(Object.keys(WATER_CATEGORIES).map(k => [k, true]))
   );
 
   useEffect(() => {
@@ -200,6 +214,17 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         localStorage.setItem('denchai_service_data', JSON.stringify(newCol));
         return newCol;
       });
+    } else if (datasetType === 'water') {
+      setWaterData(prev => {
+        const existing = prev.features || [];
+        const idx = existing.findIndex(f => f.properties.id === savedFeature.properties.id);
+        const updated = idx >= 0
+          ? existing.map(f => f.properties.id === savedFeature.properties.id ? savedFeature : f)
+          : [...existing, savedFeature];
+        const newCol = { type: 'FeatureCollection', features: updated };
+        localStorage.setItem('denchai_water_data', JSON.stringify(newCol));
+        return newCol;
+      });
     }
   };
 
@@ -223,6 +248,13 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         const updated = (prev.features || []).filter(f => f.properties.id !== featureId);
         const newCol = { type: 'FeatureCollection', features: updated };
         localStorage.setItem('denchai_service_data', JSON.stringify(newCol));
+        return newCol;
+      });
+    } else if (datasetType === 'water') {
+      setWaterData(prev => {
+        const updated = (prev.features || []).filter(f => f.properties.id !== featureId);
+        const newCol = { type: 'FeatureCollection', features: updated };
+        localStorage.setItem('denchai_water_data', JSON.stringify(newCol));
         return newCol;
       });
     }
@@ -263,12 +295,21 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
       } else if (datasetType === 'service') {
         localStorage.removeItem('denchai_service_data');
         setServiceData(SERVICE_DATA);
+      } else if (datasetType === 'water') {
+        localStorage.removeItem('denchai_water_data');
+        setWaterData(WATER_DATA);
       }
     }
   };
 
   const handleExportData = (datasetType) => {
-    const dataToExport = datasetType === 'poi' ? poiData : serviceData;
+    const dataToExport = datasetType === 'poi'
+      ? poiData
+      : datasetType === 'infra'
+        ? infraData
+        : datasetType === 'water'
+          ? waterData
+          : serviceData;
     const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -356,9 +397,11 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         poiData={poiData} poiCategories={POI_CATEGORIES}
         infraData={infraData} infraCategories={INFRA_CATEGORIES}
         serviceData={serviceData} serviceCategories={SERVICE_CATEGORIES}
+        waterData={waterData} waterCategories={WATER_CATEGORIES}
         poiVisible={poiVisible} setPoiVisible={setPoiVisible}
         infraVisible={infraVisible} setInfraVisible={setInfraVisible}
         serviceVisible={serviceVisible} setServiceVisible={setServiceVisible}
+        waterVisible={waterVisible} setWaterVisible={setWaterVisible}
         onSelectFeature={setSelectedFeature}
         onAddFeature={handleOpenAdd}
         onEditFeature={handleOpenEdit}
@@ -366,6 +409,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         onResetData={handleResetData}
         onExportData={handleExportData}
         onStartDrawRoad={() => setTriggerDrawRoad(true)}
+        onStartDrawWater={() => setTriggerDrawWater(true)}
         onReshapeRoad={(feat) => setReshapingFeature(feat)}
       />
       <MapViewer
@@ -383,9 +427,11 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         poiData={poiData}
         infraData={infraData}
         serviceData={serviceData}
+        waterData={waterData}
         poiVisible={poiVisible}
         infraVisible={infraVisible}
         serviceVisible={serviceVisible}
+        waterVisible={waterVisible}
         selectedFeature={selectedFeature}
         isPickingLocation={isPickingLocation}
         onLocationPicked={handleLocationPicked}
@@ -395,11 +441,13 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         reshapingFeature={reshapingFeature}
         onFinishReshaping={() => setReshapingFeature(null)}
         onSaveFeature={handleSaveFeature}
-        triggerDrawRoad={triggerDrawRoad}
-        onResetTriggerDrawRoad={() => setTriggerDrawRoad(false)}
+        onDeleteFeature={handleDeleteFeature}
         onSplitFeature={handleSplitFeature}
         onMergeFeatures={handleMergeFeatures}
-        onDeleteFeature={handleDeleteFeature}
+        triggerDrawRoad={triggerDrawRoad}
+        onResetTriggerDrawRoad={() => setTriggerDrawRoad(false)}
+        triggerDrawWater={triggerDrawWater}
+        onResetTriggerDrawWater={() => setTriggerDrawWater(false)}
       />
 
       {/* Feature Edit / Add Modal */}
