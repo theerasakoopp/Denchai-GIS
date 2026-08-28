@@ -1,0 +1,933 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-08-28T00:57:21Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+    {
+      "type": "node",
+      "id": 998990373,
+      "lat": 17.9805247,
+      "lon": 100.0462183,
+      "tags": {
+        "name": "เด่นชัย",
+        "name:en": "Den Chai",
+        "name:th": "เด่นชัย",
+        "public_transport": "station",
+        "railway": "station",
+        "railway:ref": "ดช",
+        "railway:station_category": "1",
+        "ref": "ดช.",
+        "ref:station": "1164",
+        "train": "yes",
+        "wikidata": "Q6633467",
+        "wikipedia": "th:สถานีรถไฟเด่นชัย"
+      }
+    },
+    {
+      "type": "node",
+      "id": 1245209595,
+      "lat": 17.9847118,
+      "lon": 100.0558459,
+      "tags": {
+        "name": "Den Chai Suzuki",
+        "shop": "motorcycle"
+      }
+    },
+    {
+      "type": "node",
+      "id": 1245209600,
+      "lat": 17.9839363,
+      "lon": 100.0584262,
+      "tags": {
+        "amenity": "fuel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 1246631704,
+      "lat": 17.9868803,
+      "lon": 100.0599175,
+      "tags": {
+        "amenity": "school"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2591270264,
+      "lat": 17.9704092,
+      "lon": 100.0700856,
+      "tags": {
+        "amenity": "cafe",
+        "brand": "Doi Chaang",
+        "name:en": "Tree Park Coffee"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2622028436,
+      "lat": 17.9699407,
+      "lon": 100.0687491,
+      "tags": {
+        "amenity": "bus_station",
+        "operator": "นครชัยแอร์"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3855772060,
+      "lat": 17.9767357,
+      "lon": 100.0271846,
+      "tags": {
+        "amenity": "restaurant",
+        "name:en": "Food Court"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3855772063,
+      "lat": 17.9767108,
+      "lon": 100.0267455,
+      "tags": {
+        "amenity": "cafe",
+        "brand": "คาเฟ่ อเมซอน",
+        "brand:en": "Café Amazon",
+        "brand:th": "คาเฟ่ อเมซอน",
+        "brand:wikidata": "Q43247503",
+        "cuisine": "coffee_shop",
+        "name": "คาเฟ่ อเมซอน",
+        "name:en": "Café Amazon",
+        "name:th": "คาเฟ่ อเมซอน",
+        "operator": "PTT",
+        "shop": "coffee",
+        "smoking": "no",
+        "takeaway": "yes"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3903900216,
+      "lat": 17.9767249,
+      "lon": 100.0269683,
+      "tags": {
+        "amenity": "food_court",
+        "name:en": "Foodcourt"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3962798702,
+      "lat": 17.9694463,
+      "lon": 100.0672825,
+      "tags": {
+        "brand": "Maxxis",
+        "shop": "tyres"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3989820703,
+      "lat": 17.9769128,
+      "lon": 100.0265594,
+      "tags": {
+        "amenity": "restaurant",
+        "cuisine": "thai"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4511481990,
+      "lat": 17.968596,
+      "lon": 100.0494418,
+      "tags": {
+        "amenity": "cafe",
+        "cuisine": "coffee_shop",
+        "name": "Den Chai City Coffee"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4590578326,
+      "lat": 17.9828433,
+      "lon": 100.0517885,
+      "tags": {
+        "amenity": "police",
+        "name": "เด่นชัย"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4590578679,
+      "lat": 17.9829327,
+      "lon": 100.0528502,
+      "tags": {
+        "brand": "7-Eleven",
+        "brand:wikidata": "Q259340",
+        "name": "7-Eleven",
+        "shop": "convenience"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4590578899,
+      "lat": 17.9830424,
+      "lon": 100.0527429,
+      "tags": {
+        "amenity": "fuel",
+        "name": "PTT"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5019974623,
+      "lat": 17.9808106,
+      "lon": 100.0543029,
+      "tags": {
+        "amenity": "restaurant"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5019996925,
+      "lat": 17.9807895,
+      "lon": 100.0540142,
+      "tags": {
+        "amenity": "cafe"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5019996926,
+      "lat": 17.9806255,
+      "lon": 100.0540608,
+      "tags": {
+        "amenity": "restaurant"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5021634723,
+      "lat": 17.9624612,
+      "lon": 100.0664854,
+      "tags": {
+        "tourism": "guest_house"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5277519121,
+      "lat": 17.974085,
+      "lon": 100.0810265,
+      "tags": {
+        "name:en": "Sook sam rang hotel",
+        "phone": "+66821904969",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5278003336,
+      "lat": 17.9703454,
+      "lon": 100.0680295,
+      "tags": {
+        "name:en": "PbMonster Motorbike Shop",
+        "shop": "motorcycle"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5278003337,
+      "lat": 17.9702726,
+      "lon": 100.0678044,
+      "tags": {
+        "amenity": "restaurant",
+        "cuisine": "thai",
+        "name": "นิวเก่ง",
+        "name:en": "New Geng Restaurant",
+        "opening_hours": "Mo-Su 10:00-22:00",
+        "phone": "+66861143637"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5278003338,
+      "lat": 17.9696395,
+      "lon": 100.0679119,
+      "tags": {
+        "name:en": "Maxxis Tyre repairs",
+        "shop": "tyres"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5818394954,
+      "lat": 17.9810905,
+      "lon": 100.0468295,
+      "tags": {
+        "name": "Den Chai",
+        "tourism": "hotel"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6364045985,
+      "lat": 17.979445,
+      "lon": 100.0541702,
+      "tags": {
+        "name": "Mosque",
+        "tourism": "attraction"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7127380092,
+      "lat": 17.9690203,
+      "lon": 100.0665785,
+      "tags": {
+        "amenity": "shelter",
+        "description": "ศาลาพักผ่อนหกเหลี่ยม"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7127380199,
+      "lat": 17.9682875,
+      "lon": 100.0666502,
+      "tags": {
+        "name": "หมวดทางหลวงเด่นชัย",
+        "name:en": "Denchai Highway Organization",
+        "office": "government"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7127583086,
+      "lat": 17.974895,
+      "lon": 100.0792638,
+      "tags": {
+        "name": "ป่าสุสานเหมืองใหม่",
+        "name:en": "Muangmai cemetery",
+        "shop": "funeral_directors"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7127594886,
+      "lat": 17.9658234,
+      "lon": 100.0666443,
+      "tags": {
+        "name": "บริเวณร้านค้าจำหน่ายของฝากเมืองแพร่",
+        "name:en": "Phrae OTOP shoping center",
+        "shop": "variety_store"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7127601885,
+      "lat": 17.9692507,
+      "lon": 100.0669492,
+      "tags": {
+        "amenity": "toilets",
+        "opening_hours": "24/7",
+        "operator": "หมวดทางหลวงเด่นชัย"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8238022064,
+      "lat": 17.9826605,
+      "lon": 100.0549475,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "รพ.ยุพราชเด่นชัย"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8238022069,
+      "lat": 17.9833716,
+      "lon": 100.0515849,
+      "tags": {
+        "government": "administrative",
+        "name": "สำนักงานเทศบาลเด่นชัย",
+        "name:en": "Den Chai Municipality Office",
+        "office": "government"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8238022070,
+      "lat": 17.9818179,
+      "lon": 100.0484475,
+      "tags": {
+        "amenity": "hospital",
+        "healthcare": "hospital",
+        "name": "สำนักงานสาธารณสุขเด่นชัย",
+        "name:en": "Denchai Public Health Office"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11340712869,
+      "lat": 17.9717381,
+      "lon": 100.074411,
+      "tags": {
+        "amenity": "toilets"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11340713669,
+      "lat": 17.9757969,
+      "lon": 100.0827674,
+      "tags": {
+        "amenity": "toilets"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11340726669,
+      "lat": 17.9777597,
+      "lon": 100.0896153,
+      "tags": {
+        "name:en": "Oryu Metal sheet",
+        "shop": "interior_decoration"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11407083605,
+      "lat": 17.9766987,
+      "lon": 100.0265659,
+      "tags": {
+        "amenity": "toilets"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12116071434,
+      "lat": 17.9764371,
+      "lon": 100.0423942,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "วัดจอมคีรีชัย (หลวงพ่อสิน)",
+        "religion": "buddhist"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13379570663,
+      "lat": 17.9803768,
+      "lon": 100.0476446,
+      "tags": {
+        "amenity": "marketplace",
+        "name": "Night Market",
+        "opening_hours": "Mo, Tu 17:00-22:00",
+        "tourism": "attraction"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13694349994,
+      "lat": 17.9767994,
+      "lon": 100.0269864,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "PTT",
+        "capacity": "2",
+        "opening_hours": "24/7",
+        "socket:type2": "2",
+        "socket:type2:output": "120"
+      }
+    },
+    {
+      "type": "way",
+      "id": 311062950,
+      "center": {
+        "lat": 17.980388,
+        "lon": 100.0474951
+      },
+      "nodes": [
+        3166100117,
+        3166100107,
+        3166100096,
+        3166100087,
+        3166100117
+      ],
+      "tags": {
+        "amenity": "parking",
+        "source": "Bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 339488223,
+      "center": {
+        "lat": 17.9757744,
+        "lon": 100.0830859
+      },
+      "nodes": [
+        3466918942,
+        3466918943,
+        3466918934,
+        3466918940,
+        3466918936,
+        3466918939,
+        3466918942
+      ],
+      "tags": {
+        "amenity": "fuel",
+        "brand": "PT",
+        "brand:wikidata": "Q62298612",
+        "building": "roof",
+        "layer": "-1",
+        "name": "PT",
+        "source": "GPS"
+      }
+    },
+    {
+      "type": "way",
+      "id": 341960400,
+      "center": {
+        "lat": 17.9828697,
+        "lon": 100.0545197
+      },
+      "nodes": [
+        1642379784,
+        3490119970,
+        3490119971,
+        3490119972,
+        1642379784
+      ],
+      "tags": {
+        "amenity": "hospital",
+        "area": "yes",
+        "healthcare": "hospital",
+        "name": "โรงพยาบาลสมเด็จพระยุพราชเด่นชัย",
+        "name:en": "Denchai Crown Prince Hospital",
+        "name:th": "โรงพยาบาลสมเด็จพระยุพราชเด่นชัย"
+      }
+    },
+    {
+      "type": "way",
+      "id": 396180707,
+      "center": {
+        "lat": 17.9713601,
+        "lon": 100.0726418
+      },
+      "nodes": [
+        3989820701,
+        3989820702,
+        3989820700,
+        3989820699,
+        3989820701
+      ],
+      "tags": {
+        "alt_name:en": "Saikrok Phao Tao Din",
+        "amenity": "restaurant",
+        "building": "yes",
+        "cuisine": "thai",
+        "name": "ไส้กรอกเผาเตาดิน",
+        "name:en": "Suan Sai Thong",
+        "source": "Bing"
+      }
+    },
+    {
+      "type": "way",
+      "id": 456145481,
+      "center": {
+        "lat": 17.9718523,
+        "lon": 100.0746576
+      },
+      "nodes": [
+        3168677762,
+        4524238311,
+        4524238323,
+        4524238288,
+        4524238291,
+        4524238307,
+        3168677762
+      ],
+      "tags": {
+        "amenity": "fuel",
+        "brand": "บางจาก",
+        "brand:en": "Bangchak",
+        "brand:th": "บางจาก",
+        "brand:wikidata": "Q6579719",
+        "building": "roof",
+        "name": "Bangchak",
+        "name:en": "Bangchak",
+        "name:th": "บางจาก",
+        "source": "GPS, geolocated photo"
+      }
+    },
+    {
+      "type": "way",
+      "id": 557553437,
+      "center": {
+        "lat": 17.9712036,
+        "lon": 100.0726591
+      },
+      "nodes": [
+        5377269208,
+        5377269207,
+        5377269206,
+        5377269205,
+        5377269208
+      ],
+      "tags": {
+        "amenity": "parking"
+      }
+    },
+    {
+      "type": "way",
+      "id": 557553440,
+      "center": {
+        "lat": 17.9712381,
+        "lon": 100.0724675
+      },
+      "nodes": [
+        5377269220,
+        5377269219,
+        5377269218,
+        5377269217,
+        5377269220
+      ],
+      "tags": {
+        "amenity": "cafe",
+        "building": "yes",
+        "name": "Sai Coffee"
+      }
+    },
+    {
+      "type": "way",
+      "id": 885940327,
+      "center": {
+        "lat": 17.9777619,
+        "lon": 100.0517073
+      },
+      "nodes": [
+        8238022053,
+        8238022054,
+        8238022055,
+        8238022056,
+        8238022057,
+        8238022058,
+        8238022059,
+        8238022060,
+        8238022061,
+        8238022097,
+        8238022062,
+        8238022063,
+        8238022053
+      ],
+      "tags": {
+        "amenity": "school",
+        "name": "โรงเรียนเด่นชัย"
+      }
+    },
+    {
+      "type": "way",
+      "id": 885940329,
+      "center": {
+        "lat": 17.9813886,
+        "lon": 100.0494988
+      },
+      "nodes": [
+        8238022071,
+        9422796131,
+        8238022072,
+        9422796132,
+        8238022073,
+        8238022074,
+        11402914614,
+        9422796134,
+        8238022071
+      ],
+      "tags": {
+        "amenity": "marketplace",
+        "name": "ตลาดสดเด่นฤดี",
+        "name:en": "Den Ruedee Fresh Market"
+      }
+    },
+    {
+      "type": "way",
+      "id": 885941859,
+      "center": {
+        "lat": 17.9852213,
+        "lon": 100.0447777
+      },
+      "nodes": [
+        8238039062,
+        8238039063,
+        8238039066,
+        8238039067,
+        9422796491,
+        8238039068,
+        11402940353,
+        8238039062
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "landuse": "religious",
+        "name": "วัดอินทนิเวศน์",
+        "name:en": "Wat Intha Niwet",
+        "religion": "buddhist"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1010640558,
+      "center": {
+        "lat": 17.9703145,
+        "lon": 100.0699346
+      },
+      "nodes": [
+        9324355767,
+        9324355766,
+        9324355765,
+        9324355764,
+        9324355767
+      ],
+      "tags": {
+        "amenity": "parking"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1021665741,
+      "center": {
+        "lat": 17.9850626,
+        "lon": 100.0444942
+      },
+      "nodes": [
+        9422796473,
+        9422796474,
+        9422796475,
+        9422796476,
+        9422796473
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "buddhist"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1021665742,
+      "center": {
+        "lat": 17.9850605,
+        "lon": 100.0449472
+      },
+      "nodes": [
+        9422796477,
+        9422796478,
+        9422796479,
+        9422796480,
+        9422796477
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "buddhist"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1021665743,
+      "center": {
+        "lat": 17.9851277,
+        "lon": 100.045225
+      },
+      "nodes": [
+        9422796481,
+        9422796482,
+        9422796483,
+        9422796484,
+        9422796481
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "buddhist"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1021665744,
+      "center": {
+        "lat": 17.9846086,
+        "lon": 100.0448229
+      },
+      "nodes": [
+        9422796485,
+        9422796486,
+        9422796487,
+        9422796488,
+        9422796489,
+        9422796490,
+        9422796491,
+        9422796492,
+        9422796485
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "buddhist"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1229647824,
+      "center": {
+        "lat": 17.9812152,
+        "lon": 100.0465089
+      },
+      "nodes": [
+        11402940375,
+        11402940376,
+        11402940377,
+        11402940378,
+        11402940375
+      ],
+      "tags": {
+        "amenity": "parking"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1229856854,
+      "center": {
+        "lat": 17.9707186,
+        "lon": 100.0684972
+      },
+      "nodes": [
+        11405015538,
+        11405015539,
+        11405015540,
+        11405015541,
+        11405015538
+      ],
+      "tags": {
+        "amenity": "fuel",
+        "brand": "PT",
+        "brand:wikidata": "Q62298612",
+        "building": "roof",
+        "name": "PT"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1230059991,
+      "center": {
+        "lat": 17.9771915,
+        "lon": 100.0269781
+      },
+      "nodes": [
+        11407083601,
+        11407083602,
+        11407083603,
+        11407083604,
+        11407083601
+      ],
+      "tags": {
+        "amenity": "fuel",
+        "brand": "ป.ต.ท.",
+        "brand:en": "PTT",
+        "brand:th": "ป.ต.ท.",
+        "brand:wikidata": "Q1810389",
+        "building": "roof",
+        "layer": "1",
+        "name": "PTT",
+        "name:en": "PTT",
+        "name:th": "ปตท",
+        "source": "GPS;geolocated photo;aerial imagery"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1236187815,
+      "center": {
+        "lat": 17.9666391,
+        "lon": 100.0665514
+      },
+      "nodes": [
+        11477664354,
+        11477664355,
+        11477664356,
+        11583125984,
+        11583125985,
+        11477664357,
+        11477664354
+      ],
+      "tags": {
+        "amenity": "fuel",
+        "brand": "เชลล์",
+        "brand:en": "Shell",
+        "brand:th": "เชลล์",
+        "brand:wikidata": "Q110716465",
+        "building": "roof",
+        "layer": "1",
+        "name": "Shell",
+        "name:en": "Shell",
+        "name:th": "เชลล์"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1245956731,
+      "center": {
+        "lat": 17.9672638,
+        "lon": 100.0657557
+      },
+      "nodes": [
+        11583117640,
+        11583117641,
+        11583117642,
+        11583117643,
+        11583117640
+      ],
+      "tags": {
+        "amenity": "police",
+        "building": "yes",
+        "name": "ตำรวจทางหลวงแพร่",
+        "name:en": "Prae highway police station"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1378943157,
+      "center": {
+        "lat": 17.9802808,
+        "lon": 100.0899801
+      },
+      "nodes": [
+        12768894021,
+        12768894022,
+        12768894023,
+        12768894024,
+        12768894025,
+        12768894026,
+        12768894027,
+        12768894028,
+        12768894029,
+        12768894030,
+        12768894031,
+        12768894032,
+        12768894021
+      ],
+      "tags": {
+        "addr:housenumber": "475",
+        "addr:street": "ถนนยันตรกิจโกศล",
+        "amenity": "post_office",
+        "building": "yes",
+        "name": "ศูนย์​ไปรษณีย์​เด่นชัย​",
+        "name:th": "ศูนย์​ไปรษณีย์​เด่นชัย​"
+      }
+    }
+  ]
+}
