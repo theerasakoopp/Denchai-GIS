@@ -5,7 +5,7 @@ import {
 import {
   Zap, Home, Upload, Layers, SunMedium, X, MapPin,
   TrendingUp, Leaf, DollarSign, Settings2, Download, Printer,
-  Building2, HeartPulse, Navigation
+  Building2, HeartPulse, Navigation, Search, ChevronDown, ChevronRight
 } from 'lucide-react';
 import { ROOF_CLASSES } from '../App';
 import { translations } from '../translations';
@@ -30,47 +30,68 @@ function applyFilters(geoData, filters, visibleLayers, boundary, viewMode) {
     Object.keys(ROOF_CLASSES).map(k => [k, { area: 0, energy: 0, capacity: 0, count: 0 }])
   );
 
-  const isBuildings = viewMode === 'buildings';
+  let targetFeatures = geoData.features;
+  if (boundary && boundary.features && boundary.features.length > 0) {
+    try {
+      const boundaryPoly = boundary.features[0];
+      targetFeatures = targetFeatures.filter(f => {
+        try {
+          return turf.booleanPointInPolygon(turf.centroid(f), boundaryPoly);
+        } catch {
+          return true;
+        }
+      });
+    } catch {
+      targetFeatures = geoData.features;
+    }
+  }
 
-  for (const f of geoData.features) {
+  const minArea = Number(filters?.minArea) || 0;
+  const minEnergy = Number(filters?.minEnergy) || 0;
+
+  for (const f of targetFeatures) {
     const p = f.properties;
     if (!p) continue;
+    if (visibleLayers && visibleLayers[p.class_id] === false) continue;
 
-    if (!isBuildings) {
-      if (!visibleLayers[p.class_id]) continue;
-    }
+    const area = Number(p.area_3d || p.area_2d || 0);
+    const energy = Number(p.energy_corrected_kwh || p.energy_kwh || 0);
+    const capacity = Number(p.capacity_kwp || ((area * 0.18) * 0.20));
 
-    const area = p.area_3d || p.area_2d || 0;
-    const correctedEnergy = p.energy_corrected_kwh || p.energy_kwh || 0;
-    const cap = p.capacity_kwp || ((area * 0.18) * 0.20);
-
-    if (filters.minArea > 0 && area < filters.minArea) continue;
-    if (filters.minEnergy > 0 && correctedEnergy < filters.minEnergy) continue;
-
-    if (boundary && boundary.features && boundary.features.length > 0) {
-      try {
-        const pt = turf.centroid(f);
-        const inside = boundary.features.some(bf =>
-          turf.booleanPointInPolygon(pt, bf)
-        );
-        if (!inside) continue;
-      } catch { continue; }
-    }
+    if (minArea > 0 && area < minArea) continue;
+    if (minEnergy > 0 && energy < minEnergy) continue;
 
     totalArea += area;
-    totalEnergy += correctedEnergy;
-    totalCapacity += cap;
+    totalEnergy += energy;
+    totalCapacity += capacity;
     count++;
 
-    if (p.class_id && byCls[p.class_id]) {
-      byCls[p.class_id].area += area;
-      byCls[p.class_id].energy += correctedEnergy;
-      byCls[p.class_id].capacity += cap;
-      byCls[p.class_id].count++;
+    const clsId = p.class_id || 6;
+    if (byCls[clsId]) {
+      byCls[clsId].area += area;
+      byCls[clsId].energy += energy;
+      byCls[clsId].capacity += capacity;
+      byCls[clsId].count++;
     }
   }
 
   return { totalArea, totalEnergy, totalCapacity, count, byCls };
+}
+
+function calculateFinancials(stats, tariff, systemCostPerKwp) {
+  const annualSavingsTHB = stats.totalEnergy * tariff;
+  const initialCostTHB = stats.totalCapacity * systemCostPerKwp;
+  const paybackYears = annualSavingsTHB > 0 ? (initialCostTHB / annualSavingsTHB).toFixed(1) : 'N/A';
+  const co2ReductionTons = (stats.totalEnergy * 0.4999) / 1000;
+  const treesEquivalent = Math.round(co2ReductionTons * 45);
+
+  return {
+    annualSavingsTHB,
+    initialCostTHB,
+    paybackYears,
+    co2ReductionTons,
+    treesEquivalent,
+  };
 }
 
 // ── Category List Panel (reusable for POI/Infra/Service) ──
@@ -81,18 +102,55 @@ function CategoryListPanel({
   onAddFeature, onEditFeature, onDeleteFeature,
   onResetData, onExportData
 }) {
-  const grouped = useMemo(() => {
-    if (!data?.features) return {};
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCatFilter, setSelectedCatFilter] = useState('all');
+  const [expandedCats, setExpandedCats] = useState({});
+
+  const toggleAccordion = (catKey) => {
+    setExpandedCats(prev => ({ ...prev, [catKey]: !prev[catKey] }));
+  };
+
+  const expandAll = () => {
+    setExpandedCats(Object.fromEntries(Object.keys(categories).map(k => [k, true])));
+  };
+
+  const collapseAll = () => {
+    setExpandedCats({});
+  };
+
+  // Group and filter items
+  const { grouped, totalCount, filteredCount } = useMemo(() => {
+    if (!data?.features) return { grouped: {}, totalCount: 0, filteredCount: 0 };
     const g = {};
+    let total = 0;
+    let filtered = 0;
+    const term = searchTerm.trim().toLowerCase();
+
     for (const f of data.features) {
-      const cat = f.properties.category || 'other';
+      total++;
+      const p = f.properties;
+      const cat = p.category || 'other';
+
+      // Apply category chip filter
+      if (selectedCatFilter !== 'all' && cat !== selectedCatFilter) continue;
+
+      // Apply search filter
+      if (term) {
+        const nameTh = (p.name_th || '').toLowerCase();
+        const nameEn = (p.name_en || '').toLowerCase();
+        const descTh = (p.description_th || '').toLowerCase();
+        const descEn = (p.description_en || '').toLowerCase();
+        if (!nameTh.includes(term) && !nameEn.includes(term) && !descTh.includes(term) && !descEn.includes(term)) {
+          continue;
+        }
+      }
+
+      filtered++;
       if (!g[cat]) g[cat] = [];
       g[cat].push(f);
     }
-    return g;
-  }, [data]);
-
-  const totalCount = data?.features?.length || 0;
+    return { grouped: g, totalCount: total, filteredCount: filtered };
+  }, [data, searchTerm, selectedCatFilter]);
 
   const toggleCat = (catKey) => {
     setVisibleCats(prev => ({ ...prev, [catKey]: !prev[catKey] }));
@@ -108,18 +166,21 @@ function CategoryListPanel({
   return (
     <>
       {/* Summary Card */}
-      <div className="tab-summary-card">
+      <div className="tab-summary-card" style={{ flexShrink: 0 }}>
         <div className="summary-icon">{summaryIcon}</div>
         <div className="summary-text">
           <div className="summary-title">{summaryLabel}</div>
-          <div className="summary-value">{totalCount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#94a3b8' }}>{t.poiCount}</span></div>
+          <div className="summary-value">
+            {totalCount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#94a3b8' }}>{t.poiCount}</span>
+          </div>
         </div>
       </div>
 
       {/* Editor Action Toolbar */}
       <div style={{
         background: '#f8fafc', border: '1px solid var(--border-subtle)',
-        borderRadius: 10, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8
+        borderRadius: 10, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8,
+        flexShrink: 0
       }}>
         {onAddFeature && (
           <button
@@ -165,100 +226,181 @@ function CategoryListPanel({
         </div>
       </div>
 
-      {/* Show/Hide All */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-sub)' }}>
-          {lang === 'th' ? 'การเปิด-ปิดชั้นข้อมูล' : 'Layer Filters'}
-        </span>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button className="btn btn-sm" onClick={showAll}>{t.poiShowAll}</button>
-          <button className="btn btn-sm" onClick={hideAll}>{t.poiHideAll}</button>
+      {/* Search Bar */}
+      <div className="search-input-wrap">
+        <Search size={14} color="#64748b" style={{ flexShrink: 0 }} />
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder={lang === 'th' ? 'ค้นหาชื่อสถานที่, โรงพยาบาล, วัด, ร้านยา...' : 'Search places, hospital, temples...'}
+        />
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={() => setSearchTerm('')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex' }}
+          >
+            <X size={13} />
+          </button>
+        )}
+      </div>
+
+      {/* Category Quick Filter Chips */}
+      <div className="category-chip-bar">
+        <button
+          type="button"
+          className={`category-chip ${selectedCatFilter === 'all' ? 'active' : ''}`}
+          onClick={() => setSelectedCatFilter('all')}
+        >
+          {lang === 'th' ? 'ทั้งหมด' : 'All'} ({totalCount})
+        </button>
+        {Object.entries(categories).map(([catKey, catMeta]) => {
+          const count = (data?.features || []).filter(f => f.properties?.category === catKey).length;
+          if (count === 0) return null;
+          return (
+            <button
+              key={catKey}
+              type="button"
+              className={`category-chip ${selectedCatFilter === catKey ? 'active' : ''}`}
+              onClick={() => setSelectedCatFilter(catKey)}
+            >
+              <span>{catMeta.icon}</span>
+              <span>{lang === 'th' ? catMeta.name_th.split('/')[0] : catMeta.name_en}</span>
+              <span style={{ opacity: 0.7, fontSize: '0.65rem' }}>({count})</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Layer Control Bar & Accordion Control */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '0 2px', flexShrink: 0
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: '0.74rem', fontWeight: 600, color: 'var(--text-sub)' }}>
+            {lang === 'th' ? 'ชั้นข้อมูล' : 'Layers'} ({filteredCount})
+          </span>
+          <button
+            type="button"
+            className="btn btn-sm"
+            style={{ padding: '2px 6px', fontSize: '0.65rem' }}
+            onClick={Object.keys(expandedCats).length > 0 ? collapseAll : expandAll}
+          >
+            {Object.keys(expandedCats).length > 0 ? (lang === 'th' ? 'พับทั้งหมด' : 'Collapse') : (lang === 'th' ? 'ขยายทั้งหมด' : 'Expand')}
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: 4 }}>
+          <button className="btn btn-sm" style={{ padding: '3px 7px', fontSize: '0.68rem' }} onClick={showAll}>{t.poiShowAll}</button>
+          <button className="btn btn-sm" style={{ padding: '3px 7px', fontSize: '0.68rem' }} onClick={hideAll}>{t.poiHideAll}</button>
         </div>
       </div>
 
-      {/* Category Groups */}
-      {Object.entries(categories).map(([catKey, catMeta]) => {
-        const items = grouped[catKey] || [];
-        const isVisible = visibleCats[catKey] !== false;
+      {/* Category Groups Container */}
+      <div className="category-groups-container">
+        {Object.entries(categories).map(([catKey, catMeta]) => {
+          if (selectedCatFilter !== 'all' && selectedCatFilter !== catKey) return null;
+          const items = grouped[catKey] || [];
+          const isVisible = visibleCats[catKey] !== false;
+          const isExpanded = searchTerm ? items.length > 0 : !!expandedCats[catKey];
 
-        return (
-          <div className="category-group" key={catKey}>
-            <div className="category-header" onClick={() => toggleCat(catKey)}>
-              <div className="cat-label">
-                <div className="cat-dot" style={{ background: catMeta.color, boxShadow: `0 0 6px ${catMeta.color}40` }} />
-                <span>{catMeta.icon} {lang === 'th' ? catMeta.name_th : catMeta.name_en}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span className="cat-count">{items.length}</span>
-                <div className={`toggle-switch ${isVisible ? 'on' : ''}`} />
-              </div>
-            </div>
-            {isVisible && items.length > 0 && (
-              <div className="category-items">
-                {items.map(item => (
+          if (searchTerm && items.length === 0) return null;
+
+          return (
+            <div className="category-group" key={catKey}>
+              <div
+                className="category-header"
+                onClick={() => toggleAccordion(catKey)}
+                title={lang === 'th' ? 'คลิกเพื่อขยาย/พับรายชื่อ' : 'Click to expand/collapse'}
+              >
+                <div className="cat-label">
+                  <div className="cat-dot" style={{ background: catMeta.color, boxShadow: `0 0 6px ${catMeta.color}40` }} />
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {isExpanded ? <ChevronDown size={13} color="#64748b" /> : <ChevronRight size={13} color="#64748b" />}
+                    <span>{catMeta.icon} {lang === 'th' ? catMeta.name_th : catMeta.name_en}</span>
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  <span className="cat-count">{items.length}</span>
                   <div
-                    className="category-item"
-                    key={item.properties.id}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px' }}
-                  >
-                    <div
-                      style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, cursor: 'pointer', overflow: 'hidden' }}
-                      onClick={() => onItemClick?.(item)}
-                    >
-                      <Navigation size={11} color="#3b82f6" style={{ flexShrink: 0 }} />
-                      <span className="item-name" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {lang === 'th' ? item.properties.name_th : item.properties.name_en}
-                      </span>
-                    </div>
-
-                    {/* Quick action buttons */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
-                      {onEditFeature && (
-                        <button
-                          type="button"
-                          className="btn-icon-subtle"
-                          style={{
-                            background: 'none', border: 'none', padding: 4,
-                            cursor: 'pointer', borderRadius: 4, color: '#64748b',
-                            display: 'flex', alignItems: 'center'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEditFeature(item, datasetType);
-                          }}
-                          title={t.editPoiBtn || 'Edit'}
-                        >
-                          ✏️
-                        </button>
-                      )}
-                      {onDeleteFeature && (
-                        <button
-                          type="button"
-                          className="btn-icon-subtle"
-                          style={{
-                            background: 'none', border: 'none', padding: 4,
-                            cursor: 'pointer', borderRadius: 4, color: '#ef4444',
-                            display: 'flex', alignItems: 'center'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (window.confirm(t.confirmDelete || 'คุณต้องการลบสถานที่นี้ใช่หรือไม่?')) {
-                              onDeleteFeature(item.properties.id, datasetType);
-                            }
-                          }}
-                          title={t.deletePlace || 'Delete'}
-                        >
-                          🗑️
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                    className={`toggle-switch ${isVisible ? 'on' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleCat(catKey);
+                    }}
+                    title={lang === 'th' ? 'เปิด-ปิดชั้นข้อมูลบนแผนที่' : 'Toggle map layer'}
+                  />
+                </div>
               </div>
-            )}
-          </div>
-        );
-      })}
+
+              {isExpanded && items.length > 0 && (
+                <div className="category-items">
+                  {items.map(item => (
+                    <div
+                      className="category-item"
+                      key={item.properties.id}
+                    >
+                      <div
+                        style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, cursor: 'pointer', overflow: 'hidden' }}
+                        onClick={() => onItemClick?.(item)}
+                        title={lang === 'th' ? item.properties.name_th : item.properties.name_en}
+                      >
+                        <Navigation size={11} color="#3b82f6" style={{ flexShrink: 0 }} />
+                        <span className="item-name">
+                          {lang === 'th' ? item.properties.name_th : item.properties.name_en}
+                        </span>
+                      </div>
+
+                      {/* Quick action buttons */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                        {onEditFeature && (
+                          <button
+                            type="button"
+                            className="btn-icon-subtle"
+                            style={{
+                              background: 'none', border: 'none', padding: '3px 4px',
+                              cursor: 'pointer', borderRadius: 4, color: '#64748b',
+                              display: 'flex', alignItems: 'center', fontSize: '0.75rem'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditFeature(item, datasetType);
+                            }}
+                            title={t.editPoiBtn || 'Edit'}
+                          >
+                            ✏️
+                          </button>
+                        )}
+                        {onDeleteFeature && (
+                          <button
+                            type="button"
+                            className="btn-icon-subtle"
+                            style={{
+                              background: 'none', border: 'none', padding: '3px 4px',
+                              cursor: 'pointer', borderRadius: 4, color: '#ef4444',
+                              display: 'flex', alignItems: 'center', fontSize: '0.75rem'
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (window.confirm(t.confirmDelete || 'คุณต้องการลบสถานที่นี้ใช่หรือไม่?')) {
+                                onDeleteFeature(item.properties.id, datasetType);
+                              }
+                            }}
+                            title={t.deletePlace || 'Delete'}
+                          >
+                            🗑️
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </>
   );
 }
