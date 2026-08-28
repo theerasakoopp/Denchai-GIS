@@ -389,6 +389,7 @@ export default function MapViewer({
   const topologyModeRef = useRef('none');
   const mergeFirstFeatureRef = useRef(null);
   const snapEnabledRef = useRef(true);
+  const activeDrawModeRef = useRef('none');
   const editingRoadIdRef = useRef(null);
   const drawingDatasetTypeRef = useRef(null);
 
