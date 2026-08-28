@@ -159,6 +159,10 @@ const SERVICE_COLOR_MATCH = [
 const INFRA_COLOR_MATCH = [
   'match',
   ['get', 'category'],
+  'highway', '#f97316',
+  'main_road', '#eab308',
+  'local_road', '#94a3b8',
+  'rail', '#a855f7',
   'bridge', '#ef4444',
   'water', '#06b6d4',
   'electric', '#eab308',
@@ -684,11 +688,19 @@ export default function MapViewer({
           id: 'infra-line',
           type: 'line',
           source: 'infra-src',
-          layout: { visibility: 'visible' },
+          layout: { visibility: 'visible', 'line-cap': 'round', 'line-join': 'round' },
           filter: ['==', ['geometry-type'], 'LineString'],
           paint: {
-            'line-color': '#f97316',
-            'line-width': 3.5,
+            'line-color': INFRA_COLOR_MATCH,
+            'line-width': [
+              'match',
+              ['get', 'category'],
+              'highway', 4.5,
+              'main_road', 3.5,
+              'rail', 3.0,
+              'local_road', 2.0,
+              2.5
+            ],
             'line-opacity': 0.95
           }
         },

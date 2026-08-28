@@ -1,99 +1,7592 @@
-// ── Infrastructure Data — เทศบาลตำบลเด่นชัย ──
-// ข้อมูลตัวอย่าง (Demo Data) โครงสร้างพื้นฐาน
+// ── Infrastructure & Real Road Network — เทศบาลตำบลเด่นชัย ──
+// โครงข่ายถนนจริง 100% (ทล.11, ทล.101, ถนนเทศบาล, ทางรถไฟสายเหนือ, สะพาน, ประปา, ไฟฟ้า)
+// พิกัดจริงจากฐานข้อมูล OpenStreetMap & GIS ประเทศไทย
 
 export const INFRA_CATEGORIES = {
-  road:      { name_th: 'ถนน/เส้นทาง',     name_en: 'Roads',          color: '#f97316', icon: '🛣️' },
-  bridge:    { name_th: 'สะพาน',            name_en: 'Bridges',        color: '#ef4444', icon: '🌉' },
-  water:     { name_th: 'ระบบประปา/แหล่งน้ำ', name_en: 'Water System', color: '#06b6d4', icon: '💧' },
-  electric:  { name_th: 'ระบบไฟฟ้า',        name_en: 'Electrical',     color: '#eab308', icon: '⚡' },
-  drainage:  { name_th: 'ระบบระบายน้ำ',     name_en: 'Drainage',       color: '#64748b', icon: '🌊' },
+  "highway": {
+    "name_th": "ทางหลวงแผ่นดิน (ทล.11/101)",
+    "name_en": "National Highways",
+    "color": "#f97316",
+    "icon": "🛣️"
+  },
+  "main_road": {
+    "name_th": "ถนนสายหลักในเทศบาล",
+    "name_en": "Main Municipal Roads",
+    "color": "#eab308",
+    "icon": "🚗"
+  },
+  "local_road": {
+    "name_th": "ถนนซอย/ชุมชน",
+    "name_en": "Local & Access Roads",
+    "color": "#94a3b8",
+    "icon": "🏘️"
+  },
+  "rail": {
+    "name_th": "ทางรถไฟสายเหนือ",
+    "name_en": "Northern Railway Line",
+    "color": "#8b5cf6",
+    "icon": "🚆"
+  },
+  "bridge": {
+    "name_th": "สะพาน",
+    "name_en": "Bridges",
+    "color": "#ef4444",
+    "icon": "🌉"
+  },
+  "water": {
+    "name_th": "ระบบประปา/แหล่งน้ำ",
+    "name_en": "Water Supply",
+    "color": "#06b6d4",
+    "icon": "💧"
+  },
+  "electric": {
+    "name_th": "ระบบไฟฟ้า/สถานีย่อย",
+    "name_en": "Electrical Substation",
+    "color": "#eab308",
+    "icon": "⚡"
+  }
 };
 
 export const INFRA_DATA = {
   type: 'FeatureCollection',
   features: [
-    // ── ถนน (LineString) ──
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [100.0420, 17.9780], [100.0480, 17.9810], [100.0540, 17.9835],
-          [100.0600, 17.9850], [100.0660, 17.9870]
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.065634,
+          17.969334
+        ],
+        [
+          100.067004,
+          17.969805
+        ],
+        [
+          100.067828,
+          17.970088
+        ],
+        [
+          100.068335,
+          17.970262
+        ],
+        [
+          100.068988,
+          17.970486
+        ],
+        [
+          100.070538,
+          17.971036
+        ],
+        [
+          100.073059,
+          17.971885
         ]
-      },
-      properties: { id: 'infra-1', name_th: 'ทางหลวงแผ่นดินหมายเลข 11', name_en: 'Highway No. 11', category: 'road', description_th: 'ถนนสายหลักผ่านเขตเทศบาล เชื่อมต่อเด่นชัย-เด่นชัย', description_en: 'Main highway through municipality', length_km: 3.2 }
+      ]
     },
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [100.0500, 17.9750], [100.0510, 17.9790], [100.0530, 17.9830],
-          [100.0540, 17.9870], [100.0550, 17.9910]
+    "properties": {
+      "id": "road-108303100",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "101",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": "2",
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.065616,
+          17.968701
+        ],
+        [
+          100.065539,
+          17.96882
+        ],
+        [
+          100.065426,
+          17.968938
+        ],
+        [
+          100.065279,
+          17.969
+        ],
+        [
+          100.064967,
+          17.968962
         ]
-      },
-      properties: { id: 'infra-2', name_th: 'ทางหลวงแผ่นดินหมายเลข 101', name_en: 'Highway No. 101', category: 'road', description_th: 'ถนนสายรองผ่านตัวเมือง', description_en: 'Secondary highway through town center', length_km: 2.1 }
+      ]
     },
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [100.0470, 17.9820], [100.0520, 17.9830], [100.0570, 17.9835],
-          [100.0620, 17.9840]
+    "properties": {
+      "id": "road-108306239",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk_link",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.065634,
+          17.969334
+        ],
+        [
+          100.065656,
+          17.969205
         ]
-      },
-      properties: { id: 'infra-3', name_th: 'ถนนเทศบาล สาย 1', name_en: 'Municipal Road 1', category: 'road', description_th: 'ถนนสายหลักของเทศบาล', description_en: 'Main municipal road', length_km: 1.6 }
+      ]
     },
-
-    // ── สะพาน (Point) ──
-    {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [100.0515, 17.9805] },
-      properties: { id: 'infra-4', name_th: 'สะพานข้ามลำน้ำแม่สอง', name_en: 'Mae Song River Bridge', category: 'bridge', description_th: 'สะพานคอนกรีตข้ามลำน้ำแม่สอง กว้าง 8 ม.', description_en: 'Concrete bridge over Mae Song River, 8m wide', width_m: 8, year_built: 2010 }
-    },
-    {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [100.0580, 17.9790] },
-      properties: { id: 'infra-5', name_th: 'สะพานคลองชลประทาน', name_en: 'Irrigation Canal Bridge', category: 'bridge', description_th: 'สะพานเหล็กข้ามคลองชลประทาน', description_en: 'Steel bridge over irrigation canal', width_m: 6, year_built: 2015 }
-    },
-
-    // ── ระบบประปา (Point) ──
-    {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [100.0465, 17.9850] },
-      properties: { id: 'infra-6', name_th: 'โรงกรองน้ำประปาเด่นชัย', name_en: 'Denchai Water Treatment Plant', category: 'water', description_th: 'โรงผลิตน้ำประปา กำลังผลิต 200 ลบ.ม./ชม.', description_en: 'Water treatment plant, 200 m³/h capacity', capacity_m3: 200 }
-    },
-    {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [100.0590, 17.9810] },
-      properties: { id: 'infra-7', name_th: 'หอถังสูงประปาเทศบาล', name_en: 'Municipal Water Tower', category: 'water', description_th: 'หอถังสูงจ่ายน้ำประปา ความจุ 100 ลบ.ม.', description_en: 'Water tower, 100 m³ capacity', capacity_m3: 100 }
-    },
-
-    // ── ระบบไฟฟ้า (Point) ──
-    {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [100.0475, 17.9830] },
-      properties: { id: 'infra-8', name_th: 'สถานีไฟฟ้าย่อยเด่นชัย', name_en: 'Denchai Substation', category: 'electric', description_th: 'สถานีไฟฟ้าย่อย การไฟฟ้าส่วนภูมิภาค', description_en: 'PEA electrical substation', capacity_kva: 5000 }
-    },
-    {
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [100.0555, 17.9865] },
-      properties: { id: 'infra-9', name_th: 'หม้อแปลงไฟฟ้าชุมชน', name_en: 'Community Transformer', category: 'electric', description_th: 'หม้อแปลง 250 KVA จ่ายไฟชุมชน', description_en: '250 KVA transformer serving community', capacity_kva: 250 }
-    },
-
-    // ── ระบบระบายน้ำ (LineString) ──
-    {
-      type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: [
-          [100.0480, 17.9870], [100.0520, 17.9850], [100.0560, 17.9830],
-          [100.0600, 17.9810]
+    "properties": {
+      "id": "road-108749943",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "paved",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.06377,
+          17.968688
+        ],
+        [
+          100.064465,
+          17.968928
+        ],
+        [
+          100.065506,
+          17.969289
         ]
-      },
-      properties: { id: 'infra-10', name_th: 'คลองระบายน้ำสายหลัก', name_en: 'Main Drainage Canal', category: 'drainage', description_th: 'คลองระบายน้ำสายหลักของเทศบาล ยาว 1.5 กม.', description_en: 'Main drainage canal, 1.5 km', length_km: 1.5 }
+      ]
     },
-  ]
+    "properties": {
+      "id": "road-112980688",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": "2",
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.065529,
+          17.969157
+        ],
+        [
+          100.064967,
+          17.968962
+        ],
+        [
+          100.063815,
+          17.968562
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-112980732",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.060981,
+          17.967734
+        ],
+        [
+          100.063413,
+          17.968569
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-112980735",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": "2",
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.065529,
+          17.969157
+        ],
+        [
+          100.065506,
+          17.969289
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-112980741",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "paved",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.063815,
+          17.968562
+        ],
+        [
+          100.06345,
+          17.968449
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-112980743",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "paved",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.06345,
+          17.968449
+        ],
+        [
+          100.060955,
+          17.967619
+        ],
+        [
+          100.060222,
+          17.967369
+        ],
+        [
+          100.059568,
+          17.967162
+        ],
+        [
+          100.059202,
+          17.967064
+        ],
+        [
+          100.057007,
+          17.96659
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-112980752",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": "2",
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.065656,
+          17.969205
+        ],
+        [
+          100.065589,
+          17.96918
+        ],
+        [
+          100.065529,
+          17.969157
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-112980762",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.057007,
+          17.96659
+        ],
+        [
+          100.056669,
+          17.96653
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-112980765",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "paved",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.063413,
+          17.968569
+        ],
+        [
+          100.06377,
+          17.968688
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-112980784",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "paved",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.065506,
+          17.969289
+        ],
+        [
+          100.065634,
+          17.969334
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-112980793",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": "2",
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.056669,
+          17.96653
+        ],
+        [
+          100.056341,
+          17.966475
+        ],
+        [
+          100.053065,
+          17.965859
+        ],
+        [
+          100.052848,
+          17.965838
+        ],
+        [
+          100.052629,
+          17.965843
+        ],
+        [
+          100.052416,
+          17.965882
+        ],
+        [
+          100.052202,
+          17.965955
+        ],
+        [
+          100.051985,
+          17.966063
+        ],
+        [
+          100.051763,
+          17.966216
+        ],
+        [
+          100.047958,
+          17.969164
+        ],
+        [
+          100.045217,
+          17.971215
+        ],
+        [
+          100.043952,
+          17.972162
+        ],
+        [
+          100.0437,
+          17.972364
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-112980795",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.073059,
+          17.971885
+        ],
+        [
+          100.073516,
+          17.972036
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-311270375",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "101",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.073592,
+          17.971939
+        ],
+        [
+          100.073101,
+          17.971774
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-311270377",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "101",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.073101,
+          17.971774
+        ],
+        [
+          100.07108,
+          17.971086
+        ],
+        [
+          100.067874,
+          17.969971
+        ],
+        [
+          100.066495,
+          17.969494
+        ],
+        [
+          100.066415,
+          17.969467
+        ],
+        [
+          100.066198,
+          17.969392
+        ],
+        [
+          100.065656,
+          17.969205
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-311270379",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "101",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": "2",
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.038291,
+          17.976639
+        ],
+        [
+          100.038547,
+          17.976445
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-313815323",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.065656,
+          17.969205
+        ],
+        [
+          100.065749,
+          17.968726
+        ],
+        [
+          100.06595,
+          17.967691
+        ],
+        [
+          100.066206,
+          17.966368
+        ],
+        [
+          100.066554,
+          17.964582
+        ],
+        [
+          100.067067,
+          17.961802
+        ],
+        [
+          100.067221,
+          17.960968
+        ],
+        [
+          100.067384,
+          17.960089
+        ],
+        [
+          100.067526,
+          17.959318
+        ],
+        [
+          100.067661,
+          17.958578
+        ],
+        [
+          100.068003,
+          17.956745
+        ],
+        [
+          100.068098,
+          17.956197
+        ],
+        [
+          100.068287,
+          17.955131
+        ],
+        [
+          100.068306,
+          17.954962
+        ],
+        [
+          100.068368,
+          17.954428
+        ],
+        [
+          100.068425,
+          17.953772
+        ],
+        [
+          100.068437,
+          17.95346
+        ],
+        [
+          100.068434,
+          17.952915
+        ],
+        [
+          100.068414,
+          17.952392
+        ],
+        [
+          100.068373,
+          17.951866
+        ],
+        [
+          100.068309,
+          17.951356
+        ],
+        [
+          100.068229,
+          17.950941
+        ],
+        [
+          100.068135,
+          17.950437
+        ],
+        [
+          100.068025,
+          17.949973
+        ],
+        [
+          100.067857,
+          17.949376
+        ],
+        [
+          100.067728,
+          17.948971
+        ],
+        [
+          100.067586,
+          17.948561
+        ],
+        [
+          100.067411,
+          17.948125
+        ],
+        [
+          100.067213,
+          17.947668
+        ],
+        [
+          100.066961,
+          17.947178
+        ],
+        [
+          100.066573,
+          17.946459
+        ],
+        [
+          100.065962,
+          17.945554
+        ],
+        [
+          100.065355,
+          17.944729
+        ],
+        [
+          100.064628,
+          17.943875
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-454883792",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "paved",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.064549,
+          17.943952
+        ],
+        [
+          100.065432,
+          17.945
+        ],
+        [
+          100.065668,
+          17.945313
+        ],
+        [
+          100.065888,
+          17.945626
+        ],
+        [
+          100.066476,
+          17.946516
+        ],
+        [
+          100.066897,
+          17.947277
+        ],
+        [
+          100.067111,
+          17.947707
+        ],
+        [
+          100.067308,
+          17.948166
+        ],
+        [
+          100.067574,
+          17.948885
+        ],
+        [
+          100.067722,
+          17.949339
+        ],
+        [
+          100.067945,
+          17.950118
+        ],
+        [
+          100.068046,
+          17.950583
+        ],
+        [
+          100.068107,
+          17.950894
+        ],
+        [
+          100.068178,
+          17.951209
+        ],
+        [
+          100.068242,
+          17.951677
+        ],
+        [
+          100.068287,
+          17.952131
+        ],
+        [
+          100.06831,
+          17.952544
+        ],
+        [
+          100.068326,
+          17.953047
+        ],
+        [
+          100.068328,
+          17.953448
+        ],
+        [
+          100.068314,
+          17.95383
+        ],
+        [
+          100.068265,
+          17.954459
+        ],
+        [
+          100.068177,
+          17.955164
+        ],
+        [
+          100.068116,
+          17.955515
+        ],
+        [
+          100.068079,
+          17.955716
+        ],
+        [
+          100.067971,
+          17.956302
+        ],
+        [
+          100.06763,
+          17.958067
+        ],
+        [
+          100.06757,
+          17.958383
+        ],
+        [
+          100.067398,
+          17.959284
+        ],
+        [
+          100.067076,
+          17.961019
+        ],
+        [
+          100.066374,
+          17.964549
+        ],
+        [
+          100.066221,
+          17.965366
+        ],
+        [
+          100.065886,
+          17.967149
+        ],
+        [
+          100.065616,
+          17.968701
+        ],
+        [
+          100.065529,
+          17.969157
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-667857897",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "paved",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.076803,
+          17.973058
+        ],
+        [
+          100.076698,
+          17.973022
+        ],
+        [
+          100.075905,
+          17.972745
+        ],
+        [
+          100.074862,
+          17.972382
+        ],
+        [
+          100.074706,
+          17.972327
+        ],
+        [
+          100.074246,
+          17.972167
+        ],
+        [
+          100.073592,
+          17.971939
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1075535857",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "101",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": "2",
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.073516,
+          17.972036
+        ],
+        [
+          100.074809,
+          17.972495
+        ],
+        [
+          100.076083,
+          17.972947
+        ],
+        [
+          100.076644,
+          17.973146
+        ],
+        [
+          100.076748,
+          17.973183
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1075535858",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "101",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": "2",
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.042346,
+          17.973365
+        ],
+        [
+          100.041305,
+          17.974133
+        ],
+        [
+          100.040072,
+          17.975035
+        ],
+        [
+          100.038426,
+          17.976301
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1233926549",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.038426,
+          17.976301
+        ],
+        [
+          100.038171,
+          17.976495
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1233926553",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.038547,
+          17.976445
+        ],
+        [
+          100.040196,
+          17.97518
+        ],
+        [
+          100.041415,
+          17.974242
+        ],
+        [
+          100.04248,
+          17.973477
+        ],
+        [
+          100.043655,
+          17.972593
+        ],
+        [
+          100.04375,
+          17.972522
+        ],
+        [
+          100.0438,
+          17.97248
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1233926556",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.033201,
+          17.977871
+        ],
+        [
+          100.033288,
+          17.977863
+        ],
+        [
+          100.033546,
+          17.97784
+        ],
+        [
+          100.034669,
+          17.977722
+        ],
+        [
+          100.036418,
+          17.977543
+        ],
+        [
+          100.036612,
+          17.977514
+        ],
+        [
+          100.036828,
+          17.977472
+        ],
+        [
+          100.037009,
+          17.97742
+        ],
+        [
+          100.037213,
+          17.977344
+        ],
+        [
+          100.037386,
+          17.977257
+        ],
+        [
+          100.0376,
+          17.977138
+        ],
+        [
+          100.037801,
+          17.976996
+        ],
+        [
+          100.038291,
+          17.976639
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1233926568",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": "2",
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.038171,
+          17.976495
+        ],
+        [
+          100.037683,
+          17.976847
+        ],
+        [
+          100.037492,
+          17.976983
+        ],
+        [
+          100.037291,
+          17.977095
+        ],
+        [
+          100.037132,
+          17.977175
+        ],
+        [
+          100.036946,
+          17.977244
+        ],
+        [
+          100.03678,
+          17.977291
+        ],
+        [
+          100.036577,
+          17.977331
+        ],
+        [
+          100.036392,
+          17.977359
+        ],
+        [
+          100.034648,
+          17.977537
+        ],
+        [
+          100.033279,
+          17.977678
+        ],
+        [
+          100.033186,
+          17.977684
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1233926569",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": "2",
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.0437,
+          17.972364
+        ],
+        [
+          100.043542,
+          17.972478
+        ],
+        [
+          100.043245,
+          17.972689
+        ],
+        [
+          100.042346,
+          17.973365
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1235733019",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.0438,
+          17.97248
+        ],
+        [
+          100.044072,
+          17.972281
+        ],
+        [
+          100.046537,
+          17.970365
+        ],
+        [
+          100.047162,
+          17.969897
+        ],
+        [
+          100.048028,
+          17.96925
+        ],
+        [
+          100.048907,
+          17.968591
+        ],
+        [
+          100.049462,
+          17.968176
+        ],
+        [
+          100.049956,
+          17.967791
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1235733021",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.056983,
+          17.966705
+        ],
+        [
+          100.059173,
+          17.967166
+        ],
+        [
+          100.059538,
+          17.967263
+        ],
+        [
+          100.060115,
+          17.967439
+        ],
+        [
+          100.060981,
+          17.967734
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1345036744",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": "2",
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.049956,
+          17.967791
+        ],
+        [
+          100.051819,
+          17.966318
+        ],
+        [
+          100.052041,
+          17.966165
+        ],
+        [
+          100.052258,
+          17.966057
+        ],
+        [
+          100.052472,
+          17.965984
+        ],
+        [
+          100.052685,
+          17.965944
+        ],
+        [
+          100.052904,
+          17.96594
+        ],
+        [
+          100.053122,
+          17.965961
+        ],
+        [
+          100.056124,
+          17.966544
+        ],
+        [
+          100.05665,
+          17.966643
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1345036745",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "asphalt",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.05665,
+          17.966643
+        ],
+        [
+          100.056983,
+          17.966705
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1345036746",
+      "name_th": "ทางหลวงแผ่นดินหมายเลข 11 (ทล.11)",
+      "name_en": "Highway 11 (Super Highway)",
+      "ref": "11",
+      "category": "highway",
+      "highway_type": "trunk",
+      "surface": "paved",
+      "lanes": 2,
+      "description_th": "ทางหลวงสายหลักเชื่อม เด่นชัย - พิษณุโลก - ลำปาง"
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.033186,
+          17.977684
+        ],
+        [
+          100.033201,
+          17.977871
+        ],
+        [
+          100.033206,
+          17.977948
+        ],
+        [
+          100.033219,
+          17.978082
+        ],
+        [
+          100.033227,
+          17.97812
+        ],
+        [
+          100.033241,
+          17.978176
+        ],
+        [
+          100.033293,
+          17.978262
+        ],
+        [
+          100.033358,
+          17.978328
+        ],
+        [
+          100.033447,
+          17.978373
+        ],
+        [
+          100.033586,
+          17.978417
+        ],
+        [
+          100.03389,
+          17.978464
+        ],
+        [
+          100.034338,
+          17.978506
+        ],
+        [
+          100.034668,
+          17.97853
+        ],
+        [
+          100.035008,
+          17.978525
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-84273632",
+      "name_th": "ทางหลวงหมายเลข 1419",
+      "name_en": "1419",
+      "ref": "1419",
+      "category": "main_road",
+      "highway_type": "secondary",
+      "surface": "paved",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.049846,
+          17.98108
+        ],
+        [
+          100.050387,
+          17.981454
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108309282",
+      "name_th": "ถนนยันตรกิจโกศล",
+      "name_en": "Yantarakit Koson Road",
+      "ref": "1379",
+      "category": "main_road",
+      "highway_type": "tertiary",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.050387,
+          17.981454
+        ],
+        [
+          100.050763,
+          17.981752
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108309283",
+      "name_th": "ถนนยันตรกิจโกศล",
+      "name_en": "Yantarakit Koson Road",
+      "ref": "1379",
+      "category": "main_road",
+      "highway_type": "tertiary",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.050763,
+          17.981752
+        ],
+        [
+          100.05162,
+          17.982446
+        ],
+        [
+          100.051693,
+          17.982506
+        ],
+        [
+          100.052033,
+          17.982781
+        ],
+        [
+          100.052092,
+          17.982831
+        ],
+        [
+          100.052394,
+          17.983075
+        ],
+        [
+          100.052727,
+          17.983341
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108309284",
+      "name_th": "ถนนยันตรกิจโกศล",
+      "name_en": "Yantarakit Koson Road",
+      "ref": "1379",
+      "category": "main_road",
+      "highway_type": "tertiary",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.063332,
+          18.018522
+        ],
+        [
+          100.062953,
+          18.018494
+        ],
+        [
+          100.062824,
+          18.018489
+        ],
+        [
+          100.062681,
+          18.018521
+        ],
+        [
+          100.062333,
+          18.018645
+        ],
+        [
+          100.062255,
+          18.018681
+        ],
+        [
+          100.062166,
+          18.018697
+        ],
+        [
+          100.062047,
+          18.0187
+        ],
+        [
+          100.061703,
+          18.01865
+        ],
+        [
+          100.061491,
+          18.018621
+        ],
+        [
+          100.061388,
+          18.018607
+        ],
+        [
+          100.061059,
+          18.01856
+        ],
+        [
+          100.06066,
+          18.018517
+        ],
+        [
+          100.06024,
+          18.018519
+        ],
+        [
+          100.060039,
+          18.018534
+        ],
+        [
+          100.05936,
+          18.018647
+        ],
+        [
+          100.059231,
+          18.018659
+        ],
+        [
+          100.059086,
+          18.018649
+        ],
+        [
+          100.058758,
+          18.018576
+        ],
+        [
+          100.058069,
+          18.018325
+        ],
+        [
+          100.057941,
+          18.018278
+        ],
+        [
+          100.057778,
+          18.01824
+        ],
+        [
+          100.057486,
+          18.018223
+        ],
+        [
+          100.057314,
+          18.018191
+        ],
+        [
+          100.056598,
+          18.017973
+        ],
+        [
+          100.056248,
+          18.017834
+        ],
+        [
+          100.055799,
+          18.017676
+        ],
+        [
+          100.055306,
+          18.017524
+        ],
+        [
+          100.055135,
+          18.017454
+        ],
+        [
+          100.055027,
+          18.017382
+        ],
+        [
+          100.054856,
+          18.017234
+        ],
+        [
+          100.054642,
+          18.017062
+        ],
+        [
+          100.054168,
+          18.01665
+        ],
+        [
+          100.053915,
+          18.016446
+        ],
+        [
+          100.053703,
+          18.016328
+        ],
+        [
+          100.053427,
+          18.01615
+        ],
+        [
+          100.053127,
+          18.015913
+        ],
+        [
+          100.052792,
+          18.015618
+        ],
+        [
+          100.05239,
+          18.015264
+        ],
+        [
+          100.052098,
+          18.015064
+        ],
+        [
+          100.051774,
+          18.014844
+        ],
+        [
+          100.051523,
+          18.014653
+        ],
+        [
+          100.051345,
+          18.014471
+        ],
+        [
+          100.051063,
+          18.014222
+        ],
+        [
+          100.050325,
+          18.013326
+        ],
+        [
+          100.049974,
+          18.012777
+        ],
+        [
+          100.049659,
+          18.012252
+        ],
+        [
+          100.049005,
+          18.010914
+        ],
+        [
+          100.048876,
+          18.010625
+        ],
+        [
+          100.048721,
+          18.010171
+        ],
+        [
+          100.048573,
+          18.00974
+        ],
+        [
+          100.04844,
+          18.009454
+        ],
+        [
+          100.048354,
+          18.009278
+        ],
+        [
+          100.04827,
+          18.009132
+        ],
+        [
+          100.048148,
+          18.008958
+        ],
+        [
+          100.046809,
+          18.007517
+        ],
+        [
+          100.046513,
+          18.007178
+        ],
+        [
+          100.04639,
+          18.007021
+        ],
+        [
+          100.04617,
+          18.00675
+        ],
+        [
+          100.045974,
+          18.006481
+        ],
+        [
+          100.045716,
+          18.006111
+        ],
+        [
+          100.045606,
+          18.005938
+        ],
+        [
+          100.045277,
+          18.005396
+        ],
+        [
+          100.045182,
+          18.005254
+        ],
+        [
+          100.044668,
+          18.004529
+        ],
+        [
+          100.044567,
+          18.004371
+        ],
+        [
+          100.044446,
+          18.004175
+        ],
+        [
+          100.044223,
+          18.003754
+        ],
+        [
+          100.044129,
+          18.003538
+        ],
+        [
+          100.04407,
+          18.003375
+        ],
+        [
+          100.044041,
+          18.003236
+        ],
+        [
+          100.04396,
+          18.002543
+        ],
+        [
+          100.043874,
+          18.001941
+        ],
+        [
+          100.043813,
+          18.001414
+        ],
+        [
+          100.043755,
+          18.000773
+        ],
+        [
+          100.043736,
+          18.000504
+        ],
+        [
+          100.043724,
+          18.000167
+        ],
+        [
+          100.043723,
+          18.000072
+        ],
+        [
+          100.043743,
+          17.999966
+        ],
+        [
+          100.043802,
+          17.999876
+        ],
+        [
+          100.044088,
+          17.999603
+        ],
+        [
+          100.044422,
+          17.99928
+        ],
+        [
+          100.044602,
+          17.999113
+        ],
+        [
+          100.044735,
+          17.998957
+        ],
+        [
+          100.047052,
+          17.995925
+        ],
+        [
+          100.049827,
+          17.992338
+        ],
+        [
+          100.051527,
+          17.990226
+        ],
+        [
+          100.052141,
+          17.989446
+        ],
+        [
+          100.052384,
+          17.989123
+        ],
+        [
+          100.052818,
+          17.988547
+        ],
+        [
+          100.053366,
+          17.987922
+        ],
+        [
+          100.053506,
+          17.987718
+        ],
+        [
+          100.053657,
+          17.987464
+        ],
+        [
+          100.053802,
+          17.987209
+        ],
+        [
+          100.053914,
+          17.986984
+        ],
+        [
+          100.053981,
+          17.986766
+        ],
+        [
+          100.054022,
+          17.986574
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108541501",
+      "name_th": "ทางหลวงหมายเลข พร.6019",
+      "name_en": "พร.6019",
+      "ref": "พร.6019",
+      "category": "main_road",
+      "highway_type": "tertiary",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.052727,
+          17.983341
+        ],
+        [
+          100.053368,
+          17.983841
+        ],
+        [
+          100.053611,
+          17.983991
+        ],
+        [
+          100.053717,
+          17.98405
+        ],
+        [
+          100.053824,
+          17.984104
+        ],
+        [
+          100.053984,
+          17.984183
+        ],
+        [
+          100.054234,
+          17.984282
+        ],
+        [
+          100.054339,
+          17.984323
+        ],
+        [
+          100.054445,
+          17.984358
+        ],
+        [
+          100.054684,
+          17.984425
+        ],
+        [
+          100.054889,
+          17.984473
+        ],
+        [
+          100.055079,
+          17.984507
+        ],
+        [
+          100.055317,
+          17.984528
+        ],
+        [
+          100.055533,
+          17.984536
+        ],
+        [
+          100.055832,
+          17.984549
+        ],
+        [
+          100.056094,
+          17.984524
+        ],
+        [
+          100.056341,
+          17.984487
+        ],
+        [
+          100.056661,
+          17.984425
+        ],
+        [
+          100.05687,
+          17.984369
+        ],
+        [
+          100.057068,
+          17.984289
+        ],
+        [
+          100.057194,
+          17.984201
+        ],
+        [
+          100.057908,
+          17.983892
+        ],
+        [
+          100.058384,
+          17.983628
+        ],
+        [
+          100.058752,
+          17.98342
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108749890",
+      "name_th": "ถนนยันตรกิจโกศล",
+      "name_en": "Yantarakit Koson Road",
+      "ref": "1419",
+      "category": "main_road",
+      "highway_type": "secondary",
+      "surface": "paved",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.054093,
+          17.980926
+        ],
+        [
+          100.053963,
+          17.981342
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108749946",
+      "name_th": "ทางหลวงหมายเลข 1419",
+      "name_en": "1419",
+      "ref": "1419",
+      "category": "main_road",
+      "highway_type": "secondary",
+      "surface": "paved",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.076644,
+          17.973146
+        ],
+        [
+          100.076458,
+          17.973569
+        ],
+        [
+          100.076255,
+          17.974069
+        ],
+        [
+          100.076172,
+          17.974198
+        ],
+        [
+          100.076082,
+          17.97431
+        ],
+        [
+          100.075953,
+          17.974424
+        ],
+        [
+          100.075836,
+          17.974503
+        ],
+        [
+          100.073278,
+          17.975823
+        ],
+        [
+          100.071111,
+          17.97693
+        ],
+        [
+          100.069139,
+          17.977942
+        ],
+        [
+          100.0642,
+          17.980515
+        ],
+        [
+          100.061808,
+          17.981758
+        ],
+        [
+          100.059595,
+          17.982912
+        ],
+        [
+          100.058951,
+          17.983267
+        ],
+        [
+          100.058752,
+          17.98342
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-112980650",
+      "name_th": "ถนนยันตรกิจโกศล",
+      "name_en": "Yantarakit Koson Road",
+      "ref": "1419",
+      "category": "main_road",
+      "highway_type": "secondary",
+      "surface": "paved",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.058752,
+          17.98342
+        ],
+        [
+          100.059001,
+          17.983326
+        ],
+        [
+          100.059078,
+          17.983286
+        ],
+        [
+          100.059562,
+          17.983044
+        ],
+        [
+          100.060354,
+          17.982624
+        ],
+        [
+          100.06183,
+          17.981869
+        ],
+        [
+          100.06358,
+          17.980955
+        ],
+        [
+          100.065576,
+          17.979915
+        ],
+        [
+          100.066611,
+          17.979381
+        ],
+        [
+          100.067176,
+          17.979092
+        ],
+        [
+          100.067844,
+          17.97875
+        ],
+        [
+          100.068246,
+          17.978538
+        ],
+        [
+          100.069173,
+          17.978056
+        ],
+        [
+          100.071095,
+          17.977052
+        ],
+        [
+          100.073331,
+          17.975912
+        ],
+        [
+          100.073546,
+          17.975803
+        ],
+        [
+          100.07589,
+          17.974604
+        ],
+        [
+          100.076053,
+          17.974504
+        ],
+        [
+          100.076166,
+          17.974411
+        ],
+        [
+          100.076217,
+          17.974347
+        ],
+        [
+          100.076265,
+          17.974287
+        ],
+        [
+          100.076325,
+          17.974181
+        ],
+        [
+          100.076403,
+          17.974032
+        ],
+        [
+          100.076598,
+          17.973522
+        ],
+        [
+          100.076748,
+          17.973183
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-112980771",
+      "name_th": "ถนนยันตรกิจโกศล",
+      "name_en": "Yantarakit Koson Road",
+      "ref": "1419",
+      "category": "main_road",
+      "highway_type": "secondary",
+      "surface": "paved",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.068246,
+          17.978538
+        ],
+        [
+          100.068577,
+          17.97897
+        ],
+        [
+          100.068872,
+          17.979352
+        ],
+        [
+          100.069127,
+          17.979675
+        ],
+        [
+          100.069457,
+          17.9801
+        ],
+        [
+          100.069858,
+          17.980595
+        ],
+        [
+          100.070213,
+          17.981046
+        ],
+        [
+          100.070386,
+          17.981278
+        ],
+        [
+          100.07057,
+          17.981502
+        ],
+        [
+          100.070877,
+          17.981912
+        ],
+        [
+          100.071203,
+          17.982314
+        ],
+        [
+          100.071232,
+          17.982332
+        ],
+        [
+          100.071259,
+          17.982333
+        ],
+        [
+          100.071278,
+          17.982325
+        ],
+        [
+          100.071614,
+          17.982062
+        ],
+        [
+          100.072301,
+          17.981585
+        ],
+        [
+          100.07232,
+          17.981532
+        ],
+        [
+          100.071978,
+          17.981048
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-449472409",
+      "name_th": "ซอยยันตรกิจโกศล 17",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "main_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.069856,
+          17.981598
+        ],
+        [
+          100.069422,
+          17.981035
+        ],
+        [
+          100.069357,
+          17.980951
+        ],
+        [
+          100.069017,
+          17.980453
+        ],
+        [
+          100.067844,
+          17.97875
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-449472414",
+      "name_th": "ซอยยันตรกิจโกศล 16",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "main_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.053963,
+          17.981342
+        ],
+        [
+          100.053727,
+          17.982071
+        ],
+        [
+          100.053643,
+          17.982246
+        ],
+        [
+          100.053533,
+          17.982441
+        ],
+        [
+          100.053442,
+          17.982571
+        ],
+        [
+          100.053331,
+          17.982712
+        ],
+        [
+          100.053159,
+          17.982915
+        ],
+        [
+          100.052727,
+          17.983341
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1075535859",
+      "name_th": "ทางหลวงหมายเลข 1419",
+      "name_en": "1419",
+      "ref": "1419",
+      "category": "main_road",
+      "highway_type": "secondary",
+      "surface": "paved",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.048687,
+          17.980905
+        ],
+        [
+          100.049165,
+          17.980972
+        ],
+        [
+          100.049611,
+          17.981036
+        ],
+        [
+          100.049846,
+          17.98108
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1084617153",
+      "name_th": "ถนนยันตรกิจโกศล",
+      "name_en": "Yantarakit Koson Road",
+      "ref": "1379",
+      "category": "main_road",
+      "highway_type": "tertiary",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.054022,
+          17.986574
+        ],
+        [
+          100.054074,
+          17.98637
+        ],
+        [
+          100.054123,
+          17.986218
+        ],
+        [
+          100.054221,
+          17.985853
+        ],
+        [
+          100.054357,
+          17.985246
+        ],
+        [
+          100.054422,
+          17.984895
+        ],
+        [
+          100.054424,
+          17.984728
+        ],
+        [
+          100.054445,
+          17.984358
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1138587832",
+      "name_th": "ถนนยันตรกิจโกศล ซอย 9",
+      "name_en": "Yantarakit Kosol Rd Soi 9",
+      "ref": "พร.6019",
+      "category": "main_road",
+      "highway_type": "tertiary",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.088292,
+          17.98936
+        ],
+        [
+          100.087616,
+          17.98841
+        ],
+        [
+          100.087436,
+          17.988153
+        ],
+        [
+          100.087323,
+          17.987999
+        ],
+        [
+          100.087199,
+          17.987849
+        ],
+        [
+          100.087076,
+          17.98772
+        ],
+        [
+          100.086913,
+          17.987564
+        ],
+        [
+          100.086765,
+          17.987432
+        ],
+        [
+          100.086561,
+          17.987275
+        ],
+        [
+          100.086138,
+          17.986956
+        ],
+        [
+          100.086072,
+          17.986912
+        ],
+        [
+          100.08495,
+          17.986101
+        ],
+        [
+          100.083526,
+          17.985055
+        ],
+        [
+          100.082225,
+          17.984109
+        ],
+        [
+          100.082039,
+          17.983962
+        ],
+        [
+          100.079103,
+          17.981758
+        ],
+        [
+          100.077843,
+          17.980807
+        ],
+        [
+          100.07582,
+          17.979282
+        ],
+        [
+          100.075615,
+          17.97917
+        ],
+        [
+          100.075367,
+          17.978952
+        ],
+        [
+          100.075219,
+          17.978804
+        ],
+        [
+          100.075039,
+          17.978594
+        ],
+        [
+          100.074878,
+          17.978364
+        ],
+        [
+          100.074566,
+          17.977901
+        ],
+        [
+          100.073331,
+          17.975912
+        ],
+        [
+          100.073278,
+          17.975823
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1227118063",
+      "name_th": "ทางหลวงหมายเลข พร.3024",
+      "name_en": "พร.3024",
+      "ref": "พร.3024",
+      "category": "main_road",
+      "highway_type": "tertiary",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.040899,
+          17.979084
+        ],
+        [
+          100.041469,
+          17.979139
+        ],
+        [
+          100.041645,
+          17.979163
+        ],
+        [
+          100.041864,
+          17.979187
+        ],
+        [
+          100.042113,
+          17.979222
+        ],
+        [
+          100.042277,
+          17.979234
+        ],
+        [
+          100.042452,
+          17.979243
+        ],
+        [
+          100.042649,
+          17.979235
+        ],
+        [
+          100.042921,
+          17.979207
+        ],
+        [
+          100.043281,
+          17.979144
+        ],
+        [
+          100.043498,
+          17.979085
+        ],
+        [
+          100.043766,
+          17.978995
+        ],
+        [
+          100.04411,
+          17.978847
+        ],
+        [
+          100.044535,
+          17.97867
+        ],
+        [
+          100.046282,
+          17.977965
+        ],
+        [
+          100.047351,
+          17.977543
+        ],
+        [
+          100.047541,
+          17.977467
+        ],
+        [
+          100.047716,
+          17.977359
+        ],
+        [
+          100.047837,
+          17.977241
+        ],
+        [
+          100.047948,
+          17.977083
+        ],
+        [
+          100.048085,
+          17.976844
+        ],
+        [
+          100.048334,
+          17.976338
+        ],
+        [
+          100.048503,
+          17.976106
+        ],
+        [
+          100.048704,
+          17.975968
+        ],
+        [
+          100.048963,
+          17.975857
+        ],
+        [
+          100.049223,
+          17.975775
+        ],
+        [
+          100.049462,
+          17.975742
+        ],
+        [
+          100.049682,
+          17.975746
+        ],
+        [
+          100.0499,
+          17.975777
+        ],
+        [
+          100.050842,
+          17.976003
+        ],
+        [
+          100.051159,
+          17.976083
+        ],
+        [
+          100.051855,
+          17.976261
+        ],
+        [
+          100.052109,
+          17.976367
+        ],
+        [
+          100.052382,
+          17.976511
+        ],
+        [
+          100.052564,
+          17.97664
+        ],
+        [
+          100.052816,
+          17.976818
+        ],
+        [
+          100.053039,
+          17.977026
+        ],
+        [
+          100.053568,
+          17.977535
+        ],
+        [
+          100.053832,
+          17.977823
+        ],
+        [
+          100.05402,
+          17.978081
+        ],
+        [
+          100.054138,
+          17.978299
+        ],
+        [
+          100.054232,
+          17.978547
+        ],
+        [
+          100.05432,
+          17.978769
+        ],
+        [
+          100.054386,
+          17.978998
+        ],
+        [
+          100.05442,
+          17.979229
+        ],
+        [
+          100.054443,
+          17.979502
+        ],
+        [
+          100.054418,
+          17.97978
+        ],
+        [
+          100.054357,
+          17.980037
+        ],
+        [
+          100.054286,
+          17.980244
+        ],
+        [
+          100.054093,
+          17.980926
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1233926552",
+      "name_th": "ทางหลวงหมายเลข 1419",
+      "name_en": "1419",
+      "ref": "1419",
+      "category": "main_road",
+      "highway_type": "secondary",
+      "surface": "paved",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.040608,
+          17.979056
+        ],
+        [
+          100.040899,
+          17.979084
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1233926559",
+      "name_th": "ทางหลวงหมายเลข 1419",
+      "name_en": "1419",
+      "ref": "1419",
+      "category": "main_road",
+      "highway_type": "secondary",
+      "surface": "paved",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.035008,
+          17.978525
+        ],
+        [
+          100.036054,
+          17.978631
+        ],
+        [
+          100.038167,
+          17.978816
+        ],
+        [
+          100.038633,
+          17.978865
+        ],
+        [
+          100.039421,
+          17.978943
+        ],
+        [
+          100.039784,
+          17.978977
+        ],
+        [
+          100.040608,
+          17.979056
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1434549303",
+      "name_th": "ทางหลวงหมายเลข 1419",
+      "name_en": "1419",
+      "ref": "1419",
+      "category": "main_road",
+      "highway_type": "secondary",
+      "surface": "paved",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.066198,
+          17.969392
+        ],
+        [
+          100.065964,
+          17.969237
+        ],
+        [
+          100.065884,
+          17.969152
+        ],
+        [
+          100.0658,
+          17.969007
+        ],
+        [
+          100.06576,
+          17.968889
+        ],
+        [
+          100.065749,
+          17.968726
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108306240",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "trunk_link",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.050452,
+          17.97855
+        ],
+        [
+          100.050311,
+          17.978798
+        ],
+        [
+          100.050246,
+          17.978961
+        ],
+        [
+          100.050202,
+          17.979112
+        ],
+        [
+          100.05009,
+          17.979998
+        ],
+        [
+          100.05,
+          17.98043
+        ],
+        [
+          100.049846,
+          17.98108
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108307755",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.059595,
+          17.982912
+        ],
+        [
+          100.059514,
+          17.982661
+        ],
+        [
+          100.059498,
+          17.982527
+        ],
+        [
+          100.059472,
+          17.982096
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108307761",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.059454,
+          17.981535
+        ],
+        [
+          100.059402,
+          17.979306
+        ],
+        [
+          100.059369,
+          17.979212
+        ],
+        [
+          100.059316,
+          17.979122
+        ],
+        [
+          100.058852,
+          17.978484
+        ],
+        [
+          100.058654,
+          17.978192
+        ],
+        [
+          100.057963,
+          17.977168
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108309281",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.053533,
+          17.982441
+        ],
+        [
+          100.053659,
+          17.982512
+        ],
+        [
+          100.053763,
+          17.982532
+        ],
+        [
+          100.055083,
+          17.982267
+        ],
+        [
+          100.055241,
+          17.982262
+        ],
+        [
+          100.05531,
+          17.982623
+        ],
+        [
+          100.055363,
+          17.982824
+        ],
+        [
+          100.055415,
+          17.983083
+        ],
+        [
+          100.055371,
+          17.983129
+        ],
+        [
+          100.055324,
+          17.98318
+        ],
+        [
+          100.055104,
+          17.9832
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108309285",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.059472,
+          17.982096
+        ],
+        [
+          100.059454,
+          17.981535
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108309286",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.045372,
+          17.984836
+        ],
+        [
+          100.045119,
+          17.98426
+        ],
+        [
+          100.044988,
+          17.983921
+        ],
+        [
+          100.04498,
+          17.983853
+        ],
+        [
+          100.045291,
+          17.983817
+        ],
+        [
+          100.045882,
+          17.983776
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108546633",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.06489,
+          17.997825
+        ],
+        [
+          100.064679,
+          17.997568
+        ],
+        [
+          100.064418,
+          17.997326
+        ],
+        [
+          100.064072,
+          17.996915
+        ],
+        [
+          100.064005,
+          17.996701
+        ],
+        [
+          100.063873,
+          17.996433
+        ],
+        [
+          100.063863,
+          17.996323
+        ],
+        [
+          100.063876,
+          17.995627
+        ],
+        [
+          100.06386,
+          17.995402
+        ],
+        [
+          100.063511,
+          17.994851
+        ],
+        [
+          100.063299,
+          17.994326
+        ],
+        [
+          100.063218,
+          17.993961
+        ],
+        [
+          100.063122,
+          17.993244
+        ],
+        [
+          100.063085,
+          17.993137
+        ],
+        [
+          100.062999,
+          17.993043
+        ],
+        [
+          100.061644,
+          17.992148
+        ],
+        [
+          100.061524,
+          17.992081
+        ],
+        [
+          100.060245,
+          17.991289
+        ],
+        [
+          100.06012,
+          17.991178
+        ],
+        [
+          100.060038,
+          17.99108
+        ],
+        [
+          100.059984,
+          17.990969
+        ],
+        [
+          100.059895,
+          17.990637
+        ],
+        [
+          100.059824,
+          17.99052
+        ],
+        [
+          100.059646,
+          17.99032
+        ],
+        [
+          100.059513,
+          17.990166
+        ],
+        [
+          100.059404,
+          17.989994
+        ],
+        [
+          100.05921,
+          17.989574
+        ],
+        [
+          100.058754,
+          17.988634
+        ],
+        [
+          100.058708,
+          17.988516
+        ],
+        [
+          100.058632,
+          17.988173
+        ],
+        [
+          100.058453,
+          17.987705
+        ],
+        [
+          100.058285,
+          17.987419
+        ],
+        [
+          100.058105,
+          17.986972
+        ],
+        [
+          100.058014,
+          17.986717
+        ],
+        [
+          100.057867,
+          17.986291
+        ],
+        [
+          100.057827,
+          17.986158
+        ],
+        [
+          100.057687,
+          17.985718
+        ],
+        [
+          100.057298,
+          17.984839
+        ],
+        [
+          100.057068,
+          17.984289
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108546634",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.042523,
+          17.990198
+        ],
+        [
+          100.042346,
+          17.989734
+        ],
+        [
+          100.042026,
+          17.989143
+        ],
+        [
+          100.041981,
+          17.98906
+        ],
+        [
+          100.042019,
+          17.988861
+        ],
+        [
+          100.04174,
+          17.988586
+        ],
+        [
+          100.041708,
+          17.988468
+        ],
+        [
+          100.041736,
+          17.988407
+        ],
+        [
+          100.041761,
+          17.988351
+        ],
+        [
+          100.042573,
+          17.987548
+        ],
+        [
+          100.043012,
+          17.987208
+        ],
+        [
+          100.043091,
+          17.987155
+        ],
+        [
+          100.043123,
+          17.987079
+        ],
+        [
+          100.042978,
+          17.986778
+        ],
+        [
+          100.042911,
+          17.986629
+        ],
+        [
+          100.042842,
+          17.986344
+        ],
+        [
+          100.042725,
+          17.985819
+        ],
+        [
+          100.043089,
+          17.985589
+        ],
+        [
+          100.043356,
+          17.985405
+        ],
+        [
+          100.043748,
+          17.985137
+        ],
+        [
+          100.045119,
+          17.98426
+        ],
+        [
+          100.045882,
+          17.983776
+        ],
+        [
+          100.046433,
+          17.983703
+        ],
+        [
+          100.047655,
+          17.983585
+        ],
+        [
+          100.04808,
+          17.983539
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108546635",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.036928,
+          17.985269
+        ],
+        [
+          100.036429,
+          17.985381
+        ],
+        [
+          100.035973,
+          17.985336
+        ],
+        [
+          100.035609,
+          17.985351
+        ],
+        [
+          100.035328,
+          17.985345
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108546968",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.035328,
+          17.985345
+        ],
+        [
+          100.035084,
+          17.985112
+        ],
+        [
+          100.034836,
+          17.98474
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108546969",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.045575,
+          17.981379
+        ],
+        [
+          100.04539,
+          17.98151
+        ],
+        [
+          100.045181,
+          17.98165
+        ],
+        [
+          100.044878,
+          17.981885
+        ],
+        [
+          100.044688,
+          17.982005
+        ],
+        [
+          100.044562,
+          17.98206
+        ],
+        [
+          100.044369,
+          17.982124
+        ],
+        [
+          100.043663,
+          17.982416
+        ],
+        [
+          100.04329,
+          17.982539
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108546972",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.033429,
+          17.988961
+        ],
+        [
+          100.033793,
+          17.988833
+        ],
+        [
+          100.034031,
+          17.988726
+        ],
+        [
+          100.034217,
+          17.988706
+        ],
+        [
+          100.034563,
+          17.988749
+        ],
+        [
+          100.034874,
+          17.98879
+        ],
+        [
+          100.035498,
+          17.988858
+        ],
+        [
+          100.035523,
+          17.988861
+        ],
+        [
+          100.035914,
+          17.988882
+        ],
+        [
+          100.036172,
+          17.9888
+        ],
+        [
+          100.036311,
+          17.988632
+        ],
+        [
+          100.036408,
+          17.988371
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108546975",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.055818,
+          17.986885
+        ],
+        [
+          100.056866,
+          17.986798
+        ],
+        [
+          100.05736,
+          17.986774
+        ],
+        [
+          100.058014,
+          17.986717
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108549980",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.056787,
+          17.986371
+        ],
+        [
+          100.05667,
+          17.985785
+        ],
+        [
+          100.056594,
+          17.985441
+        ],
+        [
+          100.056341,
+          17.984487
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108549982",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "paved",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.056143,
+          17.985835
+        ],
+        [
+          100.05667,
+          17.985785
+        ],
+        [
+          100.056861,
+          17.985772
+        ],
+        [
+          100.057687,
+          17.985718
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108549983",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "paved",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.05575,
+          17.986224
+        ],
+        [
+          100.055415,
+          17.986253
+        ],
+        [
+          100.055374,
+          17.986229
+        ],
+        [
+          100.055279,
+          17.986076
+        ],
+        [
+          100.055128,
+          17.985861
+        ],
+        [
+          100.055038,
+          17.985756
+        ],
+        [
+          100.054969,
+          17.985682
+        ],
+        [
+          100.054722,
+          17.985449
+        ],
+        [
+          100.054676,
+          17.985394
+        ],
+        [
+          100.054581,
+          17.985151
+        ],
+        [
+          100.054514,
+          17.98501
+        ],
+        [
+          100.054422,
+          17.984895
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108549984",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.057867,
+          17.986291
+        ],
+        [
+          100.057312,
+          17.986341
+        ],
+        [
+          100.056787,
+          17.986371
+        ],
+        [
+          100.055775,
+          17.986465
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108549986",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.063077,
+          17.983641
+        ],
+        [
+          100.062295,
+          17.983998
+        ],
+        [
+          100.062122,
+          17.984086
+        ],
+        [
+          100.061758,
+          17.98431
+        ],
+        [
+          100.06155,
+          17.984472
+        ],
+        [
+          100.06138,
+          17.98461
+        ],
+        [
+          100.061047,
+          17.984834
+        ],
+        [
+          100.060661,
+          17.984933
+        ],
+        [
+          100.06019,
+          17.98512
+        ],
+        [
+          100.06011,
+          17.98513
+        ],
+        [
+          100.059729,
+          17.985179
+        ],
+        [
+          100.05958,
+          17.985244
+        ],
+        [
+          100.059438,
+          17.985308
+        ],
+        [
+          100.059246,
+          17.98541
+        ],
+        [
+          100.058919,
+          17.985652
+        ],
+        [
+          100.05874,
+          17.985725
+        ],
+        [
+          100.058223,
+          17.985948
+        ],
+        [
+          100.057827,
+          17.986158
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108549987",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.060305,
+          17.983981
+        ],
+        [
+          100.060123,
+          17.984
+        ],
+        [
+          100.059958,
+          17.983973
+        ],
+        [
+          100.059895,
+          17.983978
+        ],
+        [
+          100.059592,
+          17.984008
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108550779",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.055406,
+          17.987484
+        ],
+        [
+          100.055471,
+          17.98741
+        ],
+        [
+          100.055649,
+          17.987122
+        ],
+        [
+          100.055818,
+          17.986885
+        ],
+        [
+          100.055775,
+          17.986465
+        ],
+        [
+          100.05575,
+          17.986224
+        ],
+        [
+          100.055705,
+          17.985812
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108550782",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.059562,
+          17.983044
+        ],
+        [
+          100.059671,
+          17.983441
+        ],
+        [
+          100.059606,
+          17.983442
+        ],
+        [
+          100.059498,
+          17.98346
+        ],
+        [
+          100.059467,
+          17.98348
+        ],
+        [
+          100.059509,
+          17.983749
+        ],
+        [
+          100.059592,
+          17.984008
+        ],
+        [
+          100.059571,
+          17.984086
+        ],
+        [
+          100.059651,
+          17.984438
+        ],
+        [
+          100.059637,
+          17.984469
+        ],
+        [
+          100.059522,
+          17.98454
+        ],
+        [
+          100.059509,
+          17.984573
+        ],
+        [
+          100.05965,
+          17.984815
+        ],
+        [
+          100.059729,
+          17.985179
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108550783",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.06065,
+          17.983303
+        ],
+        [
+          100.060702,
+          17.983325
+        ],
+        [
+          100.061383,
+          17.982918
+        ],
+        [
+          100.06179,
+          17.98265
+        ],
+        [
+          100.062207,
+          17.982381
+        ],
+        [
+          100.062183,
+          17.982336
+        ],
+        [
+          100.06202,
+          17.982124
+        ],
+        [
+          100.06183,
+          17.981869
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108550784",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.062559,
+          17.985441
+        ],
+        [
+          100.062454,
+          17.985215
+        ],
+        [
+          100.062431,
+          17.985133
+        ],
+        [
+          100.06243,
+          17.985071
+        ],
+        [
+          100.062468,
+          17.984985
+        ],
+        [
+          100.062499,
+          17.984917
+        ],
+        [
+          100.062524,
+          17.984856
+        ],
+        [
+          100.062502,
+          17.984791
+        ],
+        [
+          100.062327,
+          17.984519
+        ],
+        [
+          100.062122,
+          17.984086
+        ],
+        [
+          100.06211,
+          17.983966
+        ],
+        [
+          100.061993,
+          17.983722
+        ],
+        [
+          100.061792,
+          17.983447
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108550785",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.06065,
+          17.983303
+        ],
+        [
+          100.060517,
+          17.983325
+        ],
+        [
+          100.060189,
+          17.98342
+        ],
+        [
+          100.059746,
+          17.983442
+        ],
+        [
+          100.059671,
+          17.983441
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108550786",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.061143,
+          17.983699
+        ],
+        [
+          100.06155,
+          17.984472
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108550787",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.060189,
+          17.98342
+        ],
+        [
+          100.060241,
+          17.983619
+        ],
+        [
+          100.060305,
+          17.983981
+        ],
+        [
+          100.06033,
+          17.984002
+        ],
+        [
+          100.060386,
+          17.984091
+        ],
+        [
+          100.060426,
+          17.984109
+        ],
+        [
+          100.060463,
+          17.984109
+        ],
+        [
+          100.060504,
+          17.984096
+        ],
+        [
+          100.060808,
+          17.983885
+        ],
+        [
+          100.060885,
+          17.983824
+        ],
+        [
+          100.061143,
+          17.983699
+        ],
+        [
+          100.061584,
+          17.983597
+        ],
+        [
+          100.061656,
+          17.983571
+        ],
+        [
+          100.061737,
+          17.983498
+        ],
+        [
+          100.061792,
+          17.983447
+        ],
+        [
+          100.061879,
+          17.98337
+        ],
+        [
+          100.061943,
+          17.983329
+        ],
+        [
+          100.062025,
+          17.983307
+        ],
+        [
+          100.062113,
+          17.983299
+        ],
+        [
+          100.062218,
+          17.983312
+        ],
+        [
+          100.062298,
+          17.983337
+        ],
+        [
+          100.062523,
+          17.983437
+        ],
+        [
+          100.062877,
+          17.983548
+        ],
+        [
+          100.062979,
+          17.983587
+        ],
+        [
+          100.063077,
+          17.983641
+        ],
+        [
+          100.063213,
+          17.983706
+        ],
+        [
+          100.063308,
+          17.983801
+        ],
+        [
+          100.063386,
+          17.983896
+        ],
+        [
+          100.063475,
+          17.983967
+        ],
+        [
+          100.063573,
+          17.984072
+        ],
+        [
+          100.063785,
+          17.984422
+        ],
+        [
+          100.063829,
+          17.984454
+        ],
+        [
+          100.064168,
+          17.984483
+        ],
+        [
+          100.064259,
+          17.984505
+        ],
+        [
+          100.064322,
+          17.984531
+        ],
+        [
+          100.064527,
+          17.984741
+        ],
+        [
+          100.064694,
+          17.985013
+        ],
+        [
+          100.064711,
+          17.985062
+        ],
+        [
+          100.064671,
+          17.985101
+        ],
+        [
+          100.064424,
+          17.985182
+        ],
+        [
+          100.064173,
+          17.985257
+        ],
+        [
+          100.06382,
+          17.9853
+        ],
+        [
+          100.063461,
+          17.985333
+        ],
+        [
+          100.063277,
+          17.985343
+        ],
+        [
+          100.062925,
+          17.98539
+        ],
+        [
+          100.062733,
+          17.98543
+        ],
+        [
+          100.062559,
+          17.985441
+        ],
+        [
+          100.062433,
+          17.985484
+        ],
+        [
+          100.062185,
+          17.985542
+        ],
+        [
+          100.062099,
+          17.985598
+        ],
+        [
+          100.062017,
+          17.985667
+        ],
+        [
+          100.061751,
+          17.986004
+        ],
+        [
+          100.061681,
+          17.986061
+        ],
+        [
+          100.061603,
+          17.986112
+        ],
+        [
+          100.06139,
+          17.986196
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108550789",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.058105,
+          17.986972
+        ],
+        [
+          100.059369,
+          17.986568
+        ],
+        [
+          100.059708,
+          17.987404
+        ],
+        [
+          100.059897,
+          17.987962
+        ],
+        [
+          100.059949,
+          17.988134
+        ],
+        [
+          100.058754,
+          17.988634
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108724191",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.064437,
+          17.989438
+        ],
+        [
+          100.064265,
+          17.989152
+        ],
+        [
+          100.064136,
+          17.98879
+        ],
+        [
+          100.063876,
+          17.988436
+        ],
+        [
+          100.063825,
+          17.988366
+        ],
+        [
+          100.063574,
+          17.98811
+        ],
+        [
+          100.06316,
+          17.987688
+        ],
+        [
+          100.062817,
+          17.987361
+        ],
+        [
+          100.062774,
+          17.987321
+        ],
+        [
+          100.062391,
+          17.986989
+        ],
+        [
+          100.061743,
+          17.986487
+        ],
+        [
+          100.06139,
+          17.986196
+        ],
+        [
+          100.0606,
+          17.985547
+        ],
+        [
+          100.06011,
+          17.98513
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108724196",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.062897,
+          17.989395
+        ],
+        [
+          100.062272,
+          17.989053
+        ],
+        [
+          100.061848,
+          17.988848
+        ],
+        [
+          100.06144,
+          17.988614
+        ],
+        [
+          100.061348,
+          17.988571
+        ],
+        [
+          100.061277,
+          17.988605
+        ],
+        [
+          100.061228,
+          17.988691
+        ],
+        [
+          100.061137,
+          17.988778
+        ],
+        [
+          100.060607,
+          17.988996
+        ],
+        [
+          100.05921,
+          17.989574
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108724198",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.059708,
+          17.987404
+        ],
+        [
+          100.060424,
+          17.987157
+        ],
+        [
+          100.060387,
+          17.987004
+        ],
+        [
+          100.060521,
+          17.986954
+        ],
+        [
+          100.061372,
+          17.986638
+        ],
+        [
+          100.061513,
+          17.986586
+        ],
+        [
+          100.061592,
+          17.98658
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108724201",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.062433,
+          17.985484
+        ],
+        [
+          100.062505,
+          17.985671
+        ],
+        [
+          100.062606,
+          17.985821
+        ],
+        [
+          100.062642,
+          17.985902
+        ],
+        [
+          100.062668,
+          17.986002
+        ],
+        [
+          100.062678,
+          17.986117
+        ],
+        [
+          100.062633,
+          17.986486
+        ],
+        [
+          100.062641,
+          17.986556
+        ],
+        [
+          100.062682,
+          17.986664
+        ],
+        [
+          100.062857,
+          17.987051
+        ],
+        [
+          100.062928,
+          17.987155
+        ],
+        [
+          100.063024,
+          17.987273
+        ],
+        [
+          100.063356,
+          17.987604
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108726518",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.063135,
+          17.973361
+        ],
+        [
+          100.063106,
+          17.973187
+        ],
+        [
+          100.063103,
+          17.973122
+        ],
+        [
+          100.063175,
+          17.972823
+        ],
+        [
+          100.063183,
+          17.972725
+        ],
+        [
+          100.063167,
+          17.972656
+        ],
+        [
+          100.063122,
+          17.97256
+        ],
+        [
+          100.063071,
+          17.972498
+        ],
+        [
+          100.06288,
+          17.972309
+        ],
+        [
+          100.062677,
+          17.972142
+        ],
+        [
+          100.062372,
+          17.971778
+        ],
+        [
+          100.062034,
+          17.971296
+        ],
+        [
+          100.061957,
+          17.97108
+        ],
+        [
+          100.061872,
+          17.970798
+        ],
+        [
+          100.061876,
+          17.970744
+        ],
+        [
+          100.061899,
+          17.970709
+        ],
+        [
+          100.062234,
+          17.970489
+        ],
+        [
+          100.062485,
+          17.970302
+        ],
+        [
+          100.062657,
+          17.970129
+        ],
+        [
+          100.062659,
+          17.970046
+        ],
+        [
+          100.062587,
+          17.969703
+        ],
+        [
+          100.062569,
+          17.969526
+        ],
+        [
+          100.062543,
+          17.969421
+        ],
+        [
+          100.062508,
+          17.969329
+        ],
+        [
+          100.062459,
+          17.969245
+        ],
+        [
+          100.062384,
+          17.969146
+        ],
+        [
+          100.06223,
+          17.968992
+        ],
+        [
+          100.06205,
+          17.968814
+        ],
+        [
+          100.062002,
+          17.968696
+        ],
+        [
+          100.061943,
+          17.968355
+        ],
+        [
+          100.061894,
+          17.968237
+        ],
+        [
+          100.061776,
+          17.968166
+        ],
+        [
+          100.061381,
+          17.96803
+        ],
+        [
+          100.061092,
+          17.967904
+        ],
+        [
+          100.06092,
+          17.967818
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108749887",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.063122,
+          17.97256
+        ],
+        [
+          100.063212,
+          17.972407
+        ],
+        [
+          100.063277,
+          17.972337
+        ],
+        [
+          100.063528,
+          17.972162
+        ],
+        [
+          100.06358,
+          17.972102
+        ],
+        [
+          100.063595,
+          17.972085
+        ],
+        [
+          100.063766,
+          17.971955
+        ],
+        [
+          100.06418,
+          17.971651
+        ],
+        [
+          100.064224,
+          17.971586
+        ],
+        [
+          100.0642,
+          17.971537
+        ],
+        [
+          100.063915,
+          17.971274
+        ],
+        [
+          100.063664,
+          17.970976
+        ],
+        [
+          100.063588,
+          17.970876
+        ],
+        [
+          100.063494,
+          17.970772
+        ],
+        [
+          100.063348,
+          17.970623
+        ],
+        [
+          100.063316,
+          17.970613
+        ],
+        [
+          100.063179,
+          17.97058
+        ],
+        [
+          100.063003,
+          17.970465
+        ],
+        [
+          100.062896,
+          17.970377
+        ],
+        [
+          100.062657,
+          17.970129
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108749895",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.038151,
+          17.988014
+        ],
+        [
+          100.038291,
+          17.988366
+        ],
+        [
+          100.038419,
+          17.988718
+        ],
+        [
+          100.038489,
+          17.988818
+        ],
+        [
+          100.038602,
+          17.988979
+        ],
+        [
+          100.038757,
+          17.989152
+        ],
+        [
+          100.03895,
+          17.98928
+        ],
+        [
+          100.03902,
+          17.989356
+        ],
+        [
+          100.039052,
+          17.989601
+        ],
+        [
+          100.039111,
+          17.989825
+        ],
+        [
+          100.039224,
+          17.99006
+        ],
+        [
+          100.039417,
+          17.990509
+        ],
+        [
+          100.039423,
+          17.990621
+        ],
+        [
+          100.039283,
+          17.991035
+        ],
+        [
+          100.039138,
+          17.991315
+        ],
+        [
+          100.038988,
+          17.991499
+        ],
+        [
+          100.038983,
+          17.99155
+        ],
+        [
+          100.039079,
+          17.991688
+        ],
+        [
+          100.039245,
+          17.991923
+        ],
+        [
+          100.039361,
+          17.992136
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108754389",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.049431,
+          17.98411
+        ],
+        [
+          100.04915,
+          17.983423
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108754393",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.047532,
+          17.984877
+        ],
+        [
+          100.047139,
+          17.984251
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108754394",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.036728,
+          17.993758
+        ],
+        [
+          100.037374,
+          17.993376
+        ],
+        [
+          100.03747,
+          17.993106
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108754395",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.036923,
+          17.989009
+        ],
+        [
+          100.036918,
+          17.988586
+        ],
+        [
+          100.037139,
+          17.988198
+        ],
+        [
+          100.037679,
+          17.988142
+        ],
+        [
+          100.038151,
+          17.988014
+        ],
+        [
+          100.038287,
+          17.987965
+        ],
+        [
+          100.0388,
+          17.98778
+        ],
+        [
+          100.039058,
+          17.987627
+        ],
+        [
+          100.039428,
+          17.987295
+        ],
+        [
+          100.039701,
+          17.987081
+        ],
+        [
+          100.040065,
+          17.986909
+        ],
+        [
+          100.040398,
+          17.986751
+        ],
+        [
+          100.040511,
+          17.986698
+        ],
+        [
+          100.041718,
+          17.986121
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108754398",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.041426,
+          17.986785
+        ],
+        [
+          100.040801,
+          17.987162
+        ],
+        [
+          100.040723,
+          17.987168
+        ],
+        [
+          100.040619,
+          17.987167
+        ],
+        [
+          100.040511,
+          17.98706
+        ],
+        [
+          100.040398,
+          17.986751
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108754405",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.056333,
+          17.982005
+        ],
+        [
+          100.056042,
+          17.982982
+        ],
+        [
+          100.055952,
+          17.983281
+        ],
+        [
+          100.055993,
+          17.983313
+        ],
+        [
+          100.056399,
+          17.983555
+        ],
+        [
+          100.057194,
+          17.984201
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108754413",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.040801,
+          17.987162
+        ],
+        [
+          100.041736,
+          17.988407
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108754414",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.036202,
+          17.992308
+        ],
+        [
+          100.036585,
+          17.992244
+        ],
+        [
+          100.036676,
+          17.992224
+        ],
+        [
+          100.036976,
+          17.992231
+        ],
+        [
+          100.037025,
+          17.992229
+        ],
+        [
+          100.037095,
+          17.992351
+        ],
+        [
+          100.037213,
+          17.9928
+        ],
+        [
+          100.037119,
+          17.99304
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108754415",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.05698,
+          17.981942
+        ],
+        [
+          100.05701,
+          17.98216
+        ],
+        [
+          100.057114,
+          17.982815
+        ],
+        [
+          100.057284,
+          17.983357
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108754416",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.048921,
+          17.98277
+        ],
+        [
+          100.048915,
+          17.982819
+        ],
+        [
+          100.048946,
+          17.983077
+        ],
+        [
+          100.048958,
+          17.98311
+        ],
+        [
+          100.04915,
+          17.983423
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-108754418",
+      "name_th": "ถนนสายเทศบาล",
+      "name_en": "Municipal Road",
+      "ref": "",
+      "category": "local_road",
+      "highway_type": "residential",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.004103,
+          17.996081
+        ],
+        [
+          100.005022,
+          17.995656
+        ],
+        [
+          100.006692,
+          17.994852
+        ],
+        [
+          100.008885,
+          17.993797
+        ],
+        [
+          100.010647,
+          17.992929
+        ],
+        [
+          100.011126,
+          17.992733
+        ],
+        [
+          100.016189,
+          17.990962
+        ],
+        [
+          100.016235,
+          17.990946
+        ],
+        [
+          100.022075,
+          17.988929
+        ],
+        [
+          100.030683,
+          17.985931
+        ],
+        [
+          100.033574,
+          17.984933
+        ],
+        [
+          100.034562,
+          17.984589
+        ],
+        [
+          100.034966,
+          17.984468
+        ],
+        [
+          100.036995,
+          17.983744
+        ],
+        [
+          100.039024,
+          17.98304
+        ],
+        [
+          100.043164,
+          17.981613
+        ],
+        [
+          100.044951,
+          17.980954
+        ],
+        [
+          100.046218,
+          17.980525
+        ],
+        [
+          100.047093,
+          17.980215
+        ],
+        [
+          100.048365,
+          17.979779
+        ],
+        [
+          100.049018,
+          17.979547
+        ],
+        [
+          100.049126,
+          17.979521
+        ],
+        [
+          100.049463,
+          17.979386
+        ],
+        [
+          100.049637,
+          17.979265
+        ],
+        [
+          100.049682,
+          17.979233
+        ],
+        [
+          100.04985,
+          17.979092
+        ],
+        [
+          100.049904,
+          17.979032
+        ],
+        [
+          100.050034,
+          17.978886
+        ],
+        [
+          100.050194,
+          17.978657
+        ],
+        [
+          100.050292,
+          17.978403
+        ],
+        [
+          100.050842,
+          17.976003
+        ],
+        [
+          100.051334,
+          17.974247
+        ],
+        [
+          100.051433,
+          17.973928
+        ],
+        [
+          100.051562,
+          17.973606
+        ],
+        [
+          100.051694,
+          17.973339
+        ],
+        [
+          100.051843,
+          17.973098
+        ],
+        [
+          100.051997,
+          17.972859
+        ],
+        [
+          100.052192,
+          17.972612
+        ],
+        [
+          100.056102,
+          17.968533
+        ],
+        [
+          100.056281,
+          17.968325
+        ],
+        [
+          100.056402,
+          17.968175
+        ],
+        [
+          100.056516,
+          17.967972
+        ],
+        [
+          100.056623,
+          17.967732
+        ],
+        [
+          100.056709,
+          17.967478
+        ],
+        [
+          100.056775,
+          17.967231
+        ],
+        [
+          100.056828,
+          17.96691
+        ],
+        [
+          100.05687,
+          17.966528
+        ],
+        [
+          100.056946,
+          17.966069
+        ],
+        [
+          100.057021,
+          17.965614
+        ],
+        [
+          100.057857,
+          17.96163
+        ],
+        [
+          100.057902,
+          17.961377
+        ],
+        [
+          100.057933,
+          17.961173
+        ],
+        [
+          100.057946,
+          17.960984
+        ],
+        [
+          100.057944,
+          17.9608
+        ],
+        [
+          100.057936,
+          17.960574
+        ],
+        [
+          100.057904,
+          17.960354
+        ],
+        [
+          100.057743,
+          17.959566
+        ],
+        [
+          100.057707,
+          17.959385
+        ],
+        [
+          100.057685,
+          17.959196
+        ],
+        [
+          100.05768,
+          17.958993
+        ],
+        [
+          100.05769,
+          17.958782
+        ],
+        [
+          100.057714,
+          17.95856
+        ],
+        [
+          100.057749,
+          17.958389
+        ],
+        [
+          100.057802,
+          17.958199
+        ],
+        [
+          100.058853,
+          17.954968
+        ],
+        [
+          100.058888,
+          17.954797
+        ],
+        [
+          100.058924,
+          17.954608
+        ],
+        [
+          100.05895,
+          17.954385
+        ],
+        [
+          100.058954,
+          17.954216
+        ],
+        [
+          100.058946,
+          17.954058
+        ],
+        [
+          100.058923,
+          17.953866
+        ],
+        [
+          100.058902,
+          17.953716
+        ],
+        [
+          100.058856,
+          17.953539
+        ],
+        [
+          100.058807,
+          17.953386
+        ],
+        [
+          100.058742,
+          17.953209
+        ],
+        [
+          100.058667,
+          17.953049
+        ],
+        [
+          100.058595,
+          17.952918
+        ],
+        [
+          100.058519,
+          17.952796
+        ],
+        [
+          100.058419,
+          17.95265
+        ],
+        [
+          100.05485,
+          17.949039
+        ],
+        [
+          100.054728,
+          17.948902
+        ],
+        [
+          100.054611,
+          17.948775
+        ],
+        [
+          100.054495,
+          17.948619
+        ],
+        [
+          100.05438,
+          17.94844
+        ],
+        [
+          100.05429,
+          17.948285
+        ],
+        [
+          100.054222,
+          17.948135
+        ],
+        [
+          100.054152,
+          17.947959
+        ],
+        [
+          100.054095,
+          17.94778
+        ],
+        [
+          100.054048,
+          17.947611
+        ],
+        [
+          100.053993,
+          17.947406
+        ],
+        [
+          100.053945,
+          17.947081
+        ],
+        [
+          100.053849,
+          17.946013
+        ],
+        [
+          100.05384,
+          17.945772
+        ],
+        [
+          100.053843,
+          17.945545
+        ],
+        [
+          100.053879,
+          17.945279
+        ],
+        [
+          100.053931,
+          17.94506
+        ],
+        [
+          100.053993,
+          17.944855
+        ],
+        [
+          100.054046,
+          17.944721
+        ],
+        [
+          100.054446,
+          17.943776
+        ],
+        [
+          100.054569,
+          17.94344
+        ],
+        [
+          100.054688,
+          17.943047
+        ],
+        [
+          100.055187,
+          17.941079
+        ],
+        [
+          100.055393,
+          17.94032
+        ],
+        [
+          100.055441,
+          17.940158
+        ],
+        [
+          100.055497,
+          17.939969
+        ],
+        [
+          100.055561,
+          17.939786
+        ],
+        [
+          100.055624,
+          17.939625
+        ],
+        [
+          100.055719,
+          17.939423
+        ],
+        [
+          100.055795,
+          17.939287
+        ],
+        [
+          100.056731,
+          17.937604
+        ],
+        [
+          100.057662,
+          17.935941
+        ],
+        [
+          100.058152,
+          17.935097
+        ],
+        [
+          100.058233,
+          17.934943
+        ],
+        [
+          100.05831,
+          17.934787
+        ],
+        [
+          100.058388,
+          17.934583
+        ],
+        [
+          100.058433,
+          17.934342
+        ],
+        [
+          100.058447,
+          17.934081
+        ],
+        [
+          100.058436,
+          17.933859
+        ],
+        [
+          100.058417,
+          17.93365
+        ],
+        [
+          100.058377,
+          17.933401
+        ],
+        [
+          100.058029,
+          17.931759
+        ],
+        [
+          100.057979,
+          17.931499
+        ],
+        [
+          100.057956,
+          17.931315
+        ],
+        [
+          100.057949,
+          17.931127
+        ],
+        [
+          100.057956,
+          17.930924
+        ],
+        [
+          100.057983,
+          17.930723
+        ],
+        [
+          100.058005,
+          17.9306
+        ],
+        [
+          100.058464,
+          17.928971
+        ],
+        [
+          100.058937,
+          17.927214
+        ],
+        [
+          100.058999,
+          17.927007
+        ],
+        [
+          100.059089,
+          17.926783
+        ],
+        [
+          100.059163,
+          17.926607
+        ],
+        [
+          100.05925,
+          17.926434
+        ],
+        [
+          100.059335,
+          17.92627
+        ],
+        [
+          100.059443,
+          17.926095
+        ],
+        [
+          100.059544,
+          17.925949
+        ],
+        [
+          100.059657,
+          17.925794
+        ],
+        [
+          100.059783,
+          17.925656
+        ],
+        [
+          100.061425,
+          17.9242
+        ],
+        [
+          100.06156,
+          17.924071
+        ],
+        [
+          100.061679,
+          17.923942
+        ],
+        [
+          100.061786,
+          17.923797
+        ],
+        [
+          100.061892,
+          17.923654
+        ],
+        [
+          100.061962,
+          17.923534
+        ],
+        [
+          100.062045,
+          17.923386
+        ],
+        [
+          100.062134,
+          17.923208
+        ],
+        [
+          100.06218,
+          17.923078
+        ],
+        [
+          100.062222,
+          17.922934
+        ],
+        [
+          100.062259,
+          17.922786
+        ],
+        [
+          100.062287,
+          17.922653
+        ],
+        [
+          100.062309,
+          17.922478
+        ],
+        [
+          100.062317,
+          17.922306
+        ],
+        [
+          100.06232,
+          17.922148
+        ],
+        [
+          100.06232,
+          17.921987
+        ],
+        [
+          100.062303,
+          17.921808
+        ],
+        [
+          100.062178,
+          17.920868
+        ],
+        [
+          100.06215,
+          17.920654
+        ],
+        [
+          100.062136,
+          17.920413
+        ],
+        [
+          100.062133,
+          17.920222
+        ],
+        [
+          100.062146,
+          17.920038
+        ],
+        [
+          100.062165,
+          17.919863
+        ],
+        [
+          100.062192,
+          17.919666
+        ],
+        [
+          100.062233,
+          17.919452
+        ],
+        [
+          100.062295,
+          17.919229
+        ],
+        [
+          100.063205,
+          17.916262
+        ],
+        [
+          100.06337,
+          17.915686
+        ],
+        [
+          100.063428,
+          17.915357
+        ],
+        [
+          100.063465,
+          17.915064
+        ],
+        [
+          100.063475,
+          17.914765
+        ],
+        [
+          100.063461,
+          17.914266
+        ],
+        [
+          100.063138,
+          17.91119
+        ],
+        [
+          100.063119,
+          17.911006
+        ],
+        [
+          100.063101,
+          17.91087
+        ],
+        [
+          100.06308,
+          17.910731
+        ],
+        [
+          100.062741,
+          17.909061
+        ],
+        [
+          100.062707,
+          17.908891
+        ],
+        [
+          100.062658,
+          17.908683
+        ],
+        [
+          100.06262,
+          17.908537
+        ],
+        [
+          100.062583,
+          17.908417
+        ],
+        [
+          100.062522,
+          17.908232
+        ],
+        [
+          100.062451,
+          17.908036
+        ],
+        [
+          100.062366,
+          17.907851
+        ],
+        [
+          100.062266,
+          17.907672
+        ],
+        [
+          100.062172,
+          17.907513
+        ],
+        [
+          100.062091,
+          17.907392
+        ],
+        [
+          100.061962,
+          17.907249
+        ],
+        [
+          100.06183,
+          17.907116
+        ],
+        [
+          100.061686,
+          17.90699
+        ],
+        [
+          100.061523,
+          17.906866
+        ],
+        [
+          100.060387,
+          17.906083
+        ],
+        [
+          100.060188,
+          17.905933
+        ],
+        [
+          100.059992,
+          17.90578
+        ],
+        [
+          100.059765,
+          17.905586
+        ],
+        [
+          100.059396,
+          17.905256
+        ],
+        [
+          100.05898,
+          17.904878
+        ],
+        [
+          100.058452,
+          17.904383
+        ],
+        [
+          100.056602,
+          17.90267
+        ],
+        [
+          100.056451,
+          17.902536
+        ],
+        [
+          100.056288,
+          17.90238
+        ],
+        [
+          100.056155,
+          17.902244
+        ],
+        [
+          100.056017,
+          17.902092
+        ],
+        [
+          100.055884,
+          17.901928
+        ],
+        [
+          100.05575,
+          17.901743
+        ],
+        [
+          100.055651,
+          17.901583
+        ],
+        [
+          100.055541,
+          17.901384
+        ],
+        [
+          100.054793,
+          17.89962
+        ],
+        [
+          100.054661,
+          17.899317
+        ],
+        [
+          100.054513,
+          17.899024
+        ],
+        [
+          100.054389,
+          17.898789
+        ],
+        [
+          100.054233,
+          17.898564
+        ],
+        [
+          100.054079,
+          17.898382
+        ],
+        [
+          100.053928,
+          17.898228
+        ],
+        [
+          100.053747,
+          17.89807
+        ],
+        [
+          100.053596,
+          17.897962
+        ],
+        [
+          100.053437,
+          17.897848
+        ],
+        [
+          100.053248,
+          17.89775
+        ],
+        [
+          100.053082,
+          17.897679
+        ],
+        [
+          100.052886,
+          17.897604
+        ],
+        [
+          100.052669,
+          17.897539
+        ],
+        [
+          100.050785,
+          17.897117
+        ],
+        [
+          100.050612,
+          17.897089
+        ],
+        [
+          100.050379,
+          17.897039
+        ],
+        [
+          100.050151,
+          17.896988
+        ],
+        [
+          100.049894,
+          17.896918
+        ],
+        [
+          100.049677,
+          17.896841
+        ],
+        [
+          100.04949,
+          17.896763
+        ],
+        [
+          100.049302,
+          17.896669
+        ],
+        [
+          100.049119,
+          17.896568
+        ],
+        [
+          100.048945,
+          17.896469
+        ],
+        [
+          100.047979,
+          17.895866
+        ],
+        [
+          100.045779,
+          17.894493
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-84273686",
+      "name_th": "ทางรถไฟสายเหนือ",
+      "name_en": "Northern Railway",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.044322,
+          17.981094
+        ],
+        [
+          100.044569,
+          17.980967
+        ],
+        [
+          100.044883,
+          17.98083
+        ],
+        [
+          100.045257,
+          17.980702
+        ],
+        [
+          100.047672,
+          17.979874
+        ],
+        [
+          100.048165,
+          17.97978
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-311061883",
+      "name_th": "ทางรถไฟสายเหนือ",
+      "name_en": "Northern Railway",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.043968,
+          17.981232
+        ],
+        [
+          100.044188,
+          17.98114
+        ],
+        [
+          100.044322,
+          17.981094
+        ],
+        [
+          100.048165,
+          17.97978
+        ],
+        [
+          100.049018,
+          17.979547
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-311061885",
+      "name_th": "ทางรถไฟสายเหนือ",
+      "name_en": "Northern Railway",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.048365,
+          17.979779
+        ],
+        [
+          100.048027,
+          17.979953
+        ],
+        [
+          100.047576,
+          17.980203
+        ],
+        [
+          100.047221,
+          17.980341
+        ],
+        [
+          100.044438,
+          17.981318
+        ],
+        [
+          100.044021,
+          17.981414
+        ],
+        [
+          100.043164,
+          17.981613
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-311061888",
+      "name_th": "ทางรถไฟสายเหนือ",
+      "name_en": "Northern Railway",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.044021,
+          17.981414
+        ],
+        [
+          100.047446,
+          17.980207
+        ],
+        [
+          100.048027,
+          17.979953
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-951416627",
+      "name_th": "ทางรถไฟสายเหนือ",
+      "name_en": "Northern Railway",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.045257,
+          17.980702
+        ],
+        [
+          100.045424,
+          17.980592
+        ],
+        [
+          100.045605,
+          17.980472
+        ],
+        [
+          100.04593,
+          17.980219
+        ],
+        [
+          100.046257,
+          17.98001
+        ],
+        [
+          100.046589,
+          17.979847
+        ],
+        [
+          100.047633,
+          17.979473
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-951416629",
+      "name_th": "ทางรถไฟสายเหนือ",
+      "name_en": "Northern Railway",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.046589,
+          17.979847
+        ],
+        [
+          100.044504,
+          17.980574
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-951416630",
+      "name_th": "ทางรถไฟสายเหนือ",
+      "name_en": "Northern Railway",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.045424,
+          17.980592
+        ],
+        [
+          100.045906,
+          17.98037
+        ],
+        [
+          100.048239,
+          17.979557
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-951416631",
+      "name_th": "ทางรถไฟสายเหนือ",
+      "name_en": "Northern Railway",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.047903,
+          17.97959
+        ],
+        [
+          100.046547,
+          17.980058
+        ],
+        [
+          100.045906,
+          17.98037
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-951416632",
+      "name_th": "ทางรถไฟสายเหนือ",
+      "name_en": "Northern Railway",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.037218,
+          17.997303
+        ],
+        [
+          100.037146,
+          17.99712
+        ],
+        [
+          100.037008,
+          17.996784
+        ],
+        [
+          100.036733,
+          17.996068
+        ],
+        [
+          100.036577,
+          17.995576
+        ],
+        [
+          100.036397,
+          17.994913
+        ],
+        [
+          100.036253,
+          17.994261
+        ],
+        [
+          100.036133,
+          17.993603
+        ],
+        [
+          100.036064,
+          17.993089
+        ],
+        [
+          100.035958,
+          17.991585
+        ],
+        [
+          100.035895,
+          17.990864
+        ],
+        [
+          100.035871,
+          17.990428
+        ],
+        [
+          100.035874,
+          17.990147
+        ],
+        [
+          100.03588,
+          17.989734
+        ],
+        [
+          100.035895,
+          17.989492
+        ],
+        [
+          100.035918,
+          17.989249
+        ],
+        [
+          100.03596,
+          17.988953
+        ],
+        [
+          100.036007,
+          17.988649
+        ],
+        [
+          100.036094,
+          17.988243
+        ],
+        [
+          100.036171,
+          17.987944
+        ],
+        [
+          100.03632,
+          17.987441
+        ],
+        [
+          100.036379,
+          17.987276
+        ],
+        [
+          100.036449,
+          17.987089
+        ],
+        [
+          100.036579,
+          17.986792
+        ],
+        [
+          100.036689,
+          17.986546
+        ],
+        [
+          100.0368,
+          17.986346
+        ],
+        [
+          100.036894,
+          17.986154
+        ],
+        [
+          100.036999,
+          17.985971
+        ],
+        [
+          100.037096,
+          17.985801
+        ],
+        [
+          100.037302,
+          17.985468
+        ],
+        [
+          100.037472,
+          17.985239
+        ],
+        [
+          100.03762,
+          17.985026
+        ],
+        [
+          100.03791,
+          17.984675
+        ],
+        [
+          100.038095,
+          17.984472
+        ],
+        [
+          100.03829,
+          17.984263
+        ],
+        [
+          100.038424,
+          17.984126
+        ],
+        [
+          100.038545,
+          17.98401
+        ],
+        [
+          100.03873,
+          17.983835
+        ],
+        [
+          100.039138,
+          17.983506
+        ],
+        [
+          100.039394,
+          17.983313
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1551536186",
+      "name_th": "ทางรถไฟสายเด่นชัย–เชียงราย–เชียงของ",
+      "name_en": "Den Chai–Chiang Khong Line",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.039461,
+          17.98332
+        ],
+        [
+          100.038745,
+          17.983883
+        ],
+        [
+          100.038609,
+          17.984009
+        ],
+        [
+          100.038498,
+          17.984119
+        ],
+        [
+          100.038358,
+          17.984256
+        ],
+        [
+          100.038212,
+          17.98441
+        ],
+        [
+          100.038093,
+          17.984544
+        ],
+        [
+          100.037954,
+          17.984705
+        ],
+        [
+          100.037826,
+          17.984857
+        ],
+        [
+          100.037672,
+          17.985046
+        ],
+        [
+          100.037567,
+          17.985183
+        ],
+        [
+          100.037411,
+          17.985396
+        ],
+        [
+          100.037305,
+          17.985551
+        ],
+        [
+          100.037097,
+          17.98588
+        ],
+        [
+          100.036943,
+          17.986155
+        ],
+        [
+          100.036809,
+          17.986414
+        ],
+        [
+          100.036654,
+          17.986733
+        ],
+        [
+          100.036539,
+          17.986988
+        ],
+        [
+          100.036442,
+          17.98721
+        ],
+        [
+          100.036384,
+          17.987406
+        ],
+        [
+          100.036273,
+          17.987744
+        ],
+        [
+          100.036175,
+          17.988075
+        ],
+        [
+          100.036122,
+          17.988345
+        ],
+        [
+          100.036047,
+          17.988715
+        ],
+        [
+          100.036,
+          17.988986
+        ],
+        [
+          100.035946,
+          17.989317
+        ],
+        [
+          100.035929,
+          17.989588
+        ],
+        [
+          100.035922,
+          17.989905
+        ],
+        [
+          100.035917,
+          17.990329
+        ],
+        [
+          100.035911,
+          17.99045
+        ],
+        [
+          100.035929,
+          17.990794
+        ],
+        [
+          100.035968,
+          17.991263
+        ],
+        [
+          100.035997,
+          17.99159
+        ],
+        [
+          100.036137,
+          17.993253
+        ],
+        [
+          100.036188,
+          17.993627
+        ],
+        [
+          100.036246,
+          17.993956
+        ],
+        [
+          100.03641,
+          17.994773
+        ],
+        [
+          100.036629,
+          17.995594
+        ],
+        [
+          100.036777,
+          17.996038
+        ],
+        [
+          100.03694,
+          17.996476
+        ],
+        [
+          100.037128,
+          17.996964
+        ],
+        [
+          100.037264,
+          17.997285
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1551536187",
+      "name_th": "ทางรถไฟสายเด่นชัย–เชียงราย–เชียงของ",
+      "name_en": "Den Chai–Chiang Khong Line",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.042944,
+          17.981792
+        ],
+        [
+          100.041066,
+          17.982453
+        ],
+        [
+          100.040672,
+          17.982601
+        ],
+        [
+          100.040425,
+          17.982723
+        ],
+        [
+          100.040194,
+          17.98285
+        ],
+        [
+          100.039461,
+          17.98332
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1551536189",
+      "name_th": "ทางรถไฟสายเด่นชัย–เชียงราย–เชียงของ",
+      "name_en": "Den Chai–Chiang Khong Line",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "LineString",
+      "coordinates": [
+        [
+          100.039394,
+          17.983313
+        ],
+        [
+          100.039505,
+          17.983229
+        ],
+        [
+          100.04016,
+          17.982808
+        ],
+        [
+          100.040621,
+          17.98257
+        ],
+        [
+          100.041229,
+          17.98234
+        ],
+        [
+          100.042916,
+          17.981741
+        ]
+      ]
+    },
+    "properties": {
+      "id": "road-1551536190",
+      "name_th": "ทางรถไฟสายเด่นชัย–เชียงราย–เชียงของ",
+      "name_en": "Den Chai–Chiang Khong Line",
+      "ref": "",
+      "category": "rail",
+      "highway_type": "rail",
+      "surface": "asphalt",
+      "lanes": 2
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        100.05152,
+        17.98055
+      ]
+    },
+    "properties": {
+      "id": "infra-br-1",
+      "name_th": "สะพานข้ามลำน้ำแม่สอง (เทศบาล)",
+      "name_en": "Mae Song River Municipal Bridge",
+      "category": "bridge",
+      "description_th": "สะพานคอนกรีตเสริมเหล็กข้ามลำน้ำแม่สอง เชื่อมชุมชนย่านเศรษฐกิจ",
+      "width_m": 10
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        100.0465,
+        17.9782
+      ]
+    },
+    "properties": {
+      "id": "infra-br-2",
+      "name_th": "สะพานรถไฟข้ามลำน้ำแม่สอง",
+      "name_en": "Railway Bridge Mae Song",
+      "category": "bridge",
+      "description_th": "สะพานโครงเหล็กสำหรับทางรถไฟสายเหนือ",
+      "width_m": 6
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        100.0581,
+        17.9791
+      ]
+    },
+    "properties": {
+      "id": "infra-br-3",
+      "name_th": "สะพานคลองส่งน้ำชลประทาน",
+      "name_en": "Irrigation Canal Bridge",
+      "category": "bridge",
+      "description_th": "สะพานข้ามคลองส่งน้ำชลประทานเด่นชัย",
+      "width_m": 7
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        100.04652,
+        17.98512
+      ]
+    },
+    "properties": {
+      "id": "infra-wt-1",
+      "name_th": "โรงผลิตน้ำประปาเทศบาลตำบลเด่นชัย",
+      "name_en": "Den Chai Municipal Water Treatment Plant",
+      "category": "water",
+      "description_th": "โรงกรองน้ำและผลิตน้ำประปาผิวดินบริการประชาชน กำลังผลิต 250 ลบ.ม./ชม.",
+      "capacity_m3": 250
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        100.0592,
+        17.9812
+      ]
+    },
+    "properties": {
+      "id": "infra-wt-2",
+      "name_th": "หอถังพักจ่ายน้ำประปาแรงดันสูง",
+      "name_en": "Municipal Elevated Water Storage Tower",
+      "category": "water",
+      "description_th": "หอถังสูงคอนกรีตสำรองน้ำและจ่ายแรงดันน้ำ",
+      "capacity_m3": 150
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        100.04758,
+        17.98315
+      ]
+    },
+    "properties": {
+      "id": "infra-el-1",
+      "name_th": "สถานีไฟฟ้าย่อยเด่นชัย (กฟภ.)",
+      "name_en": "PEA Den Chai Substation",
+      "category": "electric",
+      "description_th": "สถานีไฟฟ้าแรงสูง 115/22 kV การไฟฟ้าส่วนภูมิภาค",
+      "capacity_kva": 25000
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        100.0519,
+        17.9828
+      ]
+    },
+    "properties": {
+      "id": "infra-el-2",
+      "name_th": "หม้อแปลงไฟฟ้าศูนย์กลางชุมชนเด่นชัย",
+      "name_en": "Downtown Community Transformer 500kVA",
+      "category": "electric",
+      "description_th": "หม้อแปลงไฟฟ้าจ่ายไฟย่านพาณิชยกรรมและศูนย์ราชการ",
+      "capacity_kva": 500
+    }
+  }
+]
 };

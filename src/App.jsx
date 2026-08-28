@@ -80,10 +80,12 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   const [infraData, setInfraData] = useState(() => {
     try {
       const saved = localStorage.getItem('denchai_infra_data');
-      return saved ? JSON.parse(saved) : INFRA_DATA;
-    } catch {
-      return INFRA_DATA;
-    }
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.features?.length >= 20) return parsed;
+      }
+    } catch {}
+    return INFRA_DATA;
   });
 
   const [serviceData, setServiceData] = useState(() => {
