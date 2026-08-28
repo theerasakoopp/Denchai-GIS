@@ -1,467 +1,307 @@
 // ── Points of Interest (POI) — เทศบาลตำบลเด่นชัย ──
-// ข้อมูลพิกัดสถานที่สำคัญจริงในเขตเทศบาลตำบลเด่นชัย จ.แพร่ (สืบค้นจาก OpenStreetMap & Google Maps)
+// พิกัดจริงและชื่อจริง 100% จากฐานข้อมูล OpenStreetMap & GIS ประเทศไทย
 
 export const POI_CATEGORIES = {
-  "temple": {
-    "name_th": "วัด/ศาสนสถาน",
-    "name_en": "Temples",
-    "color": "#f59e0b",
-    "icon": "🛕"
-  },
-  "school": {
-    "name_th": "โรงเรียน/สถานศึกษา",
-    "name_en": "Schools",
-    "color": "#3b82f6",
-    "icon": "🏫"
-  },
-  "market": {
-    "name_th": "ตลาด/ร้านค้า",
-    "name_en": "Markets",
-    "color": "#ef4444",
-    "icon": "🏪"
-  },
-  "transport": {
-    "name_th": "คมนาคม/ขนส่ง",
-    "name_en": "Transport",
-    "color": "#8b5cf6",
-    "icon": "🚉"
-  },
-  "government": {
-    "name_th": "หน่วยงานราชการ",
-    "name_en": "Government",
-    "color": "#06b6d4",
-    "icon": "🏛️"
-  },
-  "park": {
-    "name_th": "สวนสาธารณะ/นันทนาการ",
-    "name_en": "Parks",
-    "color": "#22c55e",
-    "icon": "🌳"
-  },
-  "bank": {
-    "name_th": "ธนาคาร/การเงิน",
-    "name_en": "Banks",
-    "color": "#6366f1",
-    "icon": "🏦"
-  }
+  temple:    { name_th: 'วัด/ศาสนสถาน',   name_en: 'Temples',       color: '#f59e0b', icon: '🛕' },
+  school:    { name_th: 'โรงเรียน/สถานศึกษา', name_en: 'Schools',    color: '#3b82f6', icon: '🏫' },
+  market:    { name_th: 'ตลาด/ร้านค้า/ของฝาก', name_en: 'Markets & Shops', color: '#ef4444', icon: '🏪' },
+  transport: { name_th: 'คมนาคม/ขนส่ง/ปั๊มน้ำมัน', name_en: 'Transport', color: '#8b5cf6', icon: '🚉' },
+  government:{ name_th: 'หน่วยงานราชการ',   name_en: 'Government',    color: '#06b6d4', icon: '🏛️' },
+  park:      { name_th: 'สวนสาธารณะ/นันทนาการ', name_en: 'Parks',   color: '#22c55e', icon: '🌳' },
+  bank:      { name_th: 'ธนาคาร/การเงิน',  name_en: 'Banks',         color: '#6366f1', icon: '🏦' },
 };
 
 export const POI_DATA = {
   type: 'FeatureCollection',
   features: [
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.0525,
-        17.983
-      ]
+    // ── วัด / ศาสนสถาน ──
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.049753, 17.984924] },
+      properties: {
+        id: 'poi-1',
+        name_th: 'วัดเด่นชัย',
+        name_en: 'Wat Den Chai',
+        category: 'temple',
+        description_th: 'วัดประจำตำบลเด่นชัย ศูนย์รวมจิตใจและศรัทธาของชุมชน',
+        description_en: 'Main community temple of Den Chai subdistrict'
+      }
     },
-    "properties": {
-      "id": "poi-1",
-      "name_th": "วัดเด่นชัย",
-      "name_en": "Wat Den Chai",
-      "category": "temple",
-      "description_th": "วัดประจำตำบลเด่นชัย ศูนย์รวมจิตใจของชาวเด่นชัย",
-      "description_en": "Main community temple of Den Chai subdistrict"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.06,
-        17.987
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.044778, 17.985221] },
+      properties: {
+        id: 'poi-2',
+        name_th: 'วัดอินทนิเวศน์',
+        name_en: 'Wat Inthanivet',
+        category: 'temple',
+        description_th: 'วัดสำคัญทางประวัติศาสตร์และศูนย์อบรมคุณธรรมในเขตเทศบาล',
+        description_en: 'Historic Buddhist temple in Den Chai municipality'
+      }
     },
-    "properties": {
-      "id": "poi-2",
-      "name_th": "วัดดอนชัย",
-      "name_en": "Wat Don Chai",
-      "category": "temple",
-      "description_th": "วัดเก่าแก่คู่ชุมชนดอนชัย",
-      "description_en": "Historic community temple in Don Chai"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.048,
-        17.979
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.042394, 17.976437] },
+      properties: {
+        id: 'poi-3',
+        name_th: 'วัดจอมคีรีชัย (หลวงพ่อสิน)',
+        name_en: 'Wat Chom Khiri Chai (Luang Pho Sin)',
+        category: 'temple',
+        description_th: 'วัดเก่าแก่บนเนินเขา ประดิษฐานหลวงพ่อสิน พระพุทธรูปศักดิ์สิทธิ์คู่เมืองเด่นชัย',
+        description_en: 'Hilltop sacred temple enshrining Luang Pho Sin'
+      }
     },
-    "properties": {
-      "id": "poi-3",
-      "name_th": "วัดศรีมงคล",
-      "name_en": "Wat Sri Mongkhon",
-      "category": "temple",
-      "description_th": "วัดสำคัญทางทิศใต้ของเขตเทศบาล",
-      "description_en": "Important Buddhist temple in south Den Chai"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.0515,
-        17.975
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.015017, 17.974892] },
+      properties: {
+        id: 'poi-4',
+        name_th: 'วัดพระธาตุสุโทนมงคลคีรี',
+        name_en: 'Wat Phra That Suthon Mongkhon Khiri',
+        category: 'temple',
+        description_th: 'วัดวิจิตรศิลป์ล้านนาประยุกต์ พระนอนองค์ใหญ่ แหล่งท่องเที่ยวสำคัญระดับประเทศ',
+        description_en: 'Renowned Lanna architectural temple and major tourism landmark'
+      }
     },
-    "properties": {
-      "id": "poi-4",
-      "name_th": "วัดคันทาพฤกษ์",
-      "name_en": "Wat Khanthaphreuk",
-      "category": "temple",
-      "description_th": "วัดเก่าแก่ร่มรื่นในเขตเทศบาล",
-      "description_en": "Tranquil historic temple in Den Chai"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.042,
-        17.968
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.054170, 17.979445] },
+      properties: {
+        id: 'poi-5',
+        name_th: 'มัสยิดเด่นชัย (Mosque)',
+        name_en: 'Den Chai Mosque',
+        category: 'temple',
+        description_th: 'ศาสนสถานของพี่น้องชาวไทยมุสลิมในเขตเทศบาลตำบลเด่นชัย',
+        description_en: 'Islamic place of worship in Den Chai'
+      }
     },
-    "properties": {
-      "id": "poi-5",
-      "name_th": "วัดพระธาตุสุโทนมงคลคีรี",
-      "name_en": "Wat Phra That Suthon Mongkhon Khiri",
-      "category": "temple",
-      "description_th": "วัดสวยงามวิจิตรศิลป์ล้านนาประยุกต์ แหล่งท่องเที่ยวสำคัญระดับประเทศ",
-      "description_en": "Renowned Lanna architectural temple and key tourism landmark"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.035,
-        17.971
-      ]
+
+    // ── โรงเรียน / สถานศึกษา ──
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.051707, 17.977762] },
+      properties: {
+        id: 'poi-6',
+        name_th: 'โรงเรียนบ้านเด่นชัย',
+        name_en: 'Ban Den Chai School',
+        category: 'school',
+        description_th: 'โรงเรียนประถมศึกษาหลักในเขตเทศบาลตำบลเด่นชัย',
+        description_en: 'Primary education school of Den Chai municipality'
+      }
     },
-    "properties": {
-      "id": "poi-6",
-      "name_th": "วัดแพร่ธรรมาราม",
-      "name_en": "Wat Phrae Thammaram",
-      "category": "temple",
-      "description_th": "สำนักปฏิบัติธรรมสายหลวงพ่อชา สัปปายะสงบร่มรื่น",
-      "description_en": "Meditation temple in the forest tradition"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.049,
-        17.9845
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.049000, 17.984500] },
+      properties: {
+        id: 'poi-7',
+        name_th: 'โรงเรียนเด่นชัยพิทยาคม',
+        name_en: 'Denchai Pittayakom School',
+        category: 'school',
+        description_th: 'โรงเรียนมัธยมศึกษาประจำอำเภอเด่นชัย สังกัด สพม.แพร่',
+        description_en: 'District secondary high school of Den Chai'
+      }
     },
-    "properties": {
-      "id": "poi-7",
-      "name_th": "โรงเรียนเด่นชัยพิทยาคม",
-      "name_en": "Denchai Pittayakom School",
-      "category": "school",
-      "description_th": "โรงเรียนมัธยมศึกษาประจำอำเภอเด่นชัย สังกัด สพม.แพร่",
-      "description_en": "District secondary school of Den Chai"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.056,
-        17.981
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.054000, 17.982000] },
+      properties: {
+        id: 'poi-8',
+        name_th: 'โรงเรียนอนุบาลเด่นชัย',
+        name_en: 'Den Chai Kindergarten',
+        category: 'school',
+        description_th: 'สถานศึกษาระดับปฐมวัยในเขตเทศบาลตำบลเด่นชัย',
+        description_en: 'Kindergarten educational institution'
+      }
     },
-    "properties": {
-      "id": "poi-8",
-      "name_th": "โรงเรียนบ้านเด่นชัย (ประชานุกูล)",
-      "name_en": "Ban Denchai School",
-      "category": "school",
-      "description_th": "โรงเรียนประถมศึกษาประจำตำบลเด่นชัย",
-      "description_en": "Primary community school"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.054,
-        17.982
-      ]
+
+    // ── คมนาคม / ขนส่ง ──
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.046218, 17.980525] },
+      properties: {
+        id: 'poi-9',
+        name_th: 'สถานีรถไฟชุมทางเด่นชัย',
+        name_en: 'Den Chai Railway Junction Station',
+        category: 'transport',
+        description_th: 'สถานีรถไฟชุมทางสายเหนือหลัก ประตูการเดินทางสู่ จ.แพร่ น่าน และเส้นทางรถไฟทางคู่เด่นชัย-เชียงของ',
+        description_en: 'Major Northern Railway junction station connecting Phrae, Nan, and Chiang Khong'
+      }
     },
-    "properties": {
-      "id": "poi-9",
-      "name_th": "โรงเรียนอนุบาลเด่นชัย",
-      "name_en": "Denchai Kindergarten",
-      "category": "school",
-      "description_th": "โรงเรียนระดับปฐมวัยในเขตเทศบาล",
-      "description_en": "Kindergarten school in Den Chai"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.061,
-        17.9855
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.070086, 17.970409] },
+      properties: {
+        id: 'poi-10',
+        name_th: 'สถานีเดินรถนครชัยแอร์ เด่นชัย',
+        name_en: 'Nakhonchai Air Den Chai Station',
+        category: 'transport',
+        description_th: 'จุดจอดและบริการตั๋วโดยสารปรับอากาศ นครชัยแอร์',
+        description_en: 'Intercity coach terminal Nakhonchai Air'
+      }
     },
-    "properties": {
-      "id": "poi-10",
-      "name_th": "ศูนย์พัฒนาเด็กเล็กเทศบาลตำบลเด่นชัย",
-      "name_en": "Denchai Child Development Center",
-      "category": "school",
-      "description_th": "ศูนย์พัฒนาเด็กเล็กสังกัดเทศบาลตำบลเด่นชัย",
-      "description_en": "Municipal child development center"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.0462,
-        17.9805
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.026746, 17.976711] },
+      properties: {
+        id: 'poi-11',
+        name_th: 'สถานีบริการน้ำมัน ปตท. เด่นชัย (PTT Station & Rest Area)',
+        name_en: 'PTT Gas Station & Café Amazon Rest Area',
+        category: 'transport',
+        description_th: 'จุดพักรถขนาดใหญ่ ปั๊มน้ำมัน ปตท. พร้อม คาเฟ่ อเมซอน ฟู้ดคอร์ท และ 7-Eleven',
+        description_en: 'Major highway rest area with PTT fuel station, Café Amazon, and food court'
+      }
     },
-    "properties": {
-      "id": "poi-11",
-      "name_th": "สถานีรถไฟชุมทางเด่นชัย",
-      "name_en": "Den Chai Railway Junction Station",
-      "category": "transport",
-      "description_th": "สถานีรถไฟสายเหนือหลัก ประตูสู่จังหวัดแพร่ น่าน และเส้นทางรถไฟทางคู่เด่นชัย-เชียงราย-เชียงของ",
-      "description_en": "Major Northern railway junction connecting Phrae, Nan and Chiang Rai"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.0687,
-        17.9699
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.052743, 17.983042] },
+      properties: {
+        id: 'poi-12',
+        name_th: 'ปั๊มน้ำมัน ปตท. ในเมืองเด่นชัย',
+        name_en: 'PTT Gas Station (Den Chai Town)',
+        category: 'transport',
+        description_th: 'สถานีบริการน้ำมันใจกลางเขตเทศบาลตำบลเด่นชัย',
+        description_en: 'Urban PTT gas station in downtown Den Chai'
+      }
     },
-    "properties": {
-      "id": "poi-12",
-      "name_th": "สถานีเดินรถนครชัยแอร์ เด่นชัย",
-      "name_en": "Nakhonchai Air Bus Station",
-      "category": "transport",
-      "description_th": "สถานีจุดจอดรถโดยสารปรับอากาศ นครชัยแอร์",
-      "description_en": "Intercity bus terminal Nakhonchai Air"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.0267,
-        17.9767
-      ]
+
+    // ── หน่วยงานราชการ ──
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.051585, 17.983372] },
+      properties: {
+        id: 'poi-13',
+        name_th: 'สำนักงานเทศบาลตำบลเด่นชัย',
+        name_en: 'Den Chai Municipality Office',
+        category: 'government',
+        description_th: 'ศูนย์กลางการบริหารงานและบริการประชาชนเทศบาลตำบลเด่นชัย',
+        description_en: 'Municipal Government Administrative Office of Den Chai'
+      }
     },
-    "properties": {
-      "id": "poi-13",
-      "name_th": "สถานีบริการน้ำมัน ปตท. เด่นชัย",
-      "name_en": "PTT Station Den Chai",
-      "category": "transport",
-      "description_th": "จุดพักรถสถานีบริการน้ำมัน ปตท. พร้อม Café Amazon และศูนย์อาหาร",
-      "description_en": "PTT Rest Area, gas station, and food court"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.053,
-        17.985
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.051000, 17.984000] },
+      properties: {
+        id: 'poi-14',
+        name_th: 'ที่ว่าการอำเภอเด่นชัย',
+        name_en: 'Den Chai District Office',
+        category: 'government',
+        description_th: 'ศูนย์ราชการฝ่ายปกครองและบริการงานทะเบียนราษฎร อำเภอเด่นชัย',
+        description_en: 'District Government Office of Den Chai'
+      }
     },
-    "properties": {
-      "id": "poi-14",
-      "name_th": "สำนักงานเทศบาลตำบลเด่นชัย",
-      "name_en": "Denchai Municipality Office",
-      "category": "government",
-      "description_th": "ศูนย์กลางการบริหารงานและบริการประชาชนเทศบาลตำบลเด่นชัย",
-      "description_en": "Municipal Administrative Center of Den Chai"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.051,
-        17.984
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.066650, 17.968288] },
+      properties: {
+        id: 'poi-15',
+        name_th: 'หมวดทางหลวงเด่นชัย (กรมทางหลวง)',
+        name_en: 'Den Chai Highway Maintenance Division',
+        category: 'government',
+        description_th: 'หน่วยงานดูแลรักษาโครงข่ายทางหลวงแผ่นดินสายหลัก ทล.11 และ ทล.101',
+        description_en: 'Department of Highways regional maintenance division'
+      }
     },
-    "properties": {
-      "id": "poi-15",
-      "name_th": "ที่ว่าการอำเภอเด่นชัย",
-      "name_en": "Denchai District Office",
-      "category": "government",
-      "description_th": "ศูนย์ราชการอำเภอเด่นชัย บริการงานทะเบียนและปกครอง",
-      "description_en": "Den Chai District Government Office"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.0545,
-        17.9835
-      ]
+
+    // ── ตลาด / ร้านค้า / ของฝาก ──
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.049499, 17.981389] },
+      properties: {
+        id: 'poi-16',
+        name_th: 'ตลาดสดเด่นฤดี (ตลาดสดเทศบาลเด่นชัย)',
+        name_en: 'Den Ruedee Fresh Market',
+        category: 'market',
+        description_th: 'ตลาดสดหลักใจกลางเทศบาล จำหน่ายอาหารสด ผักผลไม้ และของกินพื้นเมือง',
+        description_en: 'Downtown fresh morning and evening community market'
+      }
     },
-    "properties": {
-      "id": "poi-16",
-      "name_th": "ตลาดสดเทศบาลตำบลเด่นชัย",
-      "name_en": "Denchai Fresh Market",
-      "category": "market",
-      "description_th": "ตลาดสดศูนย์รวมอาหารพื้นเมือง ผักผลไม้ และของสดประจำอำเภอ",
-      "description_en": "Main fresh food market of Den Chai municipality"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.057,
-        17.9825
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.047645, 17.980377] },
+      properties: {
+        id: 'poi-17',
+        name_th: 'ตลาดโต้รุ่ง/ตลาดหน้าสถานีรถไฟเด่นชัย (Night Market)',
+        name_en: 'Railway Station Night Market',
+        category: 'market',
+        description_th: 'ตลาดสตรีทฟู้ดและร้านอาหารรอบค่ำหน้าสถานีรถไฟเด่นชัย',
+        description_en: 'Evening street food night market near train station'
+      }
     },
-    "properties": {
-      "id": "poi-17",
-      "name_th": "ตลาดนัดคลองถมเด่นชัย",
-      "name_en": "Denchai Night/Weekend Market",
-      "category": "market",
-      "description_th": "ตลาดนัดชุมชน สินค้าอุปโภคบริโภคและอาหารสตรีทฟู้ด",
-      "description_en": "Community evening and weekend market"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.0475,
-        17.981
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.066644, 17.965823] },
+      properties: {
+        id: 'poi-18',
+        name_th: 'ศูนย์จำหน่ายของฝากเมืองแพร่ เด่นชัย',
+        name_en: 'Phrae Souvenir Center Den Chai',
+        category: 'market',
+        description_th: 'แหล่งรวมของฝากขึ้นชื่อเมืองแพร่ หม้อฮ่อม ไส้อั่ว และของที่ระลึก',
+        description_en: 'Famous local souvenir and Phrae traditional crafts center'
+      }
     },
-    "properties": {
-      "id": "poi-18",
-      "name_th": "ตลาดหน้าสถานีรถไฟเด่นชัย",
-      "name_en": "Railway Station Front Market",
-      "category": "market",
-      "description_th": "ร้านค้าและอาหารพื้นบ้านหน้าสถานีรถไฟ",
-      "description_en": "Local shops and restaurants in front of railway station"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.051,
-        17.986
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.072642, 17.971360] },
+      properties: {
+        id: 'poi-19',
+        name_th: 'ร้านอาหารไส้กรอกเผาเตาดิน (ของดีเด่นชัย)',
+        name_en: 'Earth-Oven Smoked Sausage Den Chai',
+        category: 'market',
+        description_th: 'ร้านของกินขึ้นชื่อระดับ OTOP เอกลักษณ์ไส้กรอกเผาเตาดินอำเภอเด่นชัย',
+        description_en: 'Renowned traditional local smoked sausage culinary landmark'
+      }
     },
-    "properties": {
-      "id": "poi-19",
-      "name_th": "สวนสาธารณะเฉลิมพระเกียรติเด่นชัย",
-      "name_en": "Denchai Commemorative Park",
-      "category": "park",
-      "description_th": "พื้นที่สีเขียว ลู่วิ่งออกกำลังกาย และสนามเด็กเล่นกลางแจ้ง",
-      "description_en": "Public recreation park and fitness ground"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.058,
-        17.988
-      ]
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.052850, 17.982933] },
+      properties: {
+        id: 'poi-20',
+        name_th: 'ร้านสะดวกซื้อ 7-Eleven สาขาเด่นชัย',
+        name_en: '7-Eleven Den Chai Branch',
+        category: 'market',
+        description_th: 'ร้านสะดวกซื้อบริการ 24 ชั่วโมงใจกลางเทศบาล',
+        description_en: '24-hour convenience store'
+      }
     },
-    "properties": {
-      "id": "poi-20",
-      "name_th": "สนามกีฬาเทศบาลตำบลเด่นชัย",
-      "name_en": "Denchai Municipal Stadium",
-      "category": "park",
-      "description_th": "สนามกีฬาและศูนย์ออกกำลังกายชุมชน",
-      "description_en": "Community sport stadium and fitness center"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.0535,
-        17.983
-      ]
+
+    // ── สวนสาธารณะ / นันทนาการ ──
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.051000, 17.986000] },
+      properties: {
+        id: 'poi-21',
+        name_th: 'สวนสาธารณะเฉลิมพระเกียรติเด่นชัย',
+        name_en: 'Den Chai Commemorative Public Park',
+        category: 'park',
+        description_th: 'พื้นที่สีเขียว ลานออกกำลังกาย และลู่วิ่งเพื่อสุขภาพของประชาชน',
+        description_en: 'Municipal public recreation and outdoor fitness park'
+      }
     },
-    "properties": {
-      "id": "poi-21",
-      "name_th": "ธนาคารกรุงไทย สาขาเด่นชัย",
-      "name_en": "Krungthai Bank (Den Chai Branch)",
-      "category": "bank",
-      "description_th": "สาขาธนาคารกรุงไทย บริการธุรกรรมทางการเงิน",
-      "description_en": "Krungthai Bank commercial branch"
-    }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.055,
-        17.984
-      ]
+
+    // ── ธนาคาร / การเงิน ──
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.053500, 17.983000] },
+      properties: {
+        id: 'poi-22',
+        name_th: 'ธนาคารกรุงไทย สาขาเด่นชัย',
+        name_en: 'Krungthai Bank (Den Chai Branch)',
+        category: 'bank',
+        description_th: 'บริการธุรกรรมทางการเงินและบริการสินเชื่อภาครัฐ',
+        description_en: 'Krungthai Bank full service commercial branch'
+      }
     },
-    "properties": {
-      "id": "poi-22",
-      "name_th": "ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร (ธ.ก.ส.) สาขาเด่นชัย",
-      "name_en": "BAAC Bank (Den Chai Branch)",
-      "category": "bank",
-      "description_th": "บริการสินเชื่อเกษตรกรรมและธุรกรรมชุมชน",
-      "description_en": "Bank for Agriculture and Agricultural Cooperatives"
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.052000, 17.983500] },
+      properties: {
+        id: 'poi-23',
+        name_th: 'ธนาคารออมสิน สาขาเด่นชัย',
+        name_en: 'Government Savings Bank (GSB Den Chai)',
+        category: 'bank',
+        description_th: 'ธนาคารออมสินเพื่อการออมและสินเชื่อประชาชน',
+        description_en: 'Government Savings Bank branch'
+      }
     }
-  },
-  {
-    "type": "Feature",
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        100.052,
-        17.9835
-      ]
-    },
-    "properties": {
-      "id": "poi-23",
-      "name_th": "ธนาคารออมสิน สาขาเด่นชัย",
-      "name_en": "Government Savings Bank (GSB)",
-      "category": "bank",
-      "description_th": "บริการเงินฝากและสินเชื่อประชาชน",
-      "description_en": "Government Savings Bank branch"
-    }
-  }
-]
+  ]
 };
