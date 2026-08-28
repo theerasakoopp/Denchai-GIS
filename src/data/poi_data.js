@@ -6,6 +6,7 @@ export const POI_CATEGORIES = {
   hospital:  { name_th: 'โรงพยาบาล/สถานพยาบาล', name_en: 'Hospitals',       color: '#ef4444', icon: '🏥' },
   clinic:    { name_th: 'คลินิกแพทย์/ทันตกรรม', name_en: 'Clinics',         color: '#10b981', icon: '🩺' },
   pharmacy:  { name_th: 'ร้านขายยา/เวชภัณฑ์',  name_en: 'Pharmacies',      color: '#ec4899', icon: '💊' },
+  industry:  { name_th: 'โรงงาน/อุตสาหกรรม',   name_en: 'Industries',      color: '#a855f7', icon: '🏭' },
   temple:    { name_th: 'วัด/ศาสนสถาน',       name_en: 'Temples',         color: '#f59e0b', icon: '🛕' },
   school:    { name_th: 'โรงเรียน/สถานศึกษา',    name_en: 'Schools',         color: '#3b82f6', icon: '🏫' },
   market:    { name_th: 'ตลาด/ร้านค้า/ของฝาก',   name_en: 'Markets & Shops', color: '#f97316', icon: '🏪' },
@@ -95,6 +96,68 @@ export const POI_DATA = {
         category: 'pharmacy',
         description_th: 'ร้านขายยาและเวชภัณฑ์บริการประชาชนและผู้เดินทางหน้าสถานีรถไฟ',
         description_en: 'Pharmacy located near railway station junction'
+      }
+    },
+
+    // ── โรงงาน / อุตสาหกรรม ──
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.089615, 17.977760] },
+      properties: {
+        id: 'poi-ind-1',
+        name_th: 'โรงงานผลิตแผ่นหลังคาเมทัลชีท เด่นชัย',
+        name_en: 'Den Chai Metal Sheet & Roofing Factory',
+        category: 'industry',
+        description_th: 'โรงงานอุตสาหกรรมแปรรูปเหล็ก ผลิตแผ่นหลังคาเมทัลชีทและโครงสร้างเหล็กรูปพรรณ',
+        description_en: 'Metal sheet and roofing fabrication manufacturing plant'
+      }
+    },
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.065000, 17.969000] },
+      properties: {
+        id: 'poi-ind-2',
+        name_th: 'โรงงานแปรรูปไม้สักและเฟอร์นิเจอร์ไม้เด่นชัย',
+        name_en: 'Den Chai Teak Wood & Furniture Industry',
+        category: 'industry',
+        description_th: 'โรงงานแปรรูปไม้สักทอง ผลิตเฟอร์นิเจอร์และผลิตภัณฑ์ไม้แปรรูปส่งออกขึ้นชื่อเมืองแพร่',
+        description_en: 'Teak wood processing and wooden furniture manufacturing facility'
+      }
+    },
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.057500, 17.978500] },
+      properties: {
+        id: 'poi-ind-3',
+        name_th: 'โรงสีข้าวสหกรณ์การเกษตรเด่นชัย',
+        name_en: 'Den Chai Agricultural Cooperative Rice Mill',
+        category: 'industry',
+        description_th: 'โรงงานและโรงสีข้าวชุมชน แปรรูปและคัดแยกข้าวเปลือกเกษตรกรในอำเภอเด่นชัย',
+        description_en: 'Agricultural cooperative rice milling and grain processing plant'
+      }
+    },
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.071000, 17.970500] },
+      properties: {
+        id: 'poi-ind-4',
+        name_th: 'โรงงานคอนกรีตผสมเสร็จ เด่นชัย (Ready-Mix Concrete)',
+        name_en: 'Den Chai Ready-Mixed Concrete Plant',
+        category: 'industry',
+        description_th: 'โรงงานผลิตและจ่ายคอนกรีตผสมเสร็จ ผลิตภัณฑ์คอนกรีตอัดแรงสำหรับงานโครงสร้างพื้นฐาน',
+        description_en: 'Ready-mixed concrete batching plant and structural products'
+      }
+    },
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.062000, 17.972000] },
+      properties: {
+        id: 'poi-ind-5',
+        name_th: 'โรงงานแปรรูปและคัดแยกผลผลิตทางการเกษตรเด่นชัย',
+        name_en: 'Den Chai Agro-Processing & Cold Storage',
+        category: 'industry',
+        description_th: 'โรงงานแปรรูป บรรจุภัณฑ์ และห้องเย็นเก็บรักษาผลผลิตทางการเกษตร',
+        description_en: 'Agricultural food processing, packaging and cold storage facility'
       }
     },
 

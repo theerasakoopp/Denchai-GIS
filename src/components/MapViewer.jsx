@@ -112,6 +112,7 @@ const POI_COLOR_MATCH = [
   'hospital', '#ef4444',
   'clinic', '#10b981',
   'pharmacy', '#ec4899',
+  'industry', '#a855f7',
   'temple', '#f59e0b',
   'school', '#3b82f6',
   'market', '#f97316',
