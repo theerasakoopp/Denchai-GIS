@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Map, NavigationControl, ScaleControl, Popup, setWorkerUrl } from 'maplibre-gl';
+import { Map, NavigationControl, ScaleControl, Popup, setWorkerUrl, addProtocol } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as turf from '@turf/turf';
 import { ROOF_CLASSES } from '../App';
@@ -27,6 +27,63 @@ try {
   console.warn('MapLibre workerUrl setup:', e);
 }
 
+// ── Register Custom Protocol 'uav' to make white border & background transparent ──
+try {
+  addProtocol('uav', async (params, abortController) => {
+    const rawUrl = params.url.replace(/^uav:\/\//, '');
+    const response = await fetch(rawUrl, { signal: abortController.signal });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const blob = await response.blob();
+
+    try {
+      const img = await createImageBitmap(blob);
+      let canvas;
+      if (typeof OffscreenCanvas !== 'undefined') {
+        canvas = new OffscreenCanvas(img.width, img.height);
+      } else {
+        canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+      }
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0);
+      const imgData = ctx.getImageData(0, 0, img.width, img.height);
+      const d = imgData.data;
+
+      let hasWhite = false;
+      for (let i = 0; i < d.length; i += 4) {
+        const r = d[i], g = d[i+1], b = d[i+2];
+        // Strip out white nodata background / white collar around UAV orthophoto
+        if (r >= 246 && g >= 246 && b >= 246) {
+          d[i+3] = 0; // 100% transparent
+          hasWhite = true;
+        } else if (r >= 236 && g >= 236 && b >= 236) {
+          const factor = (255 - Math.max(r, g, b)) / 19;
+          d[i+3] = Math.round(d[i+3] * factor);
+          hasWhite = true;
+        }
+      }
+
+      if (hasWhite) {
+        ctx.putImageData(imgData, 0, 0);
+        let outBlob;
+        if (canvas.convertToBlob) {
+          outBlob = await canvas.convertToBlob({ type: 'image/webp', quality: 0.92 });
+        } else {
+          outBlob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+        }
+        const ab = await outBlob.arrayBuffer();
+        return { data: ab };
+      }
+    } catch (_) {}
+
+    const originalBuffer = await blob.arrayBuffer();
+    return { data: originalBuffer };
+  });
+} catch (err) {
+  console.warn('MapLibre UAV custom protocol setup:', err);
+}
+
 const UAV_TILE_URL = getTileUrl('tiles/uav/{z}/{x}/{y}.webp');
 
 const TILE_SOURCES = {
@@ -52,9 +109,12 @@ const CLASS_COLOR_MATCH = [
 const POI_COLOR_MATCH = [
   'match',
   ['get', 'category'],
+  'hospital', '#ef4444',
+  'clinic', '#10b981',
+  'pharmacy', '#ec4899',
   'temple', '#f59e0b',
   'school', '#3b82f6',
-  'market', '#ef4444',
+  'market', '#f97316',
   'transport', '#8b5cf6',
   'government', '#06b6d4',
   'park', '#22c55e',
@@ -393,7 +453,7 @@ export default function MapViewer({
         's-satellite': { type: 'raster', tiles: [TILE_SOURCES.satellite], tileSize: 256, attribution: '© Esri, Maxar' },
         's-uav': {
           type: 'raster',
-          tiles: [UAV_TILE_URL],
+          tiles: [`uav://${UAV_TILE_URL}`],
           tileSize: 256,
           minzoom: 14,
           maxzoom: 19,

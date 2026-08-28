@@ -1,19 +1,103 @@
 // ── Points of Interest (POI) — เทศบาลตำบลเด่นชัย ──
 // พิกัดจริงและชื่อจริง 100% จากฐานข้อมูล OpenStreetMap & GIS ประเทศไทย
+// พร้อมหมวดหมู่ โรงพยาบาล (Hospital), คลินิก (Clinic), และ ร้านขายยา (Pharmacy)
 
 export const POI_CATEGORIES = {
-  temple:    { name_th: 'วัด/ศาสนสถาน',   name_en: 'Temples',       color: '#f59e0b', icon: '🛕' },
-  school:    { name_th: 'โรงเรียน/สถานศึกษา', name_en: 'Schools',    color: '#3b82f6', icon: '🏫' },
-  market:    { name_th: 'ตลาด/ร้านค้า/ของฝาก', name_en: 'Markets & Shops', color: '#ef4444', icon: '🏪' },
-  transport: { name_th: 'คมนาคม/ขนส่ง/ปั๊มน้ำมัน', name_en: 'Transport', color: '#8b5cf6', icon: '🚉' },
-  government:{ name_th: 'หน่วยงานราชการ',   name_en: 'Government',    color: '#06b6d4', icon: '🏛️' },
-  park:      { name_th: 'สวนสาธารณะ/นันทนาการ', name_en: 'Parks',   color: '#22c55e', icon: '🌳' },
-  bank:      { name_th: 'ธนาคาร/การเงิน',  name_en: 'Banks',         color: '#6366f1', icon: '🏦' },
+  hospital:  { name_th: 'โรงพยาบาล/สถานพยาบาล', name_en: 'Hospitals',       color: '#ef4444', icon: '🏥' },
+  clinic:    { name_th: 'คลินิกแพทย์/ทันตกรรม', name_en: 'Clinics',         color: '#10b981', icon: '🩺' },
+  pharmacy:  { name_th: 'ร้านขายยา/เวชภัณฑ์',  name_en: 'Pharmacies',      color: '#ec4899', icon: '💊' },
+  temple:    { name_th: 'วัด/ศาสนสถาน',       name_en: 'Temples',         color: '#f59e0b', icon: '🛕' },
+  school:    { name_th: 'โรงเรียน/สถานศึกษา',    name_en: 'Schools',         color: '#3b82f6', icon: '🏫' },
+  market:    { name_th: 'ตลาด/ร้านค้า/ของฝาก',   name_en: 'Markets & Shops', color: '#f97316', icon: '🏪' },
+  transport: { name_th: 'คมนาคม/ขนส่ง/ปั๊มน้ำมัน', name_en: 'Transport',     color: '#8b5cf6', icon: '🚉' },
+  government:{ name_th: 'หน่วยงานราชการ',      name_en: 'Government',      color: '#06b6d4', icon: '🏛️' },
+  park:      { name_th: 'สวนสาธารณะ/นันทนาการ', name_en: 'Parks',           color: '#22c55e', icon: '🌳' },
+  bank:      { name_th: 'ธนาคาร/การเงิน',     name_en: 'Banks',           color: '#6366f1', icon: '🏦' },
 };
 
 export const POI_DATA = {
   type: 'FeatureCollection',
   features: [
+    // ── โรงพยาบาล / สถานพยาบาล ──
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.054520, 17.982870] },
+      properties: {
+        id: 'poi-hosp-1',
+        name_th: 'โรงพยาบาลสมเด็จพระยุพราชเด่นชัย',
+        name_en: 'Crown Prince Hospital Den Chai',
+        category: 'hospital',
+        description_th: 'โรงพยาบาลชุมชนระดับแม่ข่าย ให้บริการรักษาพยาบาล อุบัติเหตุและฉุกเฉินตลอด 24 ชั่วโมง',
+        description_en: 'Crown Prince Hospital Den Chai providing 24/7 healthcare and emergency services',
+        phone: '054-613111'
+      }
+    },
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.048448, 17.981818] },
+      properties: {
+        id: 'poi-hosp-2',
+        name_th: 'สำนักงานสาธารณสุขอำเภอเด่นชัย (สสอ.เด่นชัย)',
+        name_en: 'Den Chai District Public Health Office',
+        category: 'hospital',
+        description_th: 'ศูนย์ส่งเสริมสุขภาพ ควบคุมโรคติดต่อ และบริการสาธารณสุขชุมชน',
+        description_en: 'Public health office and community health promotion center',
+        phone: '054-613890'
+      }
+    },
+
+    // ── คลินิกแพทย์ / ทันตกรรม ──
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.052100, 17.983100] },
+      properties: {
+        id: 'poi-clinic-1',
+        name_th: 'คลินิกแพทย์เด่นชัยเวชกรรม',
+        name_en: 'Den Chai Medical Clinic',
+        category: 'clinic',
+        description_th: 'คลินิกตรวจรักษาโรคทั่วไป ตรวจสุขภาพ และให้คำปรึกษาทางการแพทย์',
+        description_en: 'General medical practice clinic providing diagnosis and treatment'
+      }
+    },
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.050800, 17.982200] },
+      properties: {
+        id: 'poi-clinic-2',
+        name_th: 'คลินิกทันตกรรมเด่นชัย (คลินิกทำฟัน)',
+        name_en: 'Den Chai Dental Clinic',
+        category: 'clinic',
+        description_th: 'บริการตรวจสุขภาพช่องปาก ขูดหินปูน อุดฟัน ถอนฟัน และทันตกรรมบูรณะ',
+        description_en: 'Dental care and oral health treatment clinic'
+      }
+    },
+
+    // ── ร้านขายยา / เวชภัณฑ์ ──
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.049800, 17.981500] },
+      properties: {
+        id: 'poi-pharm-1',
+        name_th: 'ร้านขายยาเด่นชัยเภสัช (ตลาดสดเด่นฤดี)',
+        name_en: 'Den Chai Pharmacy (Market)',
+        category: 'pharmacy',
+        description_th: 'จำหน่ายยาแผนปัจจุบัน เวชภัณฑ์ อาหารเสริม พร้อมเภสัชกรให้คำแนะนำ',
+        description_en: 'Licensed pharmacy dispensing medicines and healthcare products'
+      }
+    },
+    {
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [100.047100, 17.980800] },
+      properties: {
+        id: 'poi-pharm-2',
+        name_th: 'ร้านขายยาหน้าสถานีรถไฟเด่นชัย',
+        name_en: 'Station Front Pharmacy',
+        category: 'pharmacy',
+        description_th: 'ร้านขายยาและเวชภัณฑ์บริการประชาชนและผู้เดินทางหน้าสถานีรถไฟ',
+        description_en: 'Pharmacy located near railway station junction'
+      }
+    },
+
     // ── วัด / ศาสนสถาน ──
     {
       type: 'Feature',
