@@ -83,7 +83,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
       const saved = localStorage.getItem('denchai_infra_data');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed?.features?.length >= 20) return parsed;
+        if (parsed?.features && Array.isArray(parsed.features)) return parsed;
       }
     } catch {}
     return INFRA_DATA;
@@ -181,12 +181,13 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   };
 
   const handleSaveFeature = (savedFeature, datasetType) => {
+    const targetId = savedFeature.properties?.id || savedFeature.id;
     if (datasetType === 'poi') {
       setPoiData(prev => {
         const existing = prev.features || [];
-        const idx = existing.findIndex(f => f.properties.id === savedFeature.properties.id);
+        const idx = existing.findIndex(f => (f.properties?.id || f.id) === targetId);
         const updated = idx >= 0
-          ? existing.map(f => f.properties.id === savedFeature.properties.id ? savedFeature : f)
+          ? existing.map(f => (f.properties?.id || f.id) === targetId ? savedFeature : f)
           : [...existing, savedFeature];
         const newCol = { type: 'FeatureCollection', features: updated };
         localStorage.setItem('denchai_poi_data', JSON.stringify(newCol));
@@ -195,9 +196,9 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
     } else if (datasetType === 'infra') {
       setInfraData(prev => {
         const existing = prev.features || [];
-        const idx = existing.findIndex(f => f.properties.id === savedFeature.properties.id);
+        const idx = existing.findIndex(f => (f.properties?.id || f.id) === targetId);
         const updated = idx >= 0
-          ? existing.map(f => f.properties.id === savedFeature.properties.id ? savedFeature : f)
+          ? existing.map(f => (f.properties?.id || f.id) === targetId ? savedFeature : f)
           : [...existing, savedFeature];
         const newCol = { type: 'FeatureCollection', features: updated };
         localStorage.setItem('denchai_infra_data', JSON.stringify(newCol));
@@ -206,9 +207,9 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
     } else if (datasetType === 'service') {
       setServiceData(prev => {
         const existing = prev.features || [];
-        const idx = existing.findIndex(f => f.properties.id === savedFeature.properties.id);
+        const idx = existing.findIndex(f => (f.properties?.id || f.id) === targetId);
         const updated = idx >= 0
-          ? existing.map(f => f.properties.id === savedFeature.properties.id ? savedFeature : f)
+          ? existing.map(f => (f.properties?.id || f.id) === targetId ? savedFeature : f)
           : [...existing, savedFeature];
         const newCol = { type: 'FeatureCollection', features: updated };
         localStorage.setItem('denchai_service_data', JSON.stringify(newCol));
@@ -217,9 +218,9 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
     } else if (datasetType === 'water') {
       setWaterData(prev => {
         const existing = prev.features || [];
-        const idx = existing.findIndex(f => f.properties.id === savedFeature.properties.id);
+        const idx = existing.findIndex(f => (f.properties?.id || f.id) === targetId);
         const updated = idx >= 0
-          ? existing.map(f => f.properties.id === savedFeature.properties.id ? savedFeature : f)
+          ? existing.map(f => (f.properties?.id || f.id) === targetId ? savedFeature : f)
           : [...existing, savedFeature];
         const newCol = { type: 'FeatureCollection', features: updated };
         localStorage.setItem('denchai_water_data', JSON.stringify(newCol));
@@ -231,28 +232,28 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   const handleDeleteFeature = (featureId, datasetType) => {
     if (datasetType === 'poi') {
       setPoiData(prev => {
-        const updated = (prev.features || []).filter(f => f.properties.id !== featureId);
+        const updated = (prev.features || []).filter(f => (f.properties?.id || f.id) !== featureId);
         const newCol = { type: 'FeatureCollection', features: updated };
         localStorage.setItem('denchai_poi_data', JSON.stringify(newCol));
         return newCol;
       });
     } else if (datasetType === 'infra') {
       setInfraData(prev => {
-        const updated = (prev.features || []).filter(f => f.properties.id !== featureId);
+        const updated = (prev.features || []).filter(f => (f.properties?.id || f.id) !== featureId);
         const newCol = { type: 'FeatureCollection', features: updated };
         localStorage.setItem('denchai_infra_data', JSON.stringify(newCol));
         return newCol;
       });
     } else if (datasetType === 'service') {
       setServiceData(prev => {
-        const updated = (prev.features || []).filter(f => f.properties.id !== featureId);
+        const updated = (prev.features || []).filter(f => (f.properties?.id || f.id) !== featureId);
         const newCol = { type: 'FeatureCollection', features: updated };
         localStorage.setItem('denchai_service_data', JSON.stringify(newCol));
         return newCol;
       });
     } else if (datasetType === 'water') {
       setWaterData(prev => {
-        const updated = (prev.features || []).filter(f => f.properties.id !== featureId);
+        const updated = (prev.features || []).filter(f => (f.properties?.id || f.id) !== featureId);
         const newCol = { type: 'FeatureCollection', features: updated };
         localStorage.setItem('denchai_water_data', JSON.stringify(newCol));
         return newCol;

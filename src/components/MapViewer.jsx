@@ -383,6 +383,7 @@ export default function MapViewer({
   const [activeDrawMode, setActiveDrawMode] = useState('none');
   const [measureInfo, setMeasureInfo] = useState(null);
   const [editingRoadId, setEditingRoadId] = useState(null);
+  const [editingRoadName, setEditingRoadName] = useState('');
   const [topologyMode, setTopologyMode] = useState('none'); // 'none' | 'reshape' | 'split' | 'merge' | 'delete'
   const [mergeFirstFeature, setMergeFirstFeature] = useState(null);
   const [snapEnabled, setSnapEnabled] = useState(true);
@@ -391,6 +392,7 @@ export default function MapViewer({
   const snapEnabledRef = useRef(true);
   const activeDrawModeRef = useRef('none');
   const editingRoadIdRef = useRef(null);
+  const editingRoadFeatRef = useRef(null);
   const drawingDatasetTypeRef = useRef(null);
 
   useEffect(() => { topologyModeRef.current = topologyMode; }, [topologyMode]);
@@ -398,6 +400,26 @@ export default function MapViewer({
   useEffect(() => { snapEnabledRef.current = snapEnabled; }, [snapEnabled]);
   useEffect(() => { activeDrawModeRef.current = activeDrawMode; }, [activeDrawMode]);
   useEffect(() => { editingRoadIdRef.current = editingRoadId; }, [editingRoadId]);
+
+  const startReshapingRoad = (feat) => {
+    if (!feat || !drawRef.current || !mapRef.current) return;
+    const draw = drawRef.current;
+    try {
+      draw.deleteAll();
+      const ids = draw.add(feat);
+      const targetId = ids && ids.length ? ids[0] : (feat.id || feat.properties?.id);
+      draw.changeMode('direct_select', { featureId: targetId });
+      setActiveDrawMode('select');
+      setEditingRoadId(targetId);
+      editingRoadFeatRef.current = feat;
+      setEditingRoadName(feat.properties?.name_th || feat.properties?.name_en || 'ถนน');
+
+      const centroid = turf.centroid(feat);
+      mapRef.current.flyTo({ center: centroid.geometry.coordinates, zoom: 17, duration: 800 });
+    } catch (e) {
+      console.warn('start reshaping error:', e);
+    }
+  };
 
   useEffect(() => {
     if (triggerDrawRoad && drawRef.current) {
@@ -417,21 +439,7 @@ export default function MapViewer({
 
   useEffect(() => {
     if (!reshapingFeature || !drawRef.current || !mapRef.current) return;
-    const draw = drawRef.current;
-    try {
-      draw.deleteAll();
-      const ids = draw.add(reshapingFeature);
-      const targetId = ids && ids.length ? ids[0] : reshapingFeature.id || reshapingFeature.properties?.id;
-      draw.changeMode('direct_select', { featureId: targetId });
-      setActiveDrawMode('select');
-      setEditingRoadId(targetId);
-      setEditingRoadName(reshapingFeature.properties?.name_th || reshapingFeature.properties?.name_en || 'ถนน');
-
-      const centroid = turf.centroid(reshapingFeature);
-      mapRef.current.flyTo({ center: centroid.geometry.coordinates, zoom: 17, duration: 800 });
-    } catch (e) {
-      console.warn('start reshaping error:', e);
-    }
+    startReshapingRoad(reshapingFeature);
   }, [reshapingFeature]);
 
   const updateMeasurements = () => {
@@ -1955,20 +1963,25 @@ export default function MapViewer({
               const editedFeat = all?.features?.find(f => f.id === editingRoadId) || all?.features?.[0];
               if (editedFeat) {
                 const lenKm = turf.length(editedFeat, { units: 'kilometers' });
+                const baseFeature = reshapingFeature || editingRoadFeatRef.current || infraDataRef.current?.features?.find(f => (f.properties?.id || f.id) === (editingRoadIdRef.current || editingRoadId)) || editedFeat;
+                const targetId = baseFeature.properties?.id || baseFeature.id || editingRoadId;
                 const updated = {
-                  ...reshapingFeature,
+                  ...baseFeature,
+                  id: targetId,
                   geometry: editedFeat.geometry,
                   properties: {
-                    ...(reshapingFeature?.properties || {}),
+                    ...(baseFeature?.properties || {}),
+                    id: targetId,
                     length_km: Number(lenKm.toFixed(3))
                   }
                 };
                 onSaveFeature?.(updated, 'infra');
-                alert(`บันทึกแนวเส้นทาง ${editingRoadName} (ความยาว ${lenKm.toFixed(2)} กม.) เรียบร้อยแล้ว!`);
+                alert(`บันทึกแนวเส้นทาง ${editingRoadName || 'ถนน'} (ความยาว ${lenKm.toFixed(2)} กม.) เรียบร้อยแล้ว!`);
               }
               drawRef.current?.deleteAll();
               setEditingRoadId(null);
               setEditingRoadName('');
+              editingRoadFeatRef.current = null;
               setActiveDrawMode('none');
               onFinishReshaping?.();
             }}
