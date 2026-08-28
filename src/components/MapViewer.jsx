@@ -260,14 +260,15 @@ export default function MapViewer({
     return { type: 'FeatureCollection', features: filtered };
   }, [buildingsData, filters]);
 
-  // ── Zoom Helpers ─────────────────────────────────────────────
-  const zoomTo = (mapInstance, geoJSON) => {
-    if (!geoJSON || !geoJSON.features?.length) return;
+  // ── Zoom Helpers (Always Centered on Municipal Boundary) ────
+  const zoomTo = (mapInstance, geoJSON = MUNICIPAL_BOUNDARY) => {
+    const target = geoJSON || MUNICIPAL_BOUNDARY;
+    if (!target || !target.features?.length) return;
     try {
-      const bbox = turf.bbox(geoJSON);
+      const bbox = turf.bbox(target);
       mapInstance.fitBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]], {
-        padding: { top: 60, bottom: 60, left: 420, right: 60 },
-        duration: 900
+        padding: { top: 50, bottom: 50, left: 410, right: 50 },
+        duration: 800
       });
     } catch (_) {}
   };
@@ -276,11 +277,6 @@ export default function MapViewer({
     const map = mapRef.current;
     if (!map) return;
     if (uploadedBoundary?.features?.length) { zoomTo(map, uploadedBoundary); return; }
-    if (activeTab === 'poi' && poiData?.features?.length) { zoomTo(map, poiData); return; }
-    if (activeTab === 'infra' && infraData?.features?.length) { zoomTo(map, infraData); return; }
-    if (activeTab === 'service' && serviceData?.features?.length) { zoomTo(map, serviceData); return; }
-    if (facetsData?.features?.length) { zoomTo(map, facetsData); return; }
-    if (buildingsData?.features?.length) { zoomTo(map, buildingsData); return; }
     zoomTo(map, MUNICIPAL_BOUNDARY);
   };
 
@@ -897,14 +893,8 @@ export default function MapViewer({
     if (map.getLayer('bound-line')) map.setLayoutProperty('bound-line', 'visibility', 'visible');
     if (map.getLayer('bound-line-inner')) map.setLayoutProperty('bound-line-inner', 'visibility', 'visible');
 
-    // When tab changes, automatically frame that tab's data!
-    if (activeTab === 'poi' && poiData?.features?.length) {
-      zoomTo(map, poiData);
-    } else if (activeTab === 'infra' && infraData?.features?.length) {
-      zoomTo(map, infraData);
-    } else if (activeTab === 'service' && serviceData?.features?.length) {
-      zoomTo(map, serviceData);
-    }
+    // Always frame Municipal Boundary on tab switch!
+    zoomTo(map, MUNICIPAL_BOUNDARY);
 
     map.triggerRepaint();
   }, [viewMode, activeTab, mapLoaded]);
