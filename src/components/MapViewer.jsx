@@ -603,6 +603,19 @@ export default function MapViewer({
         return;
       }
 
+      // 0.0 Topology: Reshape line mode
+      if (topologyModeRef.current === 'reshape') {
+        const lineFeats = mapInstance.queryRenderedFeatures(e.point, { layers: ['infra-line'] });
+        if (lineFeats?.length) {
+          const clickedTileFeat = lineFeats[0];
+          const p = clickedTileFeat.properties;
+          const origFeat = infraDataRef.current?.features?.find(f => (f.properties?.id || f.id) === (p.id || clickedTileFeat.id)) || clickedTileFeat;
+          setTopologyMode('none');
+          startReshapingRoad(origFeat);
+          return;
+        }
+      }
+
       // 0.1 Topology: Split line mode
       if (topologyModeRef.current === 'split') {
         const lineFeats = mapInstance.queryRenderedFeatures(e.point, { layers: ['infra-line'] });
@@ -1718,6 +1731,32 @@ export default function MapViewer({
         </div>
       )}
 
+      {/* Reshape Line Active Banner */}
+      {topologyMode === 'reshape' && !editingRoadId && (
+        <div style={{
+          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 5500, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(16px)',
+          color: 'white', border: '2px solid #38bdf8', borderRadius: 30,
+          padding: '8px 20px', display: 'flex', alignItems: 'center', gap: 14,
+          boxShadow: '0 8px 32px rgba(56, 189, 248, 0.35)'
+        }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#38bdf8' }}>
+            📐 โหมดดัดเส้น: คลิกเลือกเส้นถนนบนแผนที่เพื่อดึง/ดัดจุดยอด (Vertex)
+          </span>
+          <button
+            type="button"
+            style={{
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
+              color: 'white', borderRadius: 20, padding: '4px 10px', fontSize: '0.75rem',
+              cursor: 'pointer', fontWeight: 600
+            }}
+            onClick={() => setTopologyMode('none')}
+          >
+            ยกเลิก
+          </button>
+        </div>
+      )}
+
       {/* Delete Feature Active Banner */}
       {topologyMode === 'delete' && (
         <div style={{
@@ -1792,15 +1831,23 @@ export default function MapViewer({
 
         <button
           type="button"
-          className={`basemap-btn ${activeDrawMode === 'select' ? 'active' : ''}`}
+          className={`basemap-btn ${topologyMode === 'reshape' || editingRoadId ? 'active' : ''}`}
           onClick={() => {
-            setDrawMode(activeDrawMode === 'select' ? 'none' : 'select');
-            setTopologyMode('none');
+            if (editingRoadId) {
+              drawRef.current?.deleteAll();
+              setEditingRoadId(null);
+              setEditingRoadName('');
+              setActiveDrawMode('none');
+              onFinishReshaping?.();
+            }
+            setTopologyMode(topologyMode === 'reshape' ? 'none' : 'reshape');
+            setMergeFirstFeature(null);
+            setDrawMode('none');
           }}
-          title={lang === 'th' ? 'เลือก / ดึงจุดดัดรูปทรง (Select & Reshape)' : 'Select & Reshape'}
-          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+          title={lang === 'th' ? 'ดัดจุดยอดแนวเส้นทาง/อาคาร (Reshape Line)' : 'Reshape Line'}
+          style={{ padding: '6px 9px', fontSize: '0.72rem', borderLeft: '1px solid rgba(255,255,255,0.15)', marginLeft: 2, paddingLeft: 8 }}
         >
-          <Pencil size={13} color={activeDrawMode === 'select' ? '#fff' : '#cbd5e1'} /> {lang === 'th' ? 'ดัดทรง' : 'Edit'}
+          <Pencil size={13} color={topologyMode === 'reshape' || editingRoadId ? '#fff' : '#38bdf8'} /> {lang === 'th' ? 'ดัดเส้น' : 'Reshape'}
         </button>
 
         <button
@@ -1812,7 +1859,7 @@ export default function MapViewer({
             setDrawMode('none');
           }}
           title={lang === 'th' ? 'ตัดเส้นทางออกเป็น 2 ตอน (Split Line)' : 'Split Line'}
-          style={{ padding: '6px 9px', fontSize: '0.72rem', borderLeft: '1px solid rgba(255,255,255,0.15)', marginLeft: 2, paddingLeft: 8 }}
+          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
         >
           <Scissors size={13} color={topologyMode === 'split' ? '#fff' : '#ef4444'} /> {lang === 'th' ? 'ตัดเส้น' : 'Split'}
         </button>
