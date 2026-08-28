@@ -1,14 +1,35 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Map, NavigationControl, ScaleControl, Popup, setWorkerUrl, addProtocol } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import MapboxDraw from '@mapbox/mapbox-gl-draw';
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import * as turf from '@turf/turf';
 import { ROOF_CLASSES } from '../App';
 import { translations } from '../translations';
-import { Layers, Globe, Compass, SunMedium, Focus, Plane } from 'lucide-react';
+import {
+  Layers, Globe, Compass, SunMedium, Focus, Plane,
+  MapPin, Activity, Square, Pencil, Trash2, Download, X, Ruler, CheckCircle2
+} from 'lucide-react';
 import MUNICIPAL_BOUNDARY from '../data/boundary.json';
 import { POI_DATA, POI_CATEGORIES } from '../data/poi_data';
 import { INFRA_DATA, INFRA_CATEGORIES } from '../data/infra_data';
 import { SERVICE_DATA, SERVICE_CATEGORIES } from '../data/service_data';
+
+// ── Thai Area Formatting Helper ──
+function formatThaiArea(sqm) {
+  if (!sqm || sqm <= 0) return '0 ตร.ม.';
+  const rai = Math.floor(sqm / 1600);
+  const rem1 = sqm % 1600;
+  const ngan = Math.floor(rem1 / 400);
+  const rem2 = rem1 % 400;
+  const wah = (rem2 / 4).toFixed(1);
+
+  let str = `${sqm.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ตร.ม.`;
+  if (rai > 0 || ngan > 0 || Number(wah) > 0) {
+    str += ` (${rai > 0 ? rai + ' ไร่ ' : ''}${ngan > 0 ? ngan + ' งาน ' : ''}${wah} ตร.วา)`;
+  }
+  return str;
+}
 
 // ── Build accurate tile URL without URL-encoding template tokens {z}/{x}/{y} ──
 function getTileUrl(path) {
@@ -164,6 +185,7 @@ export default function MapViewer({
   filters,
   visibleLayers,
   uploadedBoundary,
+  setUploadedBoundary = null,
   municipalBoundary,
   colorMode,
   viewMode,
@@ -182,6 +204,7 @@ export default function MapViewer({
   isPickingLocation = false,
   onLocationPicked = null,
   onEditFeature = null,
+  onAddFeature = null,
 }) {
   const t = translations[lang] || translations.th;
   const langRef = useRef(lang);
@@ -209,8 +232,111 @@ export default function MapViewer({
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const popupRef = useRef(null);
+  const drawRef = useRef(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [currentBasemap, setCurrentBasemap] = useState('uav');
+  const [activeDrawMode, setActiveDrawMode] = useState('none');
+  const [measureInfo, setMeasureInfo] = useState(null);
+
+  const updateMeasurements = () => {
+    if (!drawRef.current) return;
+    const data = drawRef.current.getAll();
+    if (!data || !data.features || data.features.length === 0) {
+      setMeasureInfo(null);
+      return;
+    }
+    const selectedIds = drawRef.current.getSelectedIds();
+    const targetFeat = selectedIds.length > 0
+      ? data.features.find(f => f.id === selectedIds[0]) || data.features[data.features.length - 1]
+      : data.features[data.features.length - 1];
+
+    if (!targetFeat) {
+      setMeasureInfo(null);
+      return;
+    }
+
+    const geomType = targetFeat.geometry?.type;
+    if (geomType === 'LineString') {
+      const lenKm = turf.length(targetFeat, { units: 'kilometers' });
+      const lenM = lenKm * 1000;
+      setMeasureInfo({
+        type: 'line',
+        feature: targetFeat,
+        lengthKm: lenKm.toFixed(3),
+        lengthM: lenM.toFixed(1),
+        totalFeatures: data.features.length
+      });
+    } else if (geomType === 'Polygon') {
+      const areaM2 = turf.area(targetFeat);
+      setMeasureInfo({
+        type: 'polygon',
+        feature: targetFeat,
+        areaSqm: areaM2.toFixed(1),
+        thaiArea: formatThaiArea(areaM2),
+        totalFeatures: data.features.length
+      });
+    } else if (geomType === 'Point') {
+      setMeasureInfo({
+        type: 'point',
+        feature: targetFeat,
+        coords: targetFeat.geometry.coordinates,
+        totalFeatures: data.features.length
+      });
+    }
+  };
+
+  const setDrawMode = (mode) => {
+    const draw = drawRef.current;
+    if (!draw) return;
+    if (mode === 'point') {
+      draw.changeMode('draw_point');
+      setActiveDrawMode('point');
+    } else if (mode === 'line') {
+      draw.changeMode('draw_line_string');
+      setActiveDrawMode('line');
+    } else if (mode === 'polygon') {
+      draw.changeMode('draw_polygon');
+      setActiveDrawMode('polygon');
+    } else if (mode === 'select') {
+      draw.changeMode('simple_select');
+      setActiveDrawMode('select');
+    } else {
+      draw.changeMode('simple_select');
+      setActiveDrawMode('none');
+    }
+  };
+
+  const handleTrash = () => {
+    drawRef.current?.trash();
+    setTimeout(updateMeasurements, 50);
+  };
+
+  const handleClearAll = () => {
+    if (window.confirm(lang === 'th' ? 'ล้างรูปทรงที่วาดทั้งหมดใช่หรือไม่?' : 'Delete all drawn shapes?')) {
+      drawRef.current?.deleteAll();
+      setMeasureInfo(null);
+      setActiveDrawMode('none');
+    }
+  };
+
+  const handleExportDrawn = () => {
+    const data = drawRef.current?.getAll();
+    if (!data || !data.features?.length) {
+      alert(lang === 'th' ? 'ไม่มีรูปทรงที่วาดบนแผนที่' : 'No shapes drawn on map');
+      return;
+    }
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data));
+    const link = document.createElement('a');
+    link.setAttribute('href', dataStr);
+    link.setAttribute('download', `Denchai_Draw_${Date.now()}.geojson`);
+    link.click();
+  };
+
+  const handleApplyAsAOI = (feat) => {
+    if (!feat || feat.geometry?.type !== 'Polygon') return;
+    const aoiCollection = { type: 'FeatureCollection', features: [feat] };
+    setUploadedBoundary?.(aoiCollection);
+  };
 
   // ── Color expression ─────────────────────────────────────────
   const getColorExpr = (mode, vm) => {
@@ -770,6 +896,34 @@ export default function MapViewer({
         map.addControl(new ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
       } catch (_) {}
 
+      // ── Initialize MapboxDraw ──────────────────────────────
+      try {
+        const drawInstance = new MapboxDraw({
+          displayControlsDefault: false,
+          controls: {
+            point: false,
+            line_string: false,
+            polygon: false,
+            trash: false
+          },
+          defaultMode: 'simple_select'
+        });
+        map.addControl(drawInstance, 'top-right');
+        drawRef.current = drawInstance;
+
+        map.on('draw.create', updateMeasurements);
+        map.on('draw.update', updateMeasurements);
+        map.on('draw.delete', updateMeasurements);
+        map.on('draw.selectionchange', updateMeasurements);
+        map.on('draw.modechange', (e) => {
+          if (e.mode === 'simple_select') {
+            setActiveDrawMode('select');
+          }
+        });
+      } catch (err) {
+        console.warn('MapboxDraw init error:', err);
+      }
+
       setupPopups(map);
       setMapLoaded(true);
 
@@ -1101,6 +1255,179 @@ export default function MapViewer({
           <Focus size={14} color="#38bdf8" /> {lang === 'th' ? 'ซูมขอบเขต' : 'Fit View'}
         </button>
       </div>
+
+      {/* ── MapLibre Drawing & Geometry Editor Toolbar ── */}
+      <div className="map-floating-panel" style={{
+        position: 'absolute', top: 14, right: 54, zIndex: 1500,
+        display: 'flex', alignItems: 'center', gap: 4, padding: '4px 6px',
+        background: 'rgba(13, 20, 36, 0.94)', backdropFilter: 'blur(16px)',
+        border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: 8
+      }}>
+        <button
+          type="button"
+          className={`basemap-btn ${activeDrawMode === 'point' ? 'active' : ''}`}
+          onClick={() => setDrawMode(activeDrawMode === 'point' ? 'none' : 'point')}
+          title={lang === 'th' ? 'วาด/ปักหมุดจุดพิกัด (Point)' : 'Draw Point'}
+          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+        >
+          <MapPin size={13} color={activeDrawMode === 'point' ? '#fff' : '#38bdf8'} /> {lang === 'th' ? 'จุด' : 'Point'}
+        </button>
+
+        <button
+          type="button"
+          className={`basemap-btn ${activeDrawMode === 'line' ? 'active' : ''}`}
+          onClick={() => setDrawMode(activeDrawMode === 'line' ? 'none' : 'line')}
+          title={lang === 'th' ? 'วาดเส้น / วัดระยะทาง (LineString)' : 'Draw Line / Measure Distance'}
+          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+        >
+          <Activity size={13} color={activeDrawMode === 'line' ? '#fff' : '#f59e0b'} /> {lang === 'th' ? 'เส้น' : 'Line'}
+        </button>
+
+        <button
+          type="button"
+          className={`basemap-btn ${activeDrawMode === 'polygon' ? 'active' : ''}`}
+          onClick={() => setDrawMode(activeDrawMode === 'polygon' ? 'none' : 'polygon')}
+          title={lang === 'th' ? 'วาดพื้นที่ / วัดขนาดแปลง (Polygon)' : 'Draw Polygon / Area'}
+          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+        >
+          <Square size={13} color={activeDrawMode === 'polygon' ? '#fff' : '#10b981'} /> {lang === 'th' ? 'พื้นที่' : 'Polygon'}
+        </button>
+
+        <button
+          type="button"
+          className={`basemap-btn ${activeDrawMode === 'select' ? 'active' : ''}`}
+          onClick={() => setDrawMode(activeDrawMode === 'select' ? 'none' : 'select')}
+          title={lang === 'th' ? 'เลือก / ดึงจุดดัดรูปทรง (Select & Reshape)' : 'Select & Reshape'}
+          style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+        >
+          <Pencil size={13} color={activeDrawMode === 'select' ? '#fff' : '#cbd5e1'} /> {lang === 'th' ? 'ดัดทรง' : 'Edit'}
+        </button>
+
+        {measureInfo && (
+          <>
+            <button
+              type="button"
+              className="basemap-btn"
+              onClick={handleTrash}
+              style={{ color: '#f87171', padding: '6px 8px' }}
+              title={lang === 'th' ? 'ลบรูปทรงที่เลือก' : 'Delete Selected Shape'}
+            >
+              <Trash2 size={13} />
+            </button>
+
+            <button
+              type="button"
+              className="basemap-btn"
+              onClick={handleExportDrawn}
+              style={{ color: '#38bdf8', padding: '6px 8px' }}
+              title={lang === 'th' ? 'ส่งออก GeoJSON ที่วาด' : 'Export Drawn GeoJSON'}
+            >
+              <Download size={13} />
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* ── Real-time Measurement HUD Card ── */}
+      {measureInfo && (
+        <div style={{
+          position: 'absolute', top: 62, right: 54, zIndex: 1400,
+          background: 'rgba(13, 20, 36, 0.95)', backdropFilter: 'blur(16px)',
+          border: '1px solid rgba(56, 189, 248, 0.4)', borderRadius: 12,
+          padding: '12px 16px', color: 'white', minWidth: 250, maxWidth: 330,
+          boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5)', animation: 'slideDown 0.2s ease-out'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 6 }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#38bdf8', display: 'flex', alignItems: 'center', gap: 6 }}>
+              {measureInfo.type === 'line' ? '📏 ผลการวัดระยะทาง (Line)'
+               : measureInfo.type === 'polygon' ? '📐 ผลการคำนวณพื้นที่ (Polygon)'
+               : '📍 พิกัดจุด (Point)'}
+            </span>
+            <button
+              type="button"
+              onClick={() => setMeasureInfo(null)}
+              style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 2 }}
+            >
+              <X size={13} />
+            </button>
+          </div>
+
+          {measureInfo.type === 'line' && (
+            <div>
+              <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>ระยะทางรวม:</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#38bdf8' }}>
+                {measureInfo.lengthKm} <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>กม.</span>
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginTop: 2 }}>
+                ({measureInfo.lengthM} เมตร)
+              </div>
+            </div>
+          )}
+
+          {measureInfo.type === 'polygon' && (
+            <div>
+              <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>ขนาดพื้นที่รวม:</div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#4ade80' }}>
+                {measureInfo.areaSqm} <span style={{ fontSize: '0.75rem', fontWeight: 500 }}>ตร.ม.</span>
+              </div>
+              <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginTop: 2 }}>
+                {measureInfo.thaiArea}
+              </div>
+
+              {setUploadedBoundary && (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ width: '100%', marginTop: 10, padding: '6px 10px', fontSize: '0.74rem', justifyContent: 'center' }}
+                  onClick={() => handleApplyAsAOI(measureInfo.feature)}
+                >
+                  ☀️ วิเคราะห์โซลาร์ในแปลงนี้
+                </button>
+              )}
+            </div>
+          )}
+
+          {measureInfo.type === 'point' && (
+            <div>
+              <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>พิกัดภูมิศาสตร์ (Lon, Lat):</div>
+              <div style={{ fontSize: '0.78rem', fontFamily: 'monospace', color: '#fcd34d', margin: '4px 0 8px' }}>
+                {measureInfo.coords[0].toFixed(6)}, {measureInfo.coords[1].toFixed(6)}
+              </div>
+              {onAddFeature && (
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ width: '100%', padding: '6px 10px', fontSize: '0.74rem', justifyContent: 'center' }}
+                  onClick={() => {
+                    onAddFeature(activeTab === 'service' ? 'service' : 'poi');
+                  }}
+                >
+                  + บันทึกเป็นสถานที่สำคัญ
+                </button>
+              )}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6, marginTop: 10, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <button
+              type="button"
+              className="btn btn-sm"
+              style={{ flex: 1, justifyContent: 'center', fontSize: '0.68rem', padding: '4px 6px' }}
+              onClick={handleExportDrawn}
+            >
+              <Download size={11} /> ส่งออก GeoJSON
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm"
+              style={{ flex: 1, justifyContent: 'center', fontSize: '0.68rem', padding: '4px 6px', color: '#f87171' }}
+              onClick={handleClearAll}
+            >
+              <Trash2 size={11} /> ล้างทั้งหมด
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Quick Summary Card — changes with activeTab */}
       <div style={{

@@ -339,6 +339,8 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         isPickingLocation={isPickingLocation}
         onLocationPicked={handleLocationPicked}
         onEditFeature={handleOpenEdit}
+        onAddFeature={handleOpenAdd}
+        setUploadedBoundary={setUploadedBoundary}
       />
 
       {/* Feature Edit / Add Modal */}
