@@ -273,7 +273,7 @@ export default function Sidebar({
   tariff, setTariff,
   systemCostPerKwp, setSystemCostPerKwp,
   // Smart City tab props
-  activeTab = 'solar', setActiveTab,
+  activeTab = 'poi', setActiveTab,
   poiData, poiCategories,
   infraData, infraCategories,
   serviceData, serviceCategories,

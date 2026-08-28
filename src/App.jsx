@@ -64,7 +64,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   const [viewMode, setViewMode] = useState('facets');   // Default to Roof Facet View
 
   // ── Smart City Tab State ──
-  const [activeTab, setActiveTab] = useState('solar'); // 'poi' | 'infra' | 'service' | 'solar'
+  const [activeTab, setActiveTab] = useState('poi'); // Default to POI (สถานที่สำคัญ)
   const [selectedFeature, setSelectedFeature] = useState(null);
 
   // ── Editable Datasets (with LocalStorage persistence) ──

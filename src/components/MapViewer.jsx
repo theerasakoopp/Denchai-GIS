@@ -169,7 +169,7 @@ export default function MapViewer({
   lang = 'th',
   tariff = 4.2,
   // Smart City props
-  activeTab = 'solar',
+  activeTab = 'poi',
   poiData = POI_DATA,
   infraData = INFRA_DATA,
   serviceData = SERVICE_DATA,
