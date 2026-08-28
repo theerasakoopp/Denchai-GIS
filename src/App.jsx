@@ -615,6 +615,14 @@ export default function App() {
   const [tariff, setTariff] = useState(4.20); // Average THB per kWh unit
   const [systemCostPerKwp, setSystemCostPerKwp] = useState(28000); // 28,000 THB/kWp
 
+  useEffect(() => {
+    // If user enters /editor without hash on path (e.g. /editor), auto-redirect to #/editor
+    if (window.location.pathname.endsWith('/editor')) {
+      const base = window.location.pathname.replace(/\/editor\/?$/, '');
+      window.location.replace((base || '') + '/#/editor');
+    }
+  }, []);
+
   return (
     <HashRouter>
       <Routes>
