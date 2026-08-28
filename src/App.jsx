@@ -47,6 +47,8 @@ async function fetchWithFallback(filename) {
   throw new Error(`Failed to load ${filename}`);
 }
 
+import FeatureEditModal from './components/FeatureEditModal';
+
 // ── Default dashboard: loads pre-generated GeoJSON from /public ──
 function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, setSystemCostPerKwp }) {
   const [geoDataFacets, setGeoDataFacets] = useState(null);
@@ -64,6 +66,41 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   // ── Smart City Tab State ──
   const [activeTab, setActiveTab] = useState('solar'); // 'poi' | 'infra' | 'service' | 'solar'
   const [selectedFeature, setSelectedFeature] = useState(null);
+
+  // ── Editable Datasets (with LocalStorage persistence) ──
+  const [poiData, setPoiData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('denchai_poi_data');
+      return saved ? JSON.parse(saved) : POI_DATA;
+    } catch {
+      return POI_DATA;
+    }
+  });
+
+  const [infraData, setInfraData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('denchai_infra_data');
+      return saved ? JSON.parse(saved) : INFRA_DATA;
+    } catch {
+      return INFRA_DATA;
+    }
+  });
+
+  const [serviceData, setServiceData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('denchai_service_data');
+      return saved ? JSON.parse(saved) : SERVICE_DATA;
+    } catch {
+      return SERVICE_DATA;
+    }
+  });
+
+  // ── Editor & Modal State ──
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingFeature, setEditingFeature] = useState(null);
+  const [editDatasetType, setEditDatasetType] = useState('poi'); // 'poi' | 'infra' | 'service'
+  const [isPickingLocation, setIsPickingLocation] = useState(false);
+  const [pickedCoordinates, setPickedCoordinates] = useState(null);
 
   // ── Layer visibility for POI/Infra/Service categories ──
   const [poiVisible, setPoiVisible] = useState(
@@ -110,6 +147,103 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   const toggleAllLayers = (v) =>
     setVisibleLayers(Object.fromEntries(Object.keys(ROOF_CLASSES).map(k => [k, v])));
 
+  // ── CRUD Handlers for Map & POI Editor ──
+  const handleOpenAdd = (datasetType = 'poi') => {
+    setEditDatasetType(datasetType);
+    setEditingFeature(null);
+    setPickedCoordinates(null);
+    setIsEditModalOpen(true);
+  };
+
+  const handleOpenEdit = (feature, datasetType = 'poi') => {
+    setEditDatasetType(datasetType);
+    setEditingFeature(feature);
+    setPickedCoordinates(feature.geometry?.coordinates || null);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveFeature = (savedFeature, datasetType) => {
+    if (datasetType === 'poi') {
+      setPoiData(prev => {
+        const existing = prev.features || [];
+        const idx = existing.findIndex(f => f.properties.id === savedFeature.properties.id);
+        const updated = idx >= 0
+          ? existing.map(f => f.properties.id === savedFeature.properties.id ? savedFeature : f)
+          : [...existing, savedFeature];
+        const newCol = { type: 'FeatureCollection', features: updated };
+        localStorage.setItem('denchai_poi_data', JSON.stringify(newCol));
+        return newCol;
+      });
+    } else if (datasetType === 'service') {
+      setServiceData(prev => {
+        const existing = prev.features || [];
+        const idx = existing.findIndex(f => f.properties.id === savedFeature.properties.id);
+        const updated = idx >= 0
+          ? existing.map(f => f.properties.id === savedFeature.properties.id ? savedFeature : f)
+          : [...existing, savedFeature];
+        const newCol = { type: 'FeatureCollection', features: updated };
+        localStorage.setItem('denchai_service_data', JSON.stringify(newCol));
+        return newCol;
+      });
+    }
+  };
+
+  const handleDeleteFeature = (featureId, datasetType) => {
+    if (datasetType === 'poi') {
+      setPoiData(prev => {
+        const updated = (prev.features || []).filter(f => f.properties.id !== featureId);
+        const newCol = { type: 'FeatureCollection', features: updated };
+        localStorage.setItem('denchai_poi_data', JSON.stringify(newCol));
+        return newCol;
+      });
+    } else if (datasetType === 'service') {
+      setServiceData(prev => {
+        const updated = (prev.features || []).filter(f => f.properties.id !== featureId);
+        const newCol = { type: 'FeatureCollection', features: updated };
+        localStorage.setItem('denchai_service_data', JSON.stringify(newCol));
+        return newCol;
+      });
+    }
+  };
+
+  const handleResetData = (datasetType) => {
+    if (window.confirm(lang === 'th' ? 'คุณต้องการคืนค่าเริ่มต้นทั้งหมดใช่หรือไม่?' : 'Reset to default data?')) {
+      if (datasetType === 'poi') {
+        localStorage.removeItem('denchai_poi_data');
+        setPoiData(POI_DATA);
+      } else if (datasetType === 'service') {
+        localStorage.removeItem('denchai_service_data');
+        setServiceData(SERVICE_DATA);
+      }
+    }
+  };
+
+  const handleExportData = (datasetType) => {
+    const dataToExport = datasetType === 'poi' ? poiData : serviceData;
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `denchai_${datasetType}_data.geojson`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleStartPickLocation = () => {
+    setIsEditModalOpen(false);
+    setIsPickingLocation(true);
+  };
+
+  const handleLocationPicked = (coords) => {
+    setPickedCoordinates(coords);
+    setIsPickingLocation(false);
+    setIsEditModalOpen(true);
+  };
+
+  const currentCategories = editDatasetType === 'poi' ? POI_CATEGORIES
+    : editDatasetType === 'infra' ? INFRA_CATEGORIES
+    : SERVICE_CATEGORIES;
+
   return (
     <div className="app-container">
       {/* Loading Overlay */}
@@ -130,6 +264,35 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         </div>
       )}
 
+      {/* Picking Location Banner */}
+      {isPickingLocation && (
+        <div style={{
+          position: 'absolute', top: 16, left: '50%', transform: 'translateX(-50%)',
+          zIndex: 5500, background: 'rgba(15, 23, 42, 0.95)', backdropFilter: 'blur(12px)',
+          color: 'white', border: '1px solid #38bdf8', borderRadius: 30,
+          padding: '10px 24px', display: 'flex', alignItems: 'center', gap: 16,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)', animation: 'pulse 2s infinite'
+        }}>
+          <span style={{ fontSize: '0.92rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+            🎯 {lang === 'th' ? 'คลิกบนแผนที่ UAV เพื่อกำหนดตำแหน่งพิกัด' : 'Click on the UAV map to place pin'}
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setIsPickingLocation(false);
+              setIsEditModalOpen(true);
+            }}
+            style={{
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
+              color: 'white', borderRadius: 20, padding: '4px 12px', fontSize: '0.78rem',
+              cursor: 'pointer', fontWeight: 600
+            }}
+          >
+            {lang === 'th' ? 'ยกเลิก' : 'Cancel'}
+          </button>
+        </div>
+      )}
+
       <Sidebar
         geoData={activeGeoData}
         filters={filters} setFilters={setFilters}
@@ -141,13 +304,18 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         tariff={tariff} setTariff={setTariff}
         systemCostPerKwp={systemCostPerKwp} setSystemCostPerKwp={setSystemCostPerKwp}
         activeTab={activeTab} setActiveTab={setActiveTab}
-        poiData={POI_DATA} poiCategories={POI_CATEGORIES}
-        infraData={INFRA_DATA} infraCategories={INFRA_CATEGORIES}
-        serviceData={SERVICE_DATA} serviceCategories={SERVICE_CATEGORIES}
+        poiData={poiData} poiCategories={POI_CATEGORIES}
+        infraData={infraData} infraCategories={INFRA_CATEGORIES}
+        serviceData={serviceData} serviceCategories={SERVICE_CATEGORIES}
         poiVisible={poiVisible} setPoiVisible={setPoiVisible}
         infraVisible={infraVisible} setInfraVisible={setInfraVisible}
         serviceVisible={serviceVisible} setServiceVisible={setServiceVisible}
         onSelectFeature={setSelectedFeature}
+        onAddFeature={handleOpenAdd}
+        onEditFeature={handleOpenEdit}
+        onDeleteFeature={handleDeleteFeature}
+        onResetData={handleResetData}
+        onExportData={handleExportData}
       />
       <MapViewer
         facetsData={geoDataFacets}
@@ -161,13 +329,30 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         lang={lang}
         tariff={tariff}
         activeTab={activeTab}
-        poiData={POI_DATA}
-        infraData={INFRA_DATA}
-        serviceData={SERVICE_DATA}
+        poiData={poiData}
+        infraData={infraData}
+        serviceData={serviceData}
         poiVisible={poiVisible}
         infraVisible={infraVisible}
         serviceVisible={serviceVisible}
         selectedFeature={selectedFeature}
+        isPickingLocation={isPickingLocation}
+        onLocationPicked={handleLocationPicked}
+        onEditFeature={handleOpenEdit}
+      />
+
+      {/* Feature Edit / Add Modal */}
+      <FeatureEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        feature={editingFeature}
+        categories={currentCategories}
+        datasetType={editDatasetType}
+        onSave={handleSaveFeature}
+        onDelete={handleDeleteFeature}
+        onPickOnMap={handleStartPickLocation}
+        pickedCoords={pickedCoordinates}
+        lang={lang}
       />
     </div>
   );

@@ -117,6 +117,10 @@ export default function MapViewer({
   infraVisible = {},
   serviceVisible = {},
   selectedFeature = null,
+  // Editor props
+  isPickingLocation = false,
+  onLocationPicked = null,
+  onEditFeature = null,
 }) {
   const t = translations[lang] || translations.th;
   const langRef = useRef(lang);
@@ -126,6 +130,9 @@ export default function MapViewer({
   const activeTabRef = useRef(activeTab);
   const facetsDataRef = useRef(facetsData);
   const buildingsDataRef = useRef(buildingsData);
+  const isPickingLocationRef = useRef(isPickingLocation);
+  const onLocationPickedRef = useRef(onLocationPicked);
+  const onEditFeatureRef = useRef(onEditFeature);
 
   useEffect(() => { langRef.current = lang; }, [lang]);
   useEffect(() => { tariffRef.current = tariff; }, [tariff]);
@@ -134,6 +141,9 @@ export default function MapViewer({
   useEffect(() => { activeTabRef.current = activeTab; }, [activeTab]);
   useEffect(() => { facetsDataRef.current = facetsData; }, [facetsData]);
   useEffect(() => { buildingsDataRef.current = buildingsData; }, [buildingsData]);
+  useEffect(() => { isPickingLocationRef.current = isPickingLocation; }, [isPickingLocation]);
+  useEffect(() => { onLocationPickedRef.current = onLocationPicked; }, [onLocationPicked]);
+  useEffect(() => { onEditFeatureRef.current = onEditFeature; }, [onEditFeature]);
 
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
@@ -239,9 +249,15 @@ export default function MapViewer({
     applyBasemap(mapRef.current, key);
   };
 
-  // ── Setup Popups ─────────────────────────────────────────────
+  // ── Setup Popups & Interactive Handlers ───────────────────────
   const setupPopups = (mapInstance) => {
     mapInstance.on('click', (e) => {
+      // 0. If picking location, trigger callback and stop
+      if (isPickingLocationRef.current) {
+        onLocationPickedRef.current?.([e.lngLat.lng, e.lngLat.lat]);
+        return;
+      }
+
       const allInteractiveLayers = [
         'poi-circle',
         'service-circle',
@@ -288,8 +304,23 @@ export default function MapViewer({
               <span style="color:#94a3b8">${curLang === 'th' ? 'หมวดหมู่' : 'Category'}</span>
               <span style="color:${color};font-weight:600;text-transform:capitalize">${cat}</span>
             </div>
+            <button id="btn-edit-popup-place" style="margin-top:10px;width:100%;padding:6px 10px;border-radius:6px;background:rgba(59,130,246,0.2);border:1px solid #3b82f6;color:#60a5fa;font-size:0.75rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+              ✏️ ${curLang === 'th' ? 'แก้ไขข้อมูล / ย้ายตำแหน่ง' : 'Edit Info / Move Pin'}
+            </button>
           </div>
         `).addTo(mapInstance);
+
+        setTimeout(() => {
+          const editBtn = document.getElementById('btn-edit-popup-place');
+          if (editBtn) {
+            editBtn.onclick = () => {
+              const dsType = layerId.startsWith('service') ? 'service' : layerId.startsWith('infra') ? 'infra' : 'poi';
+              onEditFeatureRef.current?.(feat, dsType);
+              popupRef.current.remove();
+            };
+          }
+        }, 50);
+
         return;
       }
 
@@ -827,6 +858,15 @@ export default function MapViewer({
       map.triggerRepaint();
     }
   }, [colorMode, viewMode, mapLoaded]);
+
+  // ── Sync Picking Cursor ──────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    try {
+      map.getCanvas().style.cursor = isPickingLocation ? 'crosshair' : '';
+    } catch (_) {}
+  }, [isPickingLocation]);
 
   // ── Sync uploaded boundary AOI ───────────────────────────────
   useEffect(() => {

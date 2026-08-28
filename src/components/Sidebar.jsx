@@ -76,7 +76,10 @@ function applyFilters(geoData, filters, visibleLayers, boundary, viewMode) {
 // ── Category List Panel (reusable for POI/Infra/Service) ──
 function CategoryListPanel({
   data, categories, visibleCats, setVisibleCats,
-  lang, t, summaryIcon, summaryLabel, onItemClick
+  lang, t, summaryIcon, summaryLabel, onItemClick,
+  datasetType = 'poi',
+  onAddFeature, onEditFeature, onDeleteFeature,
+  onResetData, onExportData
 }) {
   const grouped = useMemo(() => {
     if (!data?.features) return {};
@@ -113,10 +116,64 @@ function CategoryListPanel({
         </div>
       </div>
 
+      {/* Editor Action Toolbar */}
+      <div style={{
+        background: '#f8fafc', border: '1px solid var(--border-subtle)',
+        borderRadius: 10, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8
+      }}>
+        {onAddFeature && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{
+              width: '100%', justifyContent: 'center', padding: '8px 12px',
+              fontSize: '0.82rem', fontWeight: 600, gap: 6,
+              background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+              boxShadow: '0 2px 6px rgba(37,99,235,0.25)'
+            }}
+            onClick={() => onAddFeature(datasetType)}
+          >
+            {datasetType === 'poi' ? t.addPoiBtn
+             : datasetType === 'infra' ? t.addInfraBtn
+             : t.addServiceBtn}
+          </button>
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+          {onExportData && (
+            <button
+              type="button"
+              className="btn btn-sm"
+              style={{ justifyContent: 'center', fontSize: '0.75rem', padding: '5px 8px' }}
+              onClick={() => onExportData(datasetType)}
+              title="Export GeoJSON"
+            >
+              <Download size={12} /> {t.exportPoiBtn || 'Export'}
+            </button>
+          )}
+          {onResetData && (
+            <button
+              type="button"
+              className="btn btn-sm"
+              style={{ justifyContent: 'center', fontSize: '0.75rem', padding: '5px 8px', color: '#64748b' }}
+              onClick={() => onResetData(datasetType)}
+              title="Reset Default"
+            >
+              🔄 {t.resetPoiBtn || 'Reset'}
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Show/Hide All */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 6 }}>
-        <button className="btn btn-sm" onClick={showAll}>{t.poiShowAll}</button>
-        <button className="btn btn-sm" onClick={hideAll}>{t.poiHideAll}</button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-sub)' }}>
+          {lang === 'th' ? 'การเปิด-ปิดชั้นข้อมูล' : 'Layer Filters'}
+        </span>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button className="btn btn-sm" onClick={showAll}>{t.poiShowAll}</button>
+          <button className="btn btn-sm" onClick={hideAll}>{t.poiHideAll}</button>
+        </div>
       </div>
 
       {/* Category Groups */}
@@ -142,12 +199,59 @@ function CategoryListPanel({
                   <div
                     className="category-item"
                     key={item.properties.id}
-                    onClick={() => onItemClick?.(item)}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px' }}
                   >
-                    <span className="item-name">
-                      {lang === 'th' ? item.properties.name_th : item.properties.name_en}
-                    </span>
-                    <Navigation size={11} color="#64748b" />
+                    <div
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, cursor: 'pointer', overflow: 'hidden' }}
+                      onClick={() => onItemClick?.(item)}
+                    >
+                      <Navigation size={11} color="#3b82f6" style={{ flexShrink: 0 }} />
+                      <span className="item-name" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {lang === 'th' ? item.properties.name_th : item.properties.name_en}
+                      </span>
+                    </div>
+
+                    {/* Quick action buttons */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 3, flexShrink: 0 }}>
+                      {onEditFeature && (
+                        <button
+                          type="button"
+                          className="btn-icon-subtle"
+                          style={{
+                            background: 'none', border: 'none', padding: 4,
+                            cursor: 'pointer', borderRadius: 4, color: '#64748b',
+                            display: 'flex', alignItems: 'center'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditFeature(item, datasetType);
+                          }}
+                          title={t.editPoiBtn || 'Edit'}
+                        >
+                          ✏️
+                        </button>
+                      )}
+                      {onDeleteFeature && (
+                        <button
+                          type="button"
+                          className="btn-icon-subtle"
+                          style={{
+                            background: 'none', border: 'none', padding: 4,
+                            cursor: 'pointer', borderRadius: 4, color: '#ef4444',
+                            display: 'flex', alignItems: 'center'
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(t.confirmDelete || 'คุณต้องการลบสถานที่นี้ใช่หรือไม่?')) {
+                              onDeleteFeature(item.properties.id, datasetType);
+                            }
+                          }}
+                          title={t.deletePlace || 'Delete'}
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -177,6 +281,11 @@ export default function Sidebar({
   infraVisible, setInfraVisible,
   serviceVisible, setServiceVisible,
   onSelectFeature,
+  onAddFeature,
+  onEditFeature,
+  onDeleteFeature,
+  onResetData,
+  onExportData,
 }) {
   const t = translations[lang] || translations.th;
   const fileInputRef = useRef();
@@ -348,6 +457,12 @@ export default function Sidebar({
             summaryIcon="📍"
             summaryLabel={t.poiHeader}
             onItemClick={onSelectFeature}
+            datasetType="poi"
+            onAddFeature={onAddFeature}
+            onEditFeature={onEditFeature}
+            onDeleteFeature={onDeleteFeature}
+            onResetData={onResetData}
+            onExportData={onExportData}
           />
         )}
 
@@ -363,6 +478,12 @@ export default function Sidebar({
             summaryIcon="🏗️"
             summaryLabel={t.infraHeader}
             onItemClick={onSelectFeature}
+            datasetType="infra"
+            onAddFeature={onAddFeature}
+            onEditFeature={onEditFeature}
+            onDeleteFeature={onDeleteFeature}
+            onResetData={onResetData}
+            onExportData={onExportData}
           />
         )}
 
@@ -378,6 +499,12 @@ export default function Sidebar({
             summaryIcon="🏥"
             summaryLabel={t.serviceHeader}
             onItemClick={onSelectFeature}
+            datasetType="service"
+            onAddFeature={onAddFeature}
+            onEditFeature={onEditFeature}
+            onDeleteFeature={onDeleteFeature}
+            onResetData={onResetData}
+            onExportData={onExportData}
           />
         )}
 

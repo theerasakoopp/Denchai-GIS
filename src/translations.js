@@ -16,15 +16,27 @@ export const translations = {
     poiCount: 'จุดข้อมูล',
     poiShowAll: 'แสดงทั้งหมด',
     poiHideAll: 'ซ่อนทั้งหมด',
+    addPoiBtn: '+ เพิ่มสถานที่ใหม่',
+    editPoiBtn: 'แก้ไขข้อมูล / ย้ายตำแหน่ง',
+    exportPoiBtn: 'ส่งออก GeoJSON',
+    resetPoiBtn: 'คืนค่าเริ่มต้น',
+    pickOnMap: 'คลิกบนแผนที่เพื่อระบุตำแหน่ง',
+    pickingInstruction: '🎯 คลิกบนแผนที่ UAV เพื่อวางตำแหน่งพิกัด',
+    cancelPick: 'ยกเลิกการเลือก',
+    savePlace: 'บันทึกข้อมูล',
+    deletePlace: 'ลบสถานที่นี้',
+    confirmDelete: 'คุณต้องการลบสถานที่นี้ใช่หรือไม่?',
 
     // Infrastructure Tab
     infraHeader: 'โครงสร้างพื้นฐานสาธารณะ',
     infraCount: 'รายการ',
+    addInfraBtn: '+ เพิ่มโครงสร้างพื้นฐาน',
 
     // Service Tab
     serviceHeader: 'บริการสาธารณะและหน่วยงาน',
     serviceCount: 'แห่ง',
     servicePhone: 'โทรศัพท์',
+    addServiceBtn: '+ เพิ่มหน่วยงาน/บริการ',
     
     // View modes
     viewMode: 'โหมดมุมมองข้อมูล',
@@ -133,15 +145,27 @@ export const translations = {
     poiCount: 'locations',
     poiShowAll: 'Show All',
     poiHideAll: 'Hide All',
+    addPoiBtn: '+ Add New Location',
+    editPoiBtn: 'Edit Info / Move Pin',
+    exportPoiBtn: 'Export GeoJSON',
+    resetPoiBtn: 'Reset to Default',
+    pickOnMap: 'Click map to place pin',
+    pickingInstruction: '🎯 Click on the UAV map to place coordinates',
+    cancelPick: 'Cancel Picking',
+    savePlace: 'Save Information',
+    deletePlace: 'Delete Location',
+    confirmDelete: 'Are you sure you want to delete this location?',
 
     // Infrastructure Tab
     infraHeader: 'Public Infrastructure',
     infraCount: 'items',
+    addInfraBtn: '+ Add Infrastructure',
 
     // Service Tab
     serviceHeader: 'Public Services & Agencies',
     serviceCount: 'locations',
     servicePhone: 'Phone',
+    addServiceBtn: '+ Add Service / Agency',
     
     // View modes
     viewMode: 'Data View Mode',
