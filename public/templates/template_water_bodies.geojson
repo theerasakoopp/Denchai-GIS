@@ -1,0 +1,63 @@
+{
+  "type": "FeatureCollection",
+  "name": "Template_Water_Bodies_Denchai",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "water-river-01",
+        "name_th": "แม่น้ำยม (ช่วงผ่านเทศบาลตำบลเด่นชัย)",
+        "name_en": "Mae Yom River",
+        "category": "river",
+        "category_th": "แม่น้ำยม / ลำน้ำสายหลัก",
+        "area_sqm": 85400.0,
+        "capacity_m3": 250000.0,
+        "water_quality": "good",
+        "purpose": "อุปโภค-บริโภค / ชลประทาน / นิเวศวิทยา",
+        "notes": "แม่น้ำสายหลักของจังหวัดแพร่และอำเภอเด่นชัย"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [100.04500, 17.98000],
+            [100.04800, 17.98400],
+            [100.05000, 17.98900],
+            [100.04900, 17.98920],
+            [100.04700, 17.98420],
+            [100.04400, 17.98020],
+            [100.04500, 17.98000]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "water-res-02",
+        "name_th": "อ่างเก็บน้ำ / สระแก้มลิงชุมชนเด่นชัย",
+        "name_en": "Den Chai Community Retention Basin",
+        "category": "reservoir",
+        "category_th": "อ่างเก็บน้ำ / สระแก้มลิงชุมชน",
+        "area_sqm": 18200.0,
+        "capacity_m3": 45000.0,
+        "water_quality": "good",
+        "purpose": "ชะลอน้ำหลากฤดูฝน และกักเก็บน้ำใช้ช่วงภัยแล้ง",
+        "notes": "แก้มลิงรับน้ำหลากจากลำห้วยแม่พวก"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [100.05300, 17.98600],
+            [100.05500, 17.98600],
+            [100.05500, 17.98480],
+            [100.05300, 17.98480],
+            [100.05300, 17.98600]
+          ]
+        ]
+      }
+    }
+  ]
+}

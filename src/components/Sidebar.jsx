@@ -5,7 +5,8 @@ import {
 import {
   Zap, Home, Upload, Layers, SunMedium, X, MapPin,
   TrendingUp, Leaf, DollarSign, Settings2, Download, Printer,
-  Building2, HeartPulse, Navigation, Search, ChevronDown, ChevronRight, Waves
+  Building2, HeartPulse, Navigation, Search, ChevronDown, ChevronRight, Waves,
+  FileSpreadsheet, FolderDown, RotateCcw, Trash2, Edit3
 } from 'lucide-react';
 import { ROOF_CLASSES } from '../App';
 import { translations } from '../translations';
@@ -80,7 +81,41 @@ function applyFilters(geoData, filters, visibleLayers, boundary, viewMode) {
   };
 }
 
-// ── Category List Panel (reusable for POI/Infra/Service/Water) ──
+// ── GIS Templates List (16 Layers + CSV Data Dictionary) ──
+const GIS_TEMPLATES = [
+  { id: 'buildings', name_th: '1. อาคารและสิ่งปลูกสร้าง (Buildings)', geom: 'Polygon', icon: '🏢', file: 'template_buildings.geojson', desc: 'เลขที่บ้าน, ชนิดอาคาร, จำนวนชั้น, โครงสร้าง, พื้นที่หลังคา', fields: 14 },
+  { id: 'streetlights', name_th: '2. เสาไฟฟ้าและโคมไฟส่องสว่าง (Streetlights)', geom: 'Point', icon: '💡', file: 'template_streetlights.geojson', desc: 'รหัสเสา, หลอด LED/โซลาร์เซลล์, กำลังวัตต์, สถานะติด/ดับ', fields: 13 },
+  { id: 'power_grid', name_th: '3. หม้อแปลงและแนวสายส่งไฟฟ้า (Power Grid)', geom: 'Point / LineString', icon: '⚡', file: 'template_power_grid.geojson', desc: 'หม้อแปลง kVA, สายส่งแรงสูง 22kV, โหลดไฟฟ้า, พิกัดรองรับ Solar', fields: 12 },
+  { id: 'drainage', name_th: '4. ระบบระบายน้ำและบ่อพัก (Drainage System)', geom: 'LineString / Point', icon: '🌊', file: 'template_drainage_system.geojson', desc: 'รางยู คสล., ท่อกลม, ขนาดความกว้าง, ทิศทางการไหล, บ่อพัก', fields: 13 },
+  { id: 'water_supply', name_th: '5. ระบบท่อประปาและหัวดับเพลิง (Water Supply)', geom: 'Point / LineString', icon: '🚒', file: 'template_water_supply_hydrants.geojson', desc: 'หัวดับเพลิง (รัศมี 150ม.), แรงดันน้ำ, ท่อเมน HDPE/PVC', fields: 11 },
+  { id: 'cctv_safety', name_th: '6. กล้อง CCTV และจุดเสี่ยงจราจร (CCTV & Safety)', geom: 'Point', icon: '📹', file: 'template_cctv_traffic_safety.geojson', desc: 'กล้อง AI อ่านป้ายทะเบียน, มุมมอง FOV, จุดเสี่ยงอุบัติเหตุ', fields: 12 },
+  { id: 'hazard_evacuation', name_th: '7. พื้นที่เสี่ยงภัยและศูนย์อพยพ (Hazard & Evacuation)', geom: 'Polygon / Point', icon: '🚨', file: 'template_hazard_evacuation.geojson', desc: 'พื้นที่น้ำท่วมซ้ำซากริมแม่น้ำยม, ศูนย์พักพิงชั่วคราว, ความจุคน', fields: 10 },
+  { id: 'waste_management', name_th: '8. การจัดการขยะและสายเดินรถ (Waste Management)', geom: 'Point / LineString', icon: '🗑️', file: 'template_waste_management.geojson', desc: 'จุดตั้งถังขยะ 4 ประเภท, สายเดินรถเก็บขยะ, รอบเวลาเก็บ', fields: 8 },
+  { id: 'vulnerable_citizens', name_th: '9. พิกัดบ้านกลุ่มเปราะบาง (Vulnerable Citizens)', geom: 'Point', icon: '♿', file: 'template_vulnerable_citizens.geojson', desc: 'ผู้ป่วยติดเตียง, ผู้พิการ, เครื่องผลิตออกซิเจน, ลำดับการอพยพ', fields: 9 },
+  { id: 'community_boundaries', name_th: '10. ขอบเขตชุมชนและหมู่บ้าน (Community Boundaries)', geom: 'Polygon', icon: '🏘️', file: 'template_community_boundaries.geojson', desc: 'ขอบเขต ม.1 ถึง ม.N, ผู้นำชุมชน, ประชากร, จำนวนครัวเรือน', fields: 8 },
+  { id: 'poi', name_th: '11. สถานที่สำคัญและสถานที่ราชการ (POI)', geom: 'Point', icon: '📍', file: 'template_poi.geojson', desc: 'โรงพยาบาล, คลินิก, โรงเรียน, วัด, ตลาด, สถานีรถไฟ, ธนาคาร', fields: 7 },
+  { id: 'roads_transport', name_th: '12. โครงข่ายถนนและคมนาคม (Roads & Transport)', geom: 'LineString', icon: '🛣️', file: 'template_roads_transport.geojson', desc: 'ทางหลวง 101/11, สายประธาน, ถนนซอย, สภาพผิวทาง, ปีงบประมาณ', fields: 11 },
+  { id: 'water_bodies', name_th: '13. แหล่งน้ำผิวดินและแก้มลิง (Water Bodies)', geom: 'Polygon', icon: '💧', file: 'template_water_bodies.geojson', desc: 'แม่น้ำยม, ห้วยแม่พวก, อ่างเก็บน้ำ, สระแก้มลิง, สระประปา', fields: 7 },
+  { id: 'public_services', name_th: '14. ศูนย์บริการประชาชนและหน่วยงาน (Public Services)', geom: 'Point', icon: '🏛️', file: 'template_public_services.geojson', desc: 'สถานีตำรวจ, งานดับเพลิงกู้ภัย, ไปรษณีย์, บริการสาธารณสุข', fields: 6 },
+  { id: 'solar_rooftops', name_th: '15. ศักยภาพโซลาร์เซลล์บนหลังคา (Solar Rooftops)', geom: 'Polygon', icon: '☀️', file: 'template_solar_rooftops.geojson', desc: 'Class 1-7, Slope, Aspect, กำลังผลิต kWp, ประหยัดบาท/ปี, คืนทุน', fields: 13 },
+  { id: 'municipal_boundary', name_th: '16. ขอบเขตการปกครองเทศบาล (Municipal Boundary)', geom: 'Polygon', icon: '🗺️', file: 'template_municipal_boundary.geojson', desc: 'แนวเขตเทศบาลตำบลเด่นชัย, ประชากร, ครัวเรือน, พื้นที่ ตร.กม.', fields: 8 }
+];
+
+// Helper: trigger direct browser download for template files
+function triggerTemplateDownload(filename) {
+  const base = import.meta.env.BASE_URL || './';
+  const cleanBase = base.endsWith('/') ? base : base + '/';
+  const fileUrl = `${cleanBase}templates/${filename}`;
+
+  const link = document.createElement('a');
+  link.href = fileUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// ── Category List Panel (Original Clean Design: Accordion + Chips + Toggle Switches) ──
 function CategoryListPanel({
   data, categories, visibleCats, setVisibleCats,
   lang, t, summaryIcon, summaryLabel, onItemClick,
@@ -114,7 +149,7 @@ function CategoryListPanel({
 
     for (const f of data.features) {
       total++;
-      const p = f.properties;
+      const p = f.properties || {};
       const cat = p.category || 'other';
 
       // Apply category chip filter
@@ -122,7 +157,7 @@ function CategoryListPanel({
 
       // Apply search filter
       if (term) {
-        const nameTh = (p.name_th || '').toLowerCase();
+        const nameTh = (p.name_th || p.name || '').toLowerCase();
         const nameEn = (p.name_en || '').toLowerCase();
         const descTh = (p.description_th || '').toLowerCase();
         const descEn = (p.description_en || '').toLowerCase();
@@ -151,22 +186,191 @@ function CategoryListPanel({
 
   return (
     <>
-      {/* Summary Card */}
-      <div className="tab-summary-card" style={{ flexShrink: 0 }}>
-        <div className="summary-icon">{summaryIcon}</div>
-        <div className="summary-text">
-          <div className="summary-title">{summaryLabel}</div>
-          <div className="summary-value">
-            {totalCount} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#94a3b8' }}>{t.poiCount}</span>
-          </div>
+      {/* Search Bar */}
+      <div className="search-bar" style={{ flexShrink: 0 }}>
+        <Search size={15} className="search-icon" />
+        <input
+          type="text"
+          placeholder={
+            datasetType === 'infra' ? (lang === 'th' ? 'ค้นหาชื่อถนน, ทางหลวง, ทางรถไฟ...' : 'Search roads, highways...')
+            : datasetType === 'water' ? (lang === 'th' ? 'ค้นหาชื่อแม่น้ำ, ห้วย, คลอง, สระน้ำ...' : 'Search rivers, canals, ponds...')
+            : (lang === 'th' ? 'ค้นหาชื่อสถานที่, โรงพยาบาล, วัด, ร้านยา...' : 'Search places, hospitals, temples...')
+          }
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        {searchTerm && (
+          <button className="search-clear" onClick={() => setSearchTerm('')}>
+            <X size={13} />
+          </button>
+        )}
+      </div>
+
+      {/* Category Filter Chips Bar */}
+      <div className="category-chips-bar" style={{ flexShrink: 0 }}>
+        <button
+          className={`cat-chip ${selectedCatFilter === 'all' ? 'active' : ''}`}
+          onClick={() => setSelectedCatFilter('all')}
+        >
+          {lang === 'th' ? 'ทั้งหมด' : 'All'} ({totalCount})
+        </button>
+        {Object.entries(categories).map(([k, meta]) => {
+          const count = (grouped[k] || []).length;
+          if (count === 0 && selectedCatFilter !== k) return null;
+          return (
+            <button
+              key={k}
+              className={`cat-chip ${selectedCatFilter === k ? 'active' : ''}`}
+              onClick={() => setSelectedCatFilter(selectedCatFilter === k ? 'all' : k)}
+            >
+              <span>{meta.icon}</span>
+              <span>{lang === 'th' ? meta.name_th : meta.name_en}</span>
+              <span className="chip-count">({count})</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Layer Control Toolbar */}
+      <div className="layer-control-toolbar" style={{ flexShrink: 0 }}>
+        <span className="toolbar-label">
+          {lang === 'th' ? `ชั้นข้อมูล (${totalCount})` : `Layers (${totalCount})`}
+        </span>
+        <div className="toolbar-actions">
+          <button onClick={expandAll} className="btn-text" style={{ background: '#f1f5f9', padding: '3px 7px', borderRadius: 5, color: '#334155', fontWeight: 600 }}>
+            {lang === 'th' ? 'ขยายทั้งหมด' : 'Expand All'}
+          </button>
+          <button onClick={showAll} className="btn-text" style={{ background: '#f1f5f9', padding: '3px 7px', borderRadius: 5, color: '#334155', fontWeight: 600 }}>
+            {t.poiShowAll || 'แสดงทั้งหมด'}
+          </button>
+          <button onClick={hideAll} className="btn-text" style={{ background: '#f1f5f9', padding: '3px 7px', borderRadius: 5, color: '#334155', fontWeight: 600 }}>
+            {t.poiHideAll || 'ซ่อนทั้งหมด'}
+          </button>
         </div>
       </div>
 
-      {/* Editor Action Toolbar */}
+      {/* Category Accordion List with iOS-Style Switches */}
+      <div className="category-groups-container">
+        {Object.entries(categories).map(([catKey, meta]) => {
+          const items = grouped[catKey] || [];
+          const isVisible = visibleCats[catKey] !== false;
+          const isExpanded = expandedCats[catKey] === true;
+
+          return (
+            <div key={catKey} className={`category-group ${!isVisible ? 'dimmed' : ''}`}>
+              <div
+                className="category-header"
+                onClick={() => toggleAccordion(catKey)}
+              >
+                <div className="cat-label">
+                  <span className="cat-dot" style={{ background: meta.color }} />
+                  <span className="cat-accordion-arrow">
+                    {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  </span>
+                  <span className="cat-icon">{meta.icon}</span>
+                  <span className="cat-name">{lang === 'th' ? meta.name_th : meta.name_en}</span>
+                </div>
+
+                <div className="cat-actions" onClick={(e) => e.stopPropagation()}>
+                  <span className="cat-count">{items.length}</span>
+                  <label
+                    className="cat-toggle-switch"
+                    title={isVisible ? (lang === 'th' ? 'ซ่อนเลเยอร์นี้' : 'Hide layer') : (lang === 'th' ? 'แสดงเลเยอร์นี้' : 'Show layer')}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isVisible}
+                      onChange={() => toggleCat(catKey)}
+                    />
+                    <span className="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              {isExpanded && items.length > 0 && (
+                <div className="category-items">
+                  {items.map((feature, idx) => {
+                    const p = feature.properties || {};
+                    const name = lang === 'th' ? (p.name_th || p.name) : (p.name_en || p.name_th || p.name);
+                    const desc = lang === 'th' ? p.description_th : (p.description_en || p.description_th);
+                    const isLineOrPoly = feature.geometry?.type === 'LineString' || feature.geometry?.type === 'Polygon';
+
+                    return (
+                      <div
+                        key={p.id || idx}
+                        className="category-item"
+                        onClick={() => onItemClick?.(feature)}
+                        title={lang === 'th' ? 'คลิกเพื่อซูมดูบนแผนที่' : 'Click to fly to map position'}
+                      >
+                        <div className="item-main">
+                          <div className="item-name">
+                            <span>{name || (lang === 'th' ? 'ไม่มีชื่อระบุ' : 'Unnamed Item')}</span>
+                          </div>
+                          {desc && <div className="item-desc">{desc}</div>}
+                          {p.phone && <div className="item-sub">📞 {p.phone}</div>}
+                          {p.surface_type && (
+                            <div className="item-sub">
+                              🛣️ {p.surface_type} | {p.condition || 'good'} | {p.width_m ? `${p.width_m}m` : ''}
+                            </div>
+                          )}
+                          {p.area_sqm && (
+                            <div className="item-sub">
+                              💧 {fmt(p.area_sqm)} ตร.ม. | {p.water_quality || 'good'}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Action buttons on item */}
+                        <div className="item-actions" onClick={(e) => e.stopPropagation()}>
+                          {isLineOrPoly && onReshapeRoad && (
+                            <button
+                              type="button"
+                              className="btn btn-sm"
+                              style={{ padding: '3px 6px', fontSize: '0.68rem', background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0' }}
+                              onClick={() => onReshapeRoad(feature)}
+                              title={lang === 'th' ? 'ปรับรูปแปลง/เส้นทางบนแผนที่' : 'Reshape'}
+                            >
+                              🔄
+                            </button>
+                          )}
+                          {onEditFeature && (
+                            <button
+                              type="button"
+                              className="btn btn-sm"
+                              style={{ padding: '3px 6px', fontSize: '0.68rem' }}
+                              onClick={() => onEditFeature(feature, datasetType)}
+                              title={lang === 'th' ? 'แก้ไขข้อมูล' : 'Edit'}
+                            >
+                              <Edit3 size={11} />
+                            </button>
+                          )}
+                          {onDeleteFeature && (
+                            <button
+                              type="button"
+                              className="btn btn-sm"
+                              style={{ padding: '3px 6px', fontSize: '0.68rem', color: '#ef4444' }}
+                              onClick={() => onDeleteFeature(feature, datasetType)}
+                              title={lang === 'th' ? 'ลบ' : 'Delete'}
+                            >
+                              <Trash2 size={11} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Quick Action Toolbar at Bottom of Tab */}
       <div style={{
-        background: '#f8fafc', border: '1px solid var(--border-subtle)',
+        background: '#f8fafc', border: '1px solid #e2e8f0',
         borderRadius: 10, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8,
-        flexShrink: 0
+        marginTop: 4, flexShrink: 0
       }}>
         {datasetType === 'infra' ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
@@ -174,10 +378,8 @@ function CategoryListPanel({
               type="button"
               className="btn btn-primary"
               style={{
-                justifyContent: 'center', padding: '8px 6px',
-                fontSize: '0.76rem', fontWeight: 700, gap: 5,
-                background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                border: 'none', boxShadow: '0 2px 6px rgba(217,119,6,0.3)'
+                justifyContent: 'center', padding: '8px 6px', fontSize: '0.76rem', fontWeight: 700, gap: 5,
+                background: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none'
               }}
               onClick={() => onStartDrawRoad?.()}
             >
@@ -187,13 +389,12 @@ function CategoryListPanel({
               type="button"
               className="btn btn-primary"
               style={{
-                justifyContent: 'center', padding: '8px 6px',
-                fontSize: '0.76rem', fontWeight: 600, gap: 5,
+                justifyContent: 'center', padding: '8px 6px', fontSize: '0.76rem', fontWeight: 600, gap: 5,
                 background: 'linear-gradient(135deg, #2563eb, #1d4ed8)'
               }}
               onClick={() => onAddFeature(datasetType)}
             >
-              📍 {lang === 'th' ? '+ เพิ่มสิ่งก่อสร้าง' : '+ Add Facility'}
+              📍 {lang === 'th' ? '+ เพิ่มสิ่งก่อสร้าง' : '+ Add Node'}
             </button>
           </div>
         ) : datasetType === 'water' ? (
@@ -202,10 +403,8 @@ function CategoryListPanel({
               type="button"
               className="btn btn-primary"
               style={{
-                justifyContent: 'center', padding: '8px 6px',
-                fontSize: '0.76rem', fontWeight: 700, gap: 5,
-                background: 'linear-gradient(135deg, #0284c7, #0369a1)',
-                border: 'none', boxShadow: '0 2px 6px rgba(2,132,199,0.3)'
+                justifyContent: 'center', padding: '8px 6px', fontSize: '0.76rem', fontWeight: 700, gap: 5,
+                background: 'linear-gradient(135deg, #0284c7, #0369a1)', border: 'none'
               }}
               onClick={() => onStartDrawWater?.()}
             >
@@ -215,13 +414,12 @@ function CategoryListPanel({
               type="button"
               className="btn btn-primary"
               style={{
-                justifyContent: 'center', padding: '8px 6px',
-                fontSize: '0.76rem', fontWeight: 600, gap: 5,
+                justifyContent: 'center', padding: '8px 6px', fontSize: '0.76rem', fontWeight: 600, gap: 5,
                 background: 'linear-gradient(135deg, #06b6d4, #0891b2)'
               }}
               onClick={() => onAddFeature(datasetType)}
             >
-              📍 {lang === 'th' ? '+ เพิ่มข้อมูลแหล่งน้ำ' : '+ Add Water Body'}
+              📍 {lang === 'th' ? '+ เพิ่มข้อมูลน้ำ' : '+ Add Info'}
             </button>
           </div>
         ) : (
@@ -232,8 +430,7 @@ function CategoryListPanel({
               style={{
                 width: '100%', justifyContent: 'center', padding: '8px 12px',
                 fontSize: '0.82rem', fontWeight: 600, gap: 6,
-                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)',
-                boxShadow: '0 2px 6px rgba(37,99,235,0.25)'
+                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)'
               }}
               onClick={() => onAddFeature(datasetType)}
             >
@@ -247,226 +444,32 @@ function CategoryListPanel({
             <button
               type="button"
               className="btn btn-sm"
-              style={{ justifyContent: 'center', fontSize: '0.75rem', padding: '5px 8px' }}
+              style={{ justifyContent: 'center', fontSize: '0.72rem', padding: '5px 8px' }}
               onClick={() => onExportData(datasetType)}
-              title="Export GeoJSON"
             >
-              <Download size={12} /> {t.exportPoiBtn || 'Export'}
+              <Download size={12} /> {lang === 'th' ? 'ส่งออก GeoJSON' : 'Export'}
             </button>
           )}
           {onResetData && (
             <button
               type="button"
               className="btn btn-sm"
-              style={{ justifyContent: 'center', fontSize: '0.75rem', padding: '5px 8px', color: '#64748b' }}
+              style={{ justifyContent: 'center', fontSize: '0.72rem', padding: '5px 8px', color: '#64748b' }}
               onClick={() => onResetData(datasetType)}
-              title="Reset Default"
             >
-              🔄 {t.resetPoiBtn || 'Reset'}
+              🔄 {lang === 'th' ? 'คืนค่าเริ่มต้น' : 'Reset'}
             </button>
           )}
         </div>
-      </div>
-
-      {/* Search Bar */}
-      <div className="search-input-wrap">
-        <Search size={14} color="#64748b" style={{ flexShrink: 0 }} />
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder={lang === 'th' ? 'ค้นหาชื่อสถานที่, โรงพยาบาล, วัด, ร้านยา...' : 'Search places, hospital, temples...'}
-        />
-        {searchTerm && (
-          <button
-            type="button"
-            onClick={() => setSearchTerm('')}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex' }}
-          >
-            <X size={13} />
-          </button>
-        )}
-      </div>
-
-      {/* Category Quick Filter Chips */}
-      <div className="category-chip-bar">
-        <button
-          type="button"
-          className={`category-chip ${selectedCatFilter === 'all' ? 'active' : ''}`}
-          onClick={() => setSelectedCatFilter('all')}
-        >
-          {lang === 'th' ? 'ทั้งหมด' : 'All'} ({totalCount})
-        </button>
-        {Object.entries(categories).map(([catKey, catMeta]) => {
-          const count = (data?.features || []).filter(f => f.properties?.category === catKey).length;
-          if (count === 0) return null;
-          return (
-            <button
-              key={catKey}
-              type="button"
-              className={`category-chip ${selectedCatFilter === catKey ? 'active' : ''}`}
-              onClick={() => setSelectedCatFilter(catKey)}
-            >
-              <span>{catMeta.icon}</span>
-              <span>{lang === 'th' ? catMeta.name_th.split('/')[0] : catMeta.name_en}</span>
-              <span style={{ opacity: 0.7, fontSize: '0.65rem' }}>({count})</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Layer Control Bar & Accordion Control */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '0 2px', flexShrink: 0
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: '0.74rem', fontWeight: 600, color: 'var(--text-sub)' }}>
-            {lang === 'th' ? 'ชั้นข้อมูล' : 'Layers'} ({filteredCount})
-          </span>
-          <button
-            type="button"
-            className="btn btn-sm"
-            style={{ padding: '2px 6px', fontSize: '0.65rem' }}
-            onClick={Object.keys(expandedCats).length > 0 ? collapseAll : expandAll}
-          >
-            {Object.keys(expandedCats).length > 0 ? (lang === 'th' ? 'พับทั้งหมด' : 'Collapse') : (lang === 'th' ? 'ขยายทั้งหมด' : 'Expand')}
-          </button>
-        </div>
-        <div style={{ display: 'flex', gap: 4 }}>
-          <button className="btn btn-sm" style={{ padding: '3px 7px', fontSize: '0.68rem' }} onClick={showAll}>{t.poiShowAll}</button>
-          <button className="btn btn-sm" style={{ padding: '3px 7px', fontSize: '0.68rem' }} onClick={hideAll}>{t.poiHideAll}</button>
-        </div>
-      </div>
-
-      {/* Category Groups Container */}
-      <div className="category-groups-container">
-        {Object.entries(categories).map(([catKey, catMeta]) => {
-          if (selectedCatFilter !== 'all' && selectedCatFilter !== catKey) return null;
-          const items = grouped[catKey] || [];
-          const isVisible = visibleCats[catKey] !== false;
-          const isExpanded = searchTerm ? items.length > 0 : !!expandedCats[catKey];
-
-          if (searchTerm && items.length === 0) return null;
-
-          return (
-            <div className="category-group" key={catKey}>
-              <div
-                className="category-header"
-                onClick={() => toggleAccordion(catKey)}
-                title={lang === 'th' ? 'คลิกเพื่อขยาย/พับรายชื่อ' : 'Click to expand/collapse'}
-              >
-                <div className="cat-label">
-                  <div className="cat-dot" style={{ background: catMeta.color, boxShadow: `0 0 6px ${catMeta.color}40` }} />
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {isExpanded ? <ChevronDown size={13} color="#64748b" /> : <ChevronRight size={13} color="#64748b" />}
-                    <span>{catMeta.icon} {lang === 'th' ? catMeta.name_th : catMeta.name_en}</span>
-                  </span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                  <span className="cat-count">{items.length}</span>
-                  <div
-                    className={`toggle-switch ${isVisible ? 'on' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleCat(catKey);
-                    }}
-                    title={lang === 'th' ? 'เปิด-ปิดชั้นข้อมูลบนแผนที่' : 'Toggle map layer'}
-                  />
-                </div>
-              </div>
-
-              {isExpanded && items.length > 0 && (
-                <div className="category-items">
-                  {items.map(item => (
-                    <div
-                      className="category-item"
-                      key={item.properties.id}
-                    >
-                      <div
-                        style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0, cursor: 'pointer', overflow: 'hidden' }}
-                        onClick={() => onItemClick?.(item)}
-                        title={lang === 'th' ? item.properties.name_th : item.properties.name_en}
-                      >
-                        <Navigation size={11} color="#3b82f6" style={{ flexShrink: 0 }} />
-                        <span className="item-name">
-                          {lang === 'th' ? item.properties.name_th : item.properties.name_en}
-                        </span>
-                      </div>
-
-                      {/* Quick action buttons */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                        {datasetType === 'infra' && item.geometry?.type === 'LineString' && onReshapeRoad && (
-                          <button
-                            type="button"
-                            className="btn-icon-subtle"
-                            style={{
-                              background: 'none', border: 'none', padding: '3px 4px',
-                              cursor: 'pointer', borderRadius: 4, color: '#0284c7',
-                              display: 'flex', alignItems: 'center', fontSize: '0.78rem'
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onReshapeRoad(item);
-                            }}
-                            title={lang === 'th' ? 'ดัดจุดยอดแนวถนนบนแผนที่ (Reshape Vertices)' : 'Reshape Vertices on Map'}
-                          >
-                            📐
-                          </button>
-                        )}
-                        {onEditFeature && (
-                          <button
-                            type="button"
-                            className="btn-icon-subtle"
-                            style={{
-                              background: 'none', border: 'none', padding: '3px 4px',
-                              cursor: 'pointer', borderRadius: 4, color: '#64748b',
-                              display: 'flex', alignItems: 'center', fontSize: '0.75rem'
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onEditFeature(item, datasetType);
-                            }}
-                            title={t.editPoiBtn || 'Edit'}
-                          >
-                            ✏️
-                          </button>
-                        )}
-                        {onDeleteFeature && (
-                          <button
-                            type="button"
-                            className="btn-icon-subtle"
-                            style={{
-                              background: 'none', border: 'none', padding: '3px 4px',
-                              cursor: 'pointer', borderRadius: 4, color: '#ef4444',
-                              display: 'flex', alignItems: 'center', fontSize: '0.75rem'
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (window.confirm(t.confirmDelete || 'คุณต้องการลบสถานที่นี้ใช่หรือไม่?')) {
-                                onDeleteFeature(item.properties.id, datasetType);
-                              }
-                            }}
-                            title={t.deletePlace || 'Delete'}
-                          >
-                            🗑️
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
       </div>
     </>
   );
 }
 
+// ── Main Sidebar Export Component ──
 export default function Sidebar({
-  geoData, filters, setFilters,
+  geoData,
+  filters, setFilters,
   visibleLayers, toggleLayer, toggleAllLayers,
   uploadedBoundary, setUploadedBoundary,
   colorMode, setColorMode,
@@ -474,8 +477,7 @@ export default function Sidebar({
   lang, setLang,
   tariff, setTariff,
   systemCostPerKwp, setSystemCostPerKwp,
-  // Smart City tab props
-  activeTab = 'poi', setActiveTab,
+  activeTab = 'poi', setActiveTab = () => {},
   poiData, poiCategories,
   infraData, infraCategories,
   serviceData, serviceCategories,
@@ -485,123 +487,71 @@ export default function Sidebar({
   serviceVisible, setServiceVisible,
   waterVisible, setWaterVisible,
   onSelectFeature,
-  onAddFeature,
-  onEditFeature,
-  onDeleteFeature,
-  onResetData,
-  onExportData,
-  onStartDrawRoad,
-  onStartDrawWater,
-  onStartDrawRoof,
-  onReshapeRoad = null,
+  onAddFeature, onEditFeature, onDeleteFeature,
+  onResetData, onExportData,
+  onStartDrawRoad, onStartDrawWater, onStartDrawRoof, onReshapeRoad
 }) {
   const t = translations[lang] || translations.th;
-  const fileInputRef = useRef();
+  const aoiFileInputRef = useRef(null);
+
   const [showRoiModal, setShowRoiModal] = useState(false);
-  const [tempTariff, setTempTariff] = useState(tariff);
-  const [tempSystemCost, setTempSystemCost] = useState(systemCostPerKwp);
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
+  const [tempTariff, setTempTariff] = useState(tariff || 4.20);
+  const [tempSystemCost, setTempSystemCost] = useState(systemCostPerKwp || 28000);
 
-  const stats = useMemo(
-    () => applyFilters(geoData, filters, visibleLayers, uploadedBoundary, viewMode),
-    [geoData, filters, visibleLayers, uploadedBoundary, viewMode]
-  );
+  const stats = useMemo(() => {
+    return applyFilters(geoData, filters, visibleLayers, uploadedBoundary, viewMode);
+  }, [geoData, filters, visibleLayers, uploadedBoundary, viewMode]);
 
-  // Financial and environmental calculations
-  const annualSavingsThb = stats.totalEnergy * tariff;
-  const totalInvestmentThb = stats.totalCapacity * systemCostPerKwp;
+  // Dynamic calculations
+  const totalInvestmentThb = (stats.totalCapacity || 0) * (systemCostPerKwp || 28000);
+  const annualSavingsThb = (stats.totalEnergy || 0) * (tariff || 4.20);
   const paybackYears = annualSavingsThb > 0 ? (totalInvestmentThb / annualSavingsThb).toFixed(1) : '-';
-  const co2ReductionTons = (stats.totalEnergy * 0.4999) / 1000; // 0.4999 kg CO2/kWh
-  const treesEquivalent = Math.round(co2ReductionTons * 45); // ~45 trees per ton CO2
+  const co2ReductionTons = (stats.totalEnergy * 0.4999) / 1000;
+  const treesEquivalent = Math.round(stats.totalEnergy * 0.4999 / 20);
 
-  const isBuildings = viewMode === 'buildings';
+  // Solar Direction Chart Data
+  const chartData = useMemo(() => {
+    return Object.entries(ROOF_CLASSES).map(([cid, meta]) => {
+      const clsStats = stats.byCls[cid] || { area: 0, energy: 0, capacity: 0, count: 0 };
+      const className = t.classes?.[cid] || meta.name;
+      return {
+        cid,
+        name: className.split('(')[0].trim(),
+        energy: clsStats.energy,
+        capacity: clsStats.capacity,
+        area: clsStats.area,
+        color: meta.color,
+      };
+    }).filter(d => d.energy > 0);
+  }, [stats, t, lang]);
 
-  const chartData = isBuildings
-    ? [
-        { name: '< 5 kWp', energy: Math.round(stats.totalEnergy * 0.3 / 1e3), color: '#22c55e' },
-        { name: '5-20 kWp', energy: Math.round(stats.totalEnergy * 0.5 / 1e3), color: '#38bdf8' },
-        { name: '≥ 20 kWp', energy: Math.round(stats.totalEnergy * 0.2 / 1e3), color: '#f97316' },
-      ]
-    : Object.entries(ROOF_CLASSES).map(([id, cls]) => ({
-        name: t.classes[id] ? t.classes[id].split(' ')[0] : cls.name,
-        energy: Math.round((stats.byCls[id]?.energy || 0) / 1e3), // MWh
-        color: cls.color,
-      }));
-
-  // Upload AOI
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleAoiUpload = async (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      let geojson;
-      if (file.name.endsWith('.zip')) {
-        const buffer = await file.arrayBuffer();
-        geojson = await shp(buffer);
-        if (Array.isArray(geojson)) geojson = geojson[0];
-      } else if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
+      if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
         const text = await file.text();
-        geojson = JSON.parse(text);
-      } else {
-        alert(lang === 'th' ? 'รองรับเฉพาะไฟล์ .zip (Shapefile) หรือ .geojson' : 'Only .zip (Shapefile) or .geojson files are supported.');
-        return;
-      }
-
-      if (geojson && (geojson.type === 'FeatureCollection' || geojson.type === 'Feature')) {
-        const standardGeoJSON = geojson.type === 'Feature'
-          ? { type: 'FeatureCollection', features: [geojson] }
-          : geojson;
-        setUploadedBoundary(standardGeoJSON);
+        const json = JSON.parse(text);
+        setUploadedBoundary(json);
+      } else if (file.name.endsWith('.zip')) {
+        const buffer = await file.arrayBuffer();
+        const geojson = await shp(buffer);
+        setUploadedBoundary(geojson);
       }
     } catch (err) {
-      console.error(err);
-      alert(lang === 'th' ? 'ไม่สามารถอ่านไฟล์ได้ กรุณาตรวจสอบความถูกต้อง' : 'Failed to parse file.');
+      console.error('AOI upload error:', err);
+      alert('Cannot parse boundary file. Please provide valid GeoJSON or Shapefile ZIP.');
     }
   };
 
-  // Export CSV
-  const exportCsv = () => {
-    if (!geoData || !geoData.features) return;
-    const headers = ['ID', 'Type', 'Area_3D_sqm', 'Slope_deg', 'Capacity_kWp', 'Energy_kWh_yr', 'Est_Savings_THB_yr'];
-    const rows = geoData.features.map(f => {
-      const p = f.properties;
-      return [
-        p.id || p.building_id || '',
-        p.class_name || p.class_id || '',
-        p.area_3d || p.area_2d || 0,
-        p.slope_deg || '',
-        p.capacity_kwp || 0,
-        Math.round(p.energy_corrected_kwh || p.energy_kwh || 0),
-        Math.round((p.energy_corrected_kwh || p.energy_kwh || 0) * tariff)
-      ].join(',');
-    });
-
-    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Denchai_Solar_GIS_${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // Export GeoJSON
-  const exportGeoJson = () => {
-    if (!geoData) return;
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(geoData));
-    const dlAnchorElem = document.createElement('a');
-    dlAnchorElem.setAttribute('href', dataStr);
-    dlAnchorElem.setAttribute('download', `Denchai_Solar_GIS_${Date.now()}.geojson`);
-    dlAnchorElem.click();
-  };
-
-  // ── Tab definitions ──
   const TABS = [
-    { key: 'poi',     icon: '📍', lucide: <MapPin size={15} />,     label: t.tabPoi },
-    { key: 'infra',   icon: '🏗️', lucide: <Building2 size={15} />,  label: t.tabInfra },
-    { key: 'water',   icon: '💧', lucide: <Waves size={15} />,      label: lang === 'th' ? 'แหล่งน้ำ' : 'Water' },
-    { key: 'service', icon: '🏥', lucide: <HeartPulse size={15} />, label: t.tabService },
-    { key: 'solar',   icon: '☀️', lucide: <SunMedium size={15} />,  label: t.tabSolar },
+    { key: 'poi',     icon: '📍', label: t.tabPoi },
+    { key: 'infra',   icon: '🏗️', label: t.tabInfra },
+    { key: 'water',   icon: '💧', label: lang === 'th' ? 'แหล่งน้ำ' : 'Water' },
+    { key: 'service', icon: '🏥', label: t.tabService },
+    { key: 'solar',   icon: '☀️', label: t.tabSolar },
   ];
 
   return (
@@ -634,7 +584,7 @@ export default function Sidebar({
         <p>{t.appSubtitle}</p>
       </div>
 
-      {/* ── Smart City Tab Navigation ── */}
+      {/* ── Top Smart City Tab Navigation (Original Clean 5 Tabs) ── */}
       {setActiveTab && (
         <nav className="tab-nav">
           {TABS.map(tab => (
@@ -742,7 +692,7 @@ export default function Sidebar({
           />
         )}
 
-        {/* ═══════════ TAB: SOLAR POTENTIAL (Original Content) ═══════════ */}
+        {/* ═══════════ TAB: SOLAR POTENTIAL (Original Dashboard) ═══════════ */}
         {activeTab === 'solar' && (
           <>
             {/* Rooftop Solar Action Toolbar */}
@@ -901,7 +851,29 @@ export default function Sidebar({
 
                 <div className="stat-card">
                   <div className="stat-label">
-                    <Home size={13} color="#a78bfa" />
+                    <Leaf size={13} color="#22c55e" />
+                    {t.kpiTreeEquivalent}
+                  </div>
+                  <div className="stat-value">
+                    {fmt(treesEquivalent)}
+                    <span className="stat-unit">{t.unitTrees}</span>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-label">
+                    <Home size={13} color="#a855f7" />
+                    {t.kpiTotalArea}
+                  </div>
+                  <div className="stat-value">
+                    {fmt(stats.totalArea)}
+                    <span className="stat-unit">{t.unitSqM}</span>
+                  </div>
+                </div>
+
+                <div className="stat-card">
+                  <div className="stat-label">
+                    <Zap size={13} color="#eab308" />
                     {t.kpiBuildingCount}
                   </div>
                   <div className="stat-value">
@@ -912,217 +884,210 @@ export default function Sidebar({
               </div>
             </div>
 
-            {/* Energy Yield Chart */}
-            <div>
-              <div className="section-title">
-                <span>{isBuildings ? (lang === 'th' ? 'สัดส่วนขนาดกำลังผลิต' : 'Capacity Distribution') : (lang === 'th' ? 'พลังงานแยกตามทิศทาง (MWh/y)' : 'Energy by Roof Orientation (MWh/y)')}</span>
-              </div>
-              <div style={{ width: '100%', height: 140, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '10px 0' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} tickLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} />
-                    <Tooltip
-                      contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 11, color: '#0f172a', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                      formatter={(val) => [`${fmt(val)} MWh`, 'Energy']}
-                    />
-                    <Bar dataKey="energy" radius={[4, 4, 0, 0]}>
-                      {chartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Filters */}
-            <div>
-              <div className="section-title">
-                <span>{t.filterHeader}</span>
-                {(filters.minArea > 0 || filters.minEnergy > 0) && (
-                  <button
-                    className="btn btn-sm"
-                    onClick={() => setFilters({ minArea: 0, minEnergy: 0 })}
-                  >
-                    {t.resetFilters}
-                  </button>
-                )}
-              </div>
-              <div className="filter-box">
-                <div className="slider-group">
-                  <div className="slider-label-row">
-                    <span>{t.minArea}</span>
-                    <span className="slider-val">{filters.minArea} m²</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="200"
-                    step="5"
-                    value={filters.minArea}
-                    onChange={(e) => setFilters(p => ({ ...p, minArea: Number(e.target.value) }))}
-                  />
-                </div>
-
-                <div className="slider-group">
-                  <div className="slider-label-row">
-                    <span>{t.minEnergy}</span>
-                    <span className="slider-val">{fmt(filters.minEnergy)} kWh</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="30000"
-                    step="500"
-                    value={filters.minEnergy}
-                    onChange={(e) => setFilters(p => ({ ...p, minEnergy: Number(e.target.value) }))}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Roof Classification Layers (Only in facets mode) */}
-            {!isBuildings && (
+            {/* Energy Yield by Direction Chart */}
+            {chartData.length > 0 && (
               <div>
-                <div className="section-title">
-                  <span>{t.roofClassesHeader}</span>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button className="btn btn-sm" onClick={() => toggleAllLayers(true)}>{t.selectAll}</button>
-                    <button className="btn btn-sm" onClick={() => toggleAllLayers(false)}>{t.deselectAll}</button>
-                  </div>
-                </div>
-                <div className="layer-list">
-                  {Object.entries(ROOF_CLASSES).map(([id, cls]) => {
-                    const active = !!visibleLayers[id];
-                    return (
-                      <div
-                        key={id}
-                        className={`layer-item ${active ? 'active' : 'muted'}`}
-                        onClick={() => toggleLayer(id)}
-                      >
-                        <div className="layer-left">
-                          <div className="color-dot" style={{ background: cls.color }} />
-                          <span className="layer-name">{t.classes[id] || cls.name}</span>
-                        </div>
-                        <span className="layer-count">{fmt(stats.byCls[id]?.count || 0)}</span>
-                      </div>
-                    );
-                  })}
+                <div className="section-title">{lang === 'th' ? 'พลังงานตามทิศหลังคา (kWh/ปี)' : 'Energy by Roof Orientation'}</div>
+                <div className="chart-container">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fill: '#64748b', fontSize: 10 }}
+                        angle={-25}
+                        textAnchor="end"
+                        interval={0}
+                      />
+                      <YAxis hide />
+                      <Tooltip
+                        formatter={(val, name, item) => [fmtEnergy(val), item.payload.name]}
+                        contentStyle={{ background: '#0f172a', border: 'none', borderRadius: 8, color: '#fff', fontSize: '0.75rem' }}
+                      />
+                      <Bar dataKey="energy" radius={[4, 4, 0, 0]}>
+                        {chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
             )}
 
-            {/* AOI Study Area Upload */}
+            {/* Sliders & Spatial Filtering */}
             <div>
-              <div className="section-title">{t.aoiHeader}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="section-title">{t.filterHeader}</div>
+              <div className="slider-container">
+                <div className="slider-header">
+                  <span className="slider-label">{t.minArea}</span>
+                  <span className="slider-value">{filters.minArea} {t.unitSqM}</span>
+                </div>
                 <input
-                  type="file"
-                  ref={fileInputRef}
-                  style={{ display: 'none' }}
-                  accept=".zip,.geojson,.json"
-                  onChange={handleFileUpload}
+                  type="range"
+                  min="0"
+                  max="500"
+                  step="10"
+                  value={filters.minArea}
+                  onChange={(e) => setFilters(f => ({ ...f, minArea: Number(e.target.value) }))}
                 />
-                <button
-                  className="btn btn-primary"
-                  style={{ width: '100%' }}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload size={14} /> {t.aoiUploadBtn}
-                </button>
+              </div>
 
-                {uploadedBoundary && (
-                  <button
-                    className="btn"
-                    style={{ width: '100%', color: '#f87171' }}
-                    onClick={() => setUploadedBoundary(null)}
-                  >
-                    <X size={14} /> {t.aoiRemove}
-                  </button>
-                )}
+              <div className="slider-container">
+                <div className="slider-header">
+                  <span className="slider-label">{t.minEnergy}</span>
+                  <span className="slider-value">{fmt(filters.minEnergy)} kWh</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100000"
+                  step="5000"
+                  value={filters.minEnergy}
+                  onChange={(e) => setFilters(f => ({ ...f, minEnergy: Number(e.target.value) }))}
+                />
+              </div>
+
+              {(filters.minArea > 0 || filters.minEnergy > 0) && (
+                <button
+                  className="btn btn-sm"
+                  style={{ width: '100%', marginTop: 8 }}
+                  onClick={() => setFilters({ minArea: 0, minEnergy: 0 })}
+                >
+                  {t.resetFilters}
+                </button>
+              )}
+            </div>
+
+            {/* Roof Direction Layer Toggles */}
+            <div>
+              <div className="section-title">
+                <span>{t.roofClassesHeader}</span>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button className="btn-text" onClick={() => toggleAllLayers(true)}>{t.selectAll}</button>
+                  <span style={{ color: '#cbd5e1' }}>|</span>
+                  <button className="btn-text" onClick={() => toggleAllLayers(false)}>{t.deselectAll}</button>
+                </div>
+              </div>
+
+              <div className="layer-list">
+                {Object.entries(ROOF_CLASSES).map(([cid, meta]) => {
+                  const isChecked = visibleLayers[cid] !== false;
+                  const count = stats.byCls[cid]?.count || 0;
+                  const className = t.classes?.[cid] || meta.name;
+
+                  return (
+                    <label key={cid} className={`layer-item ${!isChecked ? 'inactive' : ''}`}>
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleLayer(cid)}
+                      />
+                      <span className="layer-color-dot" style={{ background: meta.color }} />
+                      <span className="layer-name">{className}</span>
+                      <span className="layer-count">({count})</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Export & Actions */}
+            {/* Print & Export Report */}
             <div>
               <div className="section-title">{t.exportHeader}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <button className="btn" onClick={exportCsv}>
-                  <Download size={13} /> {t.exportCsv}
-                </button>
-                <button className="btn" onClick={exportGeoJson}>
-                  <Download size={13} /> GeoJSON
-                </button>
-                <button
-                  className="btn btn-primary"
-                  style={{ gridColumn: 'span 2' }}
-                  onClick={() => window.print()}
-                >
-                  <Printer size={13} /> {t.exportReport}
-                </button>
-              </div>
+              <button
+                className="btn btn-primary"
+                style={{ width: '100%', justifyContent: 'center', gap: 8 }}
+                onClick={() => window.print()}
+              >
+                <Printer size={15} />
+                {t.exportReport}
+              </button>
             </div>
           </>
         )}
+
+        {/* ── GIS Templates Center Quick Access Button (Always accessible at bottom) ── */}
+        <div style={{
+          background: 'linear-gradient(135deg, #f0fdf4, #eff6ff)', border: '1px solid #bfdbfe',
+          borderRadius: 10, padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          marginTop: 8, flexShrink: 0
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <FolderDown size={18} color="#2563eb" />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '0.76rem', color: '#1e3a8a' }}>
+                {lang === 'th' ? 'แม่แบบชั้นข้อมูล GIS (16 หมวด)' : 'GIS Layer Templates (16)'}
+              </div>
+              <div style={{ fontSize: '0.66rem', color: '#64748b' }}>
+                {lang === 'th' ? 'GeoJSON Template & CSV Data Dictionary' : 'Standard GeoJSON & CSV for Excel'}
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="btn btn-sm"
+            style={{ background: '#2563eb', color: '#ffffff', fontSize: '0.7rem', fontWeight: 600, padding: '5px 9px', border: 'none' }}
+            onClick={() => setShowTemplatesModal(true)}
+          >
+            📥 {lang === 'th' ? 'ดาวน์โหลด' : 'Download'}
+          </button>
+        </div>
+
       </div>
 
-      {/* Solar ROI Settings Modal (Light Theme) */}
+      {/* ── Solar Economic ROI Settings Modal ── */}
       {showRoiModal && (
-        <div className="modal-overlay" onClick={() => setShowRoiModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="modal-backdrop" onClick={() => setShowRoiModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700 }}>
                 <Settings2 size={18} color="#2563eb" />
-                {t.roiSettings}
-              </h3>
-              <button
-                style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer' }}
-                onClick={() => setShowRoiModal(false)}
-              >
-                <X size={18} />
+                <span>{t.roiSettings}</span>
+              </div>
+              <button className="modal-close-btn" onClick={() => setShowRoiModal(false)}>
+                <X size={16} />
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
               <div>
-                <label style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#475569', marginBottom: 4 }}>
                   {t.tariffRate}
                 </label>
                 <input
                   type="number"
                   step="0.1"
                   value={tempTariff}
-                  onChange={e => setTempTariff(Number(e.target.value))}
+                  onChange={(e) => setTempTariff(Number(e.target.value))}
                   style={{
-                    width: '100%', padding: '9px 12px', background: '#f8fafc',
-                    border: '1px solid #cbd5e1', borderRadius: 8, color: '#0f172a', fontSize: '0.9rem'
+                    width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #cbd5e1',
+                    fontSize: '0.85rem'
                   }}
                 />
               </div>
 
               <div>
-                <label style={{ fontSize: '0.78rem', color: '#475569', fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#475569', marginBottom: 4 }}>
                   {t.systemCost}
                 </label>
                 <input
                   type="number"
                   step="1000"
                   value={tempSystemCost}
-                  onChange={e => setTempSystemCost(Number(e.target.value))}
+                  onChange={(e) => setTempSystemCost(Number(e.target.value))}
                   style={{
-                    width: '100%', padding: '9px 12px', background: '#f8fafc',
-                    border: '1px solid #cbd5e1', borderRadius: 8, color: '#0f172a', fontSize: '0.9rem'
+                    width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid #cbd5e1',
+                    fontSize: '0.85rem'
                   }}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
-                <button className="btn" onClick={() => setShowRoiModal(false)}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 }}>
+                <button className="btn btn-sm" onClick={() => setShowRoiModal(false)}>
                   {lang === 'th' ? 'ยกเลิก' : 'Cancel'}
                 </button>
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-primary btn-sm"
                   onClick={() => {
                     setTariff(tempTariff);
                     setSystemCostPerKwp(tempSystemCost);
@@ -1131,6 +1096,107 @@ export default function Sidebar({
                 >
                   {t.applyRoi}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── GIS Layer Templates & Data Dictionary Download Modal ── */}
+      {showTemplatesModal && (
+        <div className="modal-backdrop" onClick={() => setShowTemplatesModal(false)}>
+          <div className="modal-content" style={{ maxWidth: 760, width: '92vw' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header" style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: '0.95rem' }}>
+                <FolderDown size={20} color="#2563eb" />
+                <span>{lang === 'th' ? 'ศูนย์ดาวน์โหลด Template ชั้นข้อมูล GIS (16 หมวด)' : 'GIS Layer Template Center (16 Datasets)'}</span>
+              </div>
+              <button className="modal-close-btn" onClick={() => setShowTemplatesModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Highlight Banner: CSV Data Dictionary for Municipality */}
+              <div style={{
+                background: 'linear-gradient(135deg, #1e293b, #0f172a)', color: '#ffffff',
+                borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: 12, boxShadow: '0 4px 14px rgba(0,0,0,0.15)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <FileSpreadsheet size={28} color="#38bdf8" />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#f8fafc' }}>
+                      📊 {lang === 'th' ? 'พจนานุกรมข้อมูลเชิงพื้นที่ (GIS Data Dictionary CSV)' : 'GIS Data Dictionary (CSV Format)'}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 2 }}>
+                      {lang === 'th'
+                        ? 'ไฟล์ CSV พร้อมเปิดใน Microsoft Excel ภาษาไทย สำหรับทำเล่มโครงการนำเสนอผู้บริหารเทศบาล'
+                        : 'CSV file ready for Microsoft Excel with UTF-8 BOM encoding for official municipality reports.'}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{
+                    background: 'linear-gradient(135deg, #0284c7, #0369a1)', border: 'none',
+                    fontWeight: 700, fontSize: '0.76rem', padding: '8px 14px', flexShrink: 0, gap: 6
+                  }}
+                  onClick={() => triggerTemplateDownload('GIS_DATA_DICTIONARY_DENCHAI.csv')}
+                >
+                  <Download size={14} />
+                  {lang === 'th' ? 'ดาวน์โหลด CSV' : 'Download CSV'}
+                </button>
+              </div>
+
+              {/* Grid of 16 GeoJSON Templates */}
+              <div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 8 }}>
+                  📂 {lang === 'th' ? 'แม่แบบชั้นข้อมูล GeoJSON แยกรายหมวด (สำหรับ QGIS/QField)' : 'Standard GeoJSON Templates for QGIS'}
+                </div>
+
+                <div className="template-card-grid">
+                  {GIS_TEMPLATES.map(tpl => (
+                    <div key={tpl.id} className="template-card">
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <span style={{ fontSize: '1rem' }}>{tpl.icon}</span>
+                          <span style={{
+                            fontSize: '0.65rem', fontWeight: 700, padding: '2px 6px', borderRadius: 6,
+                            background: tpl.geom === 'Polygon' ? '#e0e7ff' : tpl.geom === 'LineString' ? '#fef3c7' : '#dcfce7',
+                            color: tpl.geom === 'Polygon' ? '#3730a3' : tpl.geom === 'LineString' ? '#92400e' : '#166534'
+                          }}>
+                            {tpl.geom}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0f172a', marginBottom: 2 }}>
+                          {tpl.name_th}
+                        </div>
+                        <div style={{ fontSize: '0.68rem', color: '#64748b', lineHeight: 1.35, marginBottom: 8 }}>
+                          {tpl.desc}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: 6 }}>
+                        <span style={{ fontSize: '0.66rem', color: '#94a3b8' }}>
+                          {tpl.fields} {lang === 'th' ? 'ฟิลด์ข้อมูล' : 'fields'}
+                        </span>
+                        <button
+                          type="button"
+                          className="btn btn-sm"
+                          style={{
+                            fontSize: '0.68rem', padding: '4px 8px', color: '#2563eb', background: '#eff6ff',
+                            border: '1px solid #bfdbfe', fontWeight: 600, gap: 4
+                          }}
+                          onClick={() => triggerTemplateDownload(tpl.file)}
+                        >
+                          <Download size={11} /> {lang === 'th' ? 'โหลด GeoJSON' : 'Download'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

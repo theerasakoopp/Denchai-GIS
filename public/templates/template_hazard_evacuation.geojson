@@ -1,0 +1,49 @@
+{
+  "type": "FeatureCollection",
+  "name": "Template_Hazard_Evacuation_Denchai",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "flood_risk_zone",
+        "zone_id": "FL-ZONE-01",
+        "zone_name": "พื้นที่เสี่ยงน้ำท่วมริมลำห้วยแม่พวก",
+        "risk_level": "critical",
+        "risk_level_th": "ระดับเสี่ยงภัยสูงสุด (ท่วมซ้ำซาก)",
+        "max_flood_depth_m": 1.20,
+        "affected_households": 45,
+        "warning_lead_time_hours": 3.0
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [100.05200, 17.98300],
+            [100.05450, 17.98400],
+            [100.05550, 17.98350],
+            [100.05300, 17.98250],
+            [100.05200, 17.98300]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "evacuation_center",
+        "center_id": "EVAC-01",
+        "name_th": "ศูนย์พักพิงชั่วคราว หอประชุมโรงเรียนเด่นชัยวิทยา",
+        "capacity_persons": 300,
+        "facilities": "โรงครัวสนาม, เครื่องปั่นไฟสำรอง, หน่วยพยาบาลฉุกเฉิน, ห้องน้ำ 20 ห้อง",
+        "contact_person": "นายกเทศมนตรี / หน.ฝ่ายป้องกันฯ",
+        "contact_phone": "054-613999",
+        "status": "ready"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [100.05580, 17.98600]
+      }
+    }
+  ]
+}

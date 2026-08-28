@@ -1,0 +1,79 @@
+{
+  "type": "FeatureCollection",
+  "name": "Template_Solar_Rooftops_Denchai",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "c3_001",
+        "building_id": "BLD-0101-001",
+        "building_name": "อาคารสำนักงานเทศบาลตำบลเด่นชัย",
+        "class_id": 3,
+        "class_name": "S-Roof",
+        "class_name_th": "หลังคาหันทางทิศใต้ (ศักยภาพสูงสุด)",
+        "color": "#3b82f6",
+        "energy_color": "#22c55e",
+        "area_2d": 120.50,
+        "area_3d": 128.25,
+        "slope_deg": 15.00,
+        "aspect_deg": 180.00,
+        "capacity_kwp": 25.65,
+        "energy_kwh": 37240.00,
+        "solar_correction": 1.00,
+        "energy_corrected_kwh": 37240.00,
+        "savings_thb": 167580.00,
+        "co2_reduction_kg": 18620.00,
+        "payback_years": 4.8
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [100.05450, 17.98505],
+            [100.05480, 17.98505],
+            [100.05480, 17.98495],
+            [100.05450, 17.98495],
+            [100.05450, 17.98505]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "c5_002",
+        "building_id": "BLD-0101-002",
+        "building_name": "หลังคาดาดฟ้าแบน (Flat Roof)",
+        "class_id": 5,
+        "class_name": "Flat Roof",
+        "class_name_th": "หลังคาดาดฟ้าแบน (ปรับมุมแผงได้อิสระ)",
+        "color": "#d946ef",
+        "energy_color": "#22c55e",
+        "area_2d": 80.00,
+        "area_3d": 80.00,
+        "slope_deg": 0.00,
+        "aspect_deg": 0.00,
+        "capacity_kwp": 16.00,
+        "energy_kwh": 22400.00,
+        "solar_correction": 0.95,
+        "energy_corrected_kwh": 21280.00,
+        "savings_thb": 95760.00,
+        "co2_reduction_kg": 10640.00,
+        "payback_years": 5.2
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [100.05600, 17.98400],
+            [100.05620, 17.98400],
+            [100.05620, 17.98385],
+            [100.05600, 17.98385],
+            [100.05600, 17.98400]
+          ]
+        ]
+      }
+    }
+  ]
+}

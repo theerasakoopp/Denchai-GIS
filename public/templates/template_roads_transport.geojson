@@ -1,0 +1,67 @@
+{
+  "type": "FeatureCollection",
+  "name": "Template_Roads_Transport_Denchai",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "road-main-01",
+        "name_th": "ถนนเทศบาล 1 (สายประธาน)",
+        "name_en": "Thetsaban 1 Primary Road",
+        "category": "main_road",
+        "category_th": "ถนนสายหลักเทศบาล (สายประธาน)",
+        "surface_type": "asphalt",
+        "surface_type_th": "แอสฟัลต์คอนกรีต",
+        "condition": "good",
+        "condition_th": "สภาพดี",
+        "width_m": 8.0,
+        "right_of_way_m": 12.0,
+        "lanes": 2,
+        "drainage": "covered_u_ditch",
+        "lighting": "led",
+        "plan_status": "completed",
+        "fiscal_year": "2567",
+        "moo_no": 1
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [100.05150, 17.98300],
+          [100.05450, 17.98500],
+          [100.05750, 17.98700]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "road-soi-02",
+        "name_th": "ถนนซอยร่วมใจพัฒนา",
+        "name_en": "Ruam Jai Phatthana Soi",
+        "category": "local_road",
+        "category_th": "ถนนซอย/บริการชุมชน",
+        "surface_type": "concrete",
+        "surface_type_th": "คอนกรีตเสริมเหล็ก (คสล.)",
+        "condition": "fair",
+        "condition_th": "พอใช้ (มีรอยแตกร้าวเล็กน้อย)",
+        "width_m": 5.0,
+        "right_of_way_m": 6.0,
+        "lanes": 2,
+        "drainage": "open_u_ditch",
+        "lighting": "solar_led",
+        "plan_status": "in_progress",
+        "fiscal_year": "2568",
+        "moo_no": 1
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [100.05450, 17.98500],
+          [100.05520, 17.98600],
+          [100.05580, 17.98680]
+        ]
+      }
+    }
+  ]
+}

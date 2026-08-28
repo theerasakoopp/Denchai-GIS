@@ -4,6 +4,7 @@ import MapViewer from './components/MapViewer';
 import Sidebar from './components/Sidebar';
 import UploadPage from './pages/UploadPage';
 import ProcessingPage from './pages/ProcessingPage';
+import EditorPage from './pages/EditorPage';
 import { Loader2 } from 'lucide-react';
 import { POI_DATA, POI_CATEGORIES } from './data/poi_data';
 import { INFRA_DATA, INFRA_CATEGORIES } from './data/infra_data';
@@ -427,6 +428,29 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         </div>
       )}
 
+      {/* Top-Right Navigation Button to GIS Editor Studio */}
+      <div style={{
+        position: 'absolute', top: 14, right: 16, zIndex: 2000,
+        display: 'flex', gap: 10, alignItems: 'center'
+      }}>
+        <Link
+          to="/editor"
+          style={{
+            padding: '8px 16px', background: 'linear-gradient(135deg, #1e293b, #0f172a)',
+            border: '1px solid #38bdf8', borderRadius: 10,
+            color: '#ffffff', textDecoration: 'none', fontSize: '0.8rem',
+            fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8,
+            boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+            fontFamily: 'Prompt, Inter, sans-serif'
+          }}
+          title={lang === 'th' ? 'เข้าสู่ระบบจัดการและแก้ไขข้อมูลเชิงพื้นที่' : 'Go to GIS Editor Studio'}
+        >
+          <span>🛠️</span>
+          <span>{lang === 'th' ? 'เข้าสู่ระบบจัดการข้อมูล (Editor Studio)' : 'GIS Editor Studio'}</span>
+          <span style={{ color: '#38bdf8' }}>➔</span>
+        </Link>
+      </div>
+
       <Sidebar
         geoData={activeGeoData}
         filters={filters} setFilters={setFilters}
@@ -598,6 +622,16 @@ export default function App() {
           path="/"
           element={
             <DefaultDashboard
+              lang={lang} setLang={setLang}
+              tariff={tariff} setTariff={setTariff}
+              systemCostPerKwp={systemCostPerKwp} setSystemCostPerKwp={setSystemCostPerKwp}
+            />
+          }
+        />
+        <Route
+          path="/editor"
+          element={
+            <EditorPage
               lang={lang} setLang={setLang}
               tariff={tariff} setTariff={setTariff}
               systemCostPerKwp={systemCostPerKwp} setSystemCostPerKwp={setSystemCostPerKwp}

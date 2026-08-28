@@ -1,0 +1,61 @@
+{
+  "type": "FeatureCollection",
+  "name": "Template_Public_Services_Denchai",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "svc-01",
+        "name_th": "สถานีตำรวจภูธรเด่นชัย (สภ.เด่นชัย)",
+        "name_en": "Den Chai Police Station",
+        "category": "police",
+        "category_th": "สถานีตำรวจ/ความปลอดภัย",
+        "description_th": "สถานีตำรวจภูธรเด่นชัย รับแจ้งเหตุฉุกเฉินและรักษาความปลอดภัยประชาชน 24 ชม.",
+        "description_en": "District police station providing 24/7 public safety service",
+        "phone": "054-613191",
+        "service_hours": "24 ชั่วโมง"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [100.051788, 17.982843]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "svc-02",
+        "name_th": "งานป้องกันและบรรเทาสาธารณภัย (ดับเพลิงเทศบาลเด่นชัย)",
+        "name_en": "Den Chai Fire & Disaster Prevention Center",
+        "category": "fire",
+        "category_th": "งานดับเพลิง/กู้ภัย",
+        "description_th": "ศูนย์วิทยุสื่อสารและหน่วยดับเพลิงกู้ชีพกู้ภัยเทศบาลตำบลเด่นชัย",
+        "description_en": "Municipal fire station, rescue unit and disaster response center",
+        "phone": "054-613999",
+        "service_hours": "24 ชั่วโมง"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [100.054600, 17.985150]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "svc-03",
+        "name_th": "ที่ทำการไปรษณีย์เด่นชัย",
+        "name_en": "Den Chai Post Office",
+        "category": "post",
+        "category_th": "ไปรษณีย์/ขนส่งพัสดุ",
+        "description_th": "บริการไปรษณีย์ด่วนพิเศษ พัสดุภัณฑ์ และธุรกรรมการเงิน",
+        "description_en": "Postal, parcel delivery and logistics service center",
+        "phone": "054-613155",
+        "service_hours": "08:30 - 16:30 น."
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [100.053100, 17.983900]
+      }
+    }
+  ]
+}

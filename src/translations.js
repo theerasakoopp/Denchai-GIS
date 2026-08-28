@@ -5,11 +5,30 @@ export const translations = {
     badgeLive: 'ข้อมูล UAV ความละเอียดสูง',
     badgeSmartCity: 'เมืองอัจฉริยะ',
 
+    // Mode Navigation (Viewer vs Editor)
+    modeViewer: 'โหมดแสดงผล (Dashboard)',
+    modeEditor: 'โหมดจัดการข้อมูล (Editor)',
+    modeViewerDesc: 'สรุปภาพรวมเมือง กราฟสถิติ และรายงาน',
+    modeEditorDesc: 'วาดพิกัด แก้ไขข้อมูล และนำเข้าไฟล์ GIS',
+    downloadTemplates: 'ดาวน์โหลด Template (QGIS/CSV)',
+    templatesModalTitle: 'ศูนย์ดาวน์โหลด Template ชั้นข้อมูล GIS (16 หมวด)',
+    dataDictionaryBtn: 'ดาวน์โหลด Data Dictionary (CSV)',
+    editorManageLayer: 'เลือกชั้นข้อมูลที่ต้องการจัดการ',
+    digitizeTools: 'เครื่องมือวาดบนแผนที่ (Digitizing)',
+    addPointBtn: '+ ปักหมุดจุดใหม่',
+    drawLineBtn: '+ วาดเส้นแนวโครงข่าย',
+    drawPolygonBtn: '+ วาดแปลงพื้นที่',
+    backupDataBtn: 'สำรองข้อมูล (Backup)',
+    restoreDataBtn: 'นำเข้าข้อมูลสำรอง (Restore)',
+    featureCountInLayer: 'รายการในระบบ',
+    searchInLayer: 'ค้นหาในเลเยอร์นี้...',
+
     // Tab Navigation
     tabPoi: 'สถานที่สำคัญ',
     tabInfra: 'โครงสร้างพื้นฐาน',
     tabService: 'บริการสาธารณะ',
     tabSolar: 'พลังงานแสงอาทิตย์',
+    tabWater: 'แหล่งน้ำ/สิ่งแวดล้อม',
 
     // POI Tab
     poiHeader: 'สถานที่สำคัญในเขตเทศบาล',
@@ -139,11 +158,30 @@ export const translations = {
     badgeLive: 'High-Resolution UAV LiDAR/Orthophoto',
     badgeSmartCity: 'Smart City',
 
+    // Mode Navigation (Viewer vs Editor)
+    modeViewer: 'Viewer & Dashboard',
+    modeEditor: 'Data Management & Editor',
+    modeViewerDesc: 'City overview, KPI statistics & reports',
+    modeEditorDesc: 'Digitize coordinates, edit attributes & import GIS data',
+    downloadTemplates: 'Download Templates (QGIS/CSV)',
+    templatesModalTitle: 'GIS Layers Template Center (16 Datasets)',
+    dataDictionaryBtn: 'Download Data Dictionary (CSV)',
+    editorManageLayer: 'Select Layer to Manage',
+    digitizeTools: 'Web Digitizing Tools',
+    addPointBtn: '+ Add New Point',
+    drawLineBtn: '+ Draw Network Line',
+    drawPolygonBtn: '+ Draw Area Polygon',
+    backupDataBtn: 'Backup Datasets',
+    restoreDataBtn: 'Restore Backup',
+    featureCountInLayer: 'items in system',
+    searchInLayer: 'Search in this layer...',
+
     // Tab Navigation
     tabPoi: 'Points of Interest',
     tabInfra: 'Infrastructure',
     tabService: 'Public Services',
     tabSolar: 'Solar Potential',
+    tabWater: 'Water & Environment',
 
     // POI Tab
     poiHeader: 'Points of Interest in Municipality',

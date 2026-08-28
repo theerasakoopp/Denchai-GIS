@@ -1,0 +1,46 @@
+{
+  "type": "FeatureCollection",
+  "name": "Template_CCTV_Traffic_Safety_Denchai",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "cctv_camera",
+        "device_id": "CCTV-DC-01",
+        "name_th": "กล้องวงจรปิด แยกไฟแดงเด่นชัย",
+        "camera_type": "lpr_license_plate",
+        "camera_type_th": "กล้องอ่านป้ายทะเบียนอัจฉริยะ (AI-LPR)",
+        "fov_angle_deg": 90,
+        "facing_direction_deg": 45,
+        "resolution": "4K (8MP)",
+        "ip_address": "192.168.10.101",
+        "status": "online",
+        "status_th": "ออนไลน์ ใช้งานได้ปกติ",
+        "pole_ref": "POLE-DC-001"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [100.05445, 17.98510]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "traffic_blackspot",
+        "spot_id": "BS-01",
+        "name_th": "จุดเสี่ยงอุบัติเหตุ ทางแยกตัด ทล.101 เข้าสถานีรถไฟ",
+        "risk_level": "high",
+        "risk_level_th": "ความเสี่ยงสูง",
+        "main_cause": "ทัศนวิสัยจำกัด / รถใช้ความเร็วสูง",
+        "safety_equipment_installed": "สัญญาณไฟกระพริบเตือน + ป้ายชะลอความเร็ว",
+        "accident_count_2566": 5,
+        "recommended_action": "ติดตั้งไฟสัญญาณจราจรทางแยกแบบเต็มรูปแบบ"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [100.05650, 17.98420]
+      }
+    }
+  ]
+}

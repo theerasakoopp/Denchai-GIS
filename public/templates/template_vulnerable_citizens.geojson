@@ -1,0 +1,53 @@
+{
+  "type": "FeatureCollection",
+  "name": "Template_Vulnerable_Citizens_Denchai",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "person_id": "VUL-DC-001",
+        "title_and_alias": "ผู้สูงอายุติดเตียง (รหัสเคส A01)",
+        "house_no": "45/2",
+        "community_name": "ชุมชนบ้านเด่นชัย",
+        "moo_no": 1,
+        "vulnerability_group": "bedridden_elderly",
+        "vulnerability_group_th": "ผู้สูงอายุติดเตียง / ช่วยเหลือตัวเองไม่ได้",
+        "medical_conditions": "โรคหลอดเลือดสมอง / อัมพฤกษ์",
+        "requires_power_medical_device": true,
+        "medical_device_detail": "เครื่องผลิตออกซิเจน (ห้ามไฟดับเกิน 1 ชม.)",
+        "emergency_evacuation_priority": "priority_1_highest",
+        "emergency_contact_name": "นางสมใจ (บุตรสาว)",
+        "emergency_contact_phone": "081-234-5678",
+        "assigned_vhv_name": "อสม. มาลี ใจดี"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [100.05380, 17.98420]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "person_id": "VUL-DC-002",
+        "title_and_alias": "ผู้พิการทางการเคลื่อนไหว (รหัสเคส B04)",
+        "house_no": "88/1",
+        "community_name": "ชุมชนเด่นชัยพัฒนา",
+        "moo_no": 1,
+        "vulnerability_group": "wheelchair_user",
+        "vulnerability_group_th": "ผู้พิการนั่งวีลแชร์ / มีผู้ดูแลช่วงกลางวัน",
+        "medical_conditions": "ข้อเข่าเสื่อมรุนแรง / เบาหวาน",
+        "requires_power_medical_device": false,
+        "medical_device_detail": "-",
+        "emergency_evacuation_priority": "priority_2_medium",
+        "emergency_contact_name": "นายสมพร (หลาน)",
+        "emergency_contact_phone": "089-987-6543",
+        "assigned_vhv_name": "อสม. กานดา อิ่มเอม"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [100.05620, 17.98550]
+      }
+    }
+  ]
+}

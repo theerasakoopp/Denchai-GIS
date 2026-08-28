@@ -1,0 +1,49 @@
+{
+  "type": "FeatureCollection",
+  "name": "Template_Water_Supply_Hydrants_Denchai",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "fire_hydrant",
+        "asset_id": "HYD-01",
+        "name_th": "หัวจ่ายน้ำดับเพลิง หน้าตลาดเทศบาล",
+        "outlet_size_inch": 2.5,
+        "water_pressure": "high",
+        "water_pressure_bar": 3.2,
+        "service_radius_m": 150.0,
+        "status": "ready",
+        "status_th": "พร้อมใช้งาน 100%",
+        "last_tested": "2026-07-10",
+        "responsible_unit": "งานป้องกันและบรรเทาสาธารณภัย"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [100.05510, 17.98480]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "water_main_pipe",
+        "asset_id": "PIPE-HDPE-100",
+        "material": "HDPE",
+        "diameter_mm": 100,
+        "pipe_class": "PN 10",
+        "depth_m": 1.0,
+        "operator": "กองการประปาเทศบาลตำบลเด่นชัย",
+        "install_year": 2564,
+        "length_m": 350.0
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [100.05350, 17.98400],
+          [100.05510, 17.98480],
+          [100.05680, 17.98560]
+        ]
+      }
+    }
+  ]
+}

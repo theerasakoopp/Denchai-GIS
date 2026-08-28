@@ -1,0 +1,148 @@
+﻿Layer_ID,Layer_Name_TH,Geometry_Type,Template_File,Field_Name,Field_Label_TH,Data_Type,Description,Allowed_Values_Examples,Required,Responsible_Division
+1,อาคารและสิ่งปลูกสร้าง,Polygon,template_buildings.geojson,building_id,รหัสประจำตัวอาคาร,String,รหัสอ้างอิงเฉพาะของอาคารแต่ละหลัง,BLD-0101-001,บังคับ,กองช่าง / กองคลัง (แผนที่ภาษี)
+1,อาคารและสิ่งปลูกสร้าง,Polygon,template_buildings.geojson,building_name,ชื่ออาคาร/สถานที่,String,ชื่ออาคารหรือชื่อสถานที่สำคัญ,ที่ว่าการเทศบาลตำบลเด่นชัย,ไม่บังคับ,กองช่าง
+1,อาคารและสิ่งปลูกสร้าง,Polygon,template_buildings.geojson,house_no,เลขที่บ้าน,String,เลขที่บ้านตามทะเบียนราษฎร์,199 / 12/4,ไม่บังคับ,สำนักปลัด (งานทะเบียน)
+1,อาคารและสิ่งปลูกสร้าง,Polygon,template_buildings.geojson,community_name,ชื่อชุมชน/หมู่บ้าน,String,ชื่อหมู่บ้านหรือชุมชนที่อาคารตั้งอยู่,ชุมชนบ้านเด่นชัยพัฒนา,ไม่บังคับ,สำนักปลัด
+1,อาคารและสิ่งปลูกสร้าง,Polygon,template_buildings.geojson,moo_no,หมู่ที่,Integer,หมายเลขหมู่ที่ (1-N),1 / 2 / 3,ไม่บังคับ,สำนักปลัด
+1,อาคารและสิ่งปลูกสร้าง,Polygon,template_buildings.geojson,building_type,ประเภทการใช้งานหลัก,String,ประเภทการใช้ประโยชน์อาคารตามผังเมือง,residential (ที่พักอาศัย) / commercial (พาณิชย์) / government (ราชการ) / religious (ศาสนสถาน) / industrial (โรงงาน) / educational (สถานศึกษา) / agricultural (เกษตรกรรม),บังคับ,กองช่าง / กองคลัง
+1,อาคารและสิ่งปลูกสร้าง,Polygon,template_buildings.geojson,num_floors,จำนวนชั้น,Integer,จำนวนชั้นความสูงของอาคาร,1 / 2 / 3 / 4,ไม่บังคับ,กองช่าง
+1,อาคารและสิ่งปลูกสร้าง,Polygon,template_buildings.geojson,structure_type,ชนิดโครงสร้างอาคาร,String,วัสดุโครงสร้างหลักของอาคาร,rc_concrete (คสล.) / wood (ไม้) / steel (เหล็ก) / mixed (ครึ่งตึกครึ่งไม้),ไม่บังคับ,กองช่าง
+1,อาคารและสิ่งปลูกสร้าง,Polygon,template_buildings.geojson,roof_material,วัสดุมุงหลังคา,String,ชนิดของวัสดุมุงหลังคา,concrete_slab (ดาดฟ้าคอนกรีต) / metal_sheet (เมทัลชีท) / tile (กระเบื้อง) / zinc (สังกะสี),ไม่บังคับ,กองช่าง
+1,อาคารและสิ่งปลูกสร้าง,Polygon,template_buildings.geojson,roof_area_sqm,พื้นที่หลังคารวม (ตร.ม.),Float,พื้นที่ผิวหลังคารวมจากการคำนวณ 3D,180.50 / 650.00,ไม่บังคับ,กองช่าง / งาน AI
+1,อาคารและสิ่งปลูกสร้าง,Polygon,template_buildings.geojson,solar_pv_installed,สถานะการติดโซลาร์เซลล์,Boolean,มีการติดตั้งระบบ Solar Rooftop แล้วหรือไม่,true (ติดตั้งแล้ว) / false (ยังไม่ติดตั้ง),ไม่บังคับ,กองช่าง / Smart City
+1,อาคารและสิ่งปลูกสร้าง,Polygon,template_buildings.geojson,notes,หมายเหตุ,String,รายละเอียดบันทึกเพิ่มเติม,อาคารหลักสำนักงานเทศบาล,ไม่บังคับ,กองช่าง
+2,เสาไฟฟ้าและโคมไฟส่องสว่าง,Point,template_streetlights.geojson,pole_id,รหัสเสาไฟ/โคมไฟ,String,รหัสประจำต้นของเสาไฟหรือโคมไฟ,POLE-DC-001,บังคับ,กองช่าง (งานไฟฟ้าสาธารณะ)
+2,เสาไฟฟ้าและโคมไฟส่องสว่าง,Point,template_streetlights.geojson,pole_owner,หน่วยงานเจ้าของเสา,String,หน่วยงานที่รับผิดชอบตัวเสาไฟ,municipality (เทศบาล) / pea (กฟภ.) / highway (กรมทางหลวง),บังคับ,กองช่าง
+2,เสาไฟฟ้าและโคมไฟส่องสว่าง,Point,template_streetlights.geojson,lamp_type,ชนิดของหลอดไฟ,String,เทคโนโลยีหลอดไฟส่องสว่าง,led (แอลอีดี) / solar_led (โซลาร์เซลล์) / hps (หลอดส้มไฮเพรสเชอร์) / fluorescent (หลอดนีออน),บังคับ,กองช่าง
+2,เสาไฟฟ้าและโคมไฟส่องสว่าง,Point,template_streetlights.geojson,wattage_w,กำลังไฟฟ้า (วัตต์),Integer,ขนาดกำลังวัตต์ของหลอดไฟ,60 / 100 / 150 / 250 / 400,ไม่บังคับ,กองช่าง
+2,เสาไฟฟ้าและโคมไฟส่องสว่าง,Point,template_streetlights.geojson,pole_height_m,ความสูงเสา (เมตร),Float,ความสูงของเสาไฟจากระดับพื้น,6.0 / 8.0 / 9.0 / 12.0,ไม่บังคับ,กองช่าง
+2,เสาไฟฟ้าและโคมไฟส่องสว่าง,Point,template_streetlights.geojson,power_source,แหล่งพลังงาน,String,ที่มาของพลังงานไฟฟ้า,grid (ต่อไฟสายส่ง) / solar (โซลาร์เซลล์อิสระ),ไม่บังคับ,กองช่าง
+2,เสาไฟฟ้าและโคมไฟส่องสว่าง,Point,template_streetlights.geojson,status,สถานะการทำงาน,String,สภาพการส่องสว่างปัจจุบัน,normal (ติดปกติ) / damaged (ดับ/ชำรุด) / pending_repair (รอดำเนินการซ่อม),บังคับ,กองช่าง / ศูนย์รับเรื่องราวร้องทุกข์
+2,เสาไฟฟ้าและโคมไฟส่องสว่าง,Point,template_streetlights.geojson,road_name,ชื่อถนน/ซอยที่ติดตั้ง,String,ชื่อสายทางที่เสาไฟตั้งอยู่,ถนนเด่นชัย-แพร่ (ทล.101) / ซอยร่วมใจ,ไม่บังคับ,กองช่าง
+2,เสาไฟฟ้าและโคมไฟส่องสว่าง,Point,template_streetlights.geojson,last_inspected,วันที่ตรวจสอบล่าสุด,Date,วันที่เจ้าหน้าที่ออกตรวจเช็คสภาพ,2026-06-15,ไม่บังคับ,กองช่าง
+3,หม้อแปลงและแนวสายส่งไฟฟ้า,Point,template_power_grid.geojson,asset_id,รหัสหม้อแปลง,String,รหัสทรัพย์สินของหม้อแปลงไฟฟ้า,TR-DC-01,บังคับ,กฟภ. / กองช่าง
+3,หม้อแปลงและแนวสายส่งไฟฟ้า,Point,template_power_grid.geojson,name_th,ชื่อเรียกหม้อแปลง,String,ชื่อจุดติดตั้งหรือชื่อชุมชน,หม้อแปลงไฟฟ้าชุมชนเด่นชัยพัฒนา,ไม่บังคับ,กฟภ. / กองช่าง
+3,หม้อแปลงและแนวสายส่งไฟฟ้า,Point,template_power_grid.geojson,capacity_kva,ขนาดกำลังไฟฟ้า (kVA),Integer,พิกัดกำลังไฟฟ้าสูงสุดของหม้อแปลง,50 / 100 / 160 / 250 / 315 / 500,บังคับ,กฟภ.
+3,หม้อแปลงและแนวสายส่งไฟฟ้า,Point,template_power_grid.geojson,primary_voltage,แรงดันไฟฟ้าแรงสูง,String,ระดับแรงดันไฟฟ้าด้านรับ,22 kV,ไม่บังคับ,กฟภ.
+3,หม้อแปลงและแนวสายส่งไฟฟ้า,Point,template_power_grid.geojson,secondary_voltage,แรงดันไฟฟ้าแรงต่ำ,String,ระดับแรงดันไฟฟ้าด้านจ่าย,400/230 V,ไม่บังคับ,กฟภ.
+3,หม้อแปลงและแนวสายส่งไฟฟ้า,Point,template_power_grid.geojson,phase,ระบบเฟส,String,จำนวนเฟสของระบบไฟฟ้า,1-Phase / 3-Phase,ไม่บังคับ,กฟภ.
+3,หม้อแปลงและแนวสายส่งไฟฟ้า,Point,template_power_grid.geojson,load_percentage,ภาระจ่ายไฟเฉลี่ย (%),Float,สัดส่วนการใช้งานโหลดหม้อแปลง,68.5,ไม่บังคับ,กฟภ.
+3,หม้อแปลงและแนวสายส่งไฟฟ้า,Point,template_power_grid.geojson,solar_pv_hosting_capacity_kw,ขีดความสามารถรับ Solar (kW),Float,กำลังผลิตโซลาร์ที่หม้อแปลงสามารถรองรับได้,80.0,ไม่บังคับ,กฟภ. / Smart City
+3,หม้อแปลงและแนวสายส่งไฟฟ้า,LineString,template_power_grid.geojson,asset_id,รหัสแนวสายส่ง,String,รหัสสายส่งไฟฟ้า,LINE-MV-01,บังคับ,กฟภ.
+3,หม้อแปลงและแนวสายส่งไฟฟ้า,LineString,template_power_grid.geojson,voltage_level,ระดับแรงดันไฟฟ้า,String,ระดับแรงดันสายส่ง,medium_voltage_22kv / low_voltage_400v,บังคับ,กฟภ.
+3,หม้อแปลงและแนวสายส่งไฟฟ้า,LineString,template_power_grid.geojson,conductor_type,ชนิดสายตัวนำ,String,รูปแบบสายไฟ,Space Aerial Cable (SAC) / All Aluminium Conductor (AAC) / Underground,ไม่บังคับ,กฟภ.
+3,หม้อแปลงและแนวสายส่งไฟฟ้า,LineString,template_power_grid.geojson,length_m,ความยาวแนวสาย (เมตร),Float,ระยะทางความยาวสายส่ง,450.0,ไม่บังคับ,กฟภ.
+4,ระบบระบายน้ำและบ่อพัก,LineString,template_drainage_system.geojson,asset_id,รหัสสายทางระบายน้ำ,String,รหัสอ้างอิงแนวระบายน้ำ,DR-LINE-001,บังคับ,กองช่าง (งานระบายน้ำและสุขาภิบาล)
+4,ระบบระบายน้ำและบ่อพัก,LineString,template_drainage_system.geojson,drain_type,รูปแบบโครงสร้างระบายน้ำ,String,ชนิดของทางระบายน้ำ,u_ditch (รางยู คสล.) / circular_pipe (ท่อกลม คสล.) / box_culvert (ท่อเหลี่ยม) / open_earth (คูดินเปิด),บังคับ,กองช่าง
+4,ระบบระบายน้ำและบ่อพัก,LineString,template_drainage_system.geojson,width_m,ความกว้าง/ขนาดท่อ (เมตร),Float,ขนาดเส้นผ่านศูนย์กลางท่อหรือความกว้างราง,0.40 / 0.60 / 0.80 / 1.00,บังคับ,กองช่าง
+4,ระบบระบายน้ำและบ่อพัก,LineString,template_drainage_system.geojson,depth_m,ความลึกราง/ท่อ (เมตร),Float,ระดับความลึกของทางระบายน้ำ,0.60 / 0.80 / 1.20,ไม่บังคับ,กองช่าง
+4,ระบบระบายน้ำและบ่อพัก,LineString,template_drainage_system.geojson,flow_direction,ทิศทางการไหล,String,ทิศทางการไหลของน้ำตามแรงโน้มถ่วง,north / north-east / south / west,ไม่บังคับ,กองช่าง
+4,ระบบระบายน้ำและบ่อพัก,LineString,template_drainage_system.geojson,outfall_target,ปลายทางระบายน้ำออก,String,จุดระบายน้ำลงสู่แหล่งน้ำธรรมชาติ,ลำห้วยแม่พวก / แม่น้ำยม,ไม่บังคับ,กองช่าง
+4,ระบบระบายน้ำและบ่อพัก,LineString,template_drainage_system.geojson,cleaning_status,สถานะการขุดลอกล้างท่อ,String,ประวัติการบำรุงรักษาป้องกันน้ำท่วมขัง,cleaned_2567 / needs_cleaning (ต้องขุดลอกด่วน) / under_construction,ไม่บังคับ,กองช่าง
+4,ระบบระบายน้ำและบ่อพัก,Point,template_drainage_system.geojson,asset_id,รหัสบ่อพักน้ำ,String,รหัสประจำบ่อพัก Manhole,MH-001,บังคับ,กองช่าง
+4,ระบบระบายน้ำและบ่อพัก,Point,template_drainage_system.geojson,cover_type,ประเภทฝาบ่อพัก,String,ชนิดของฝาปิดบ่อพัก,steel_grating (ฝาตะแกรงเหล็กรับน้ำ) / rc_slab (ฝาคอนกรีตทึบ),ไม่บังคับ,กองช่าง
+4,ระบบระบายน้ำและบ่อพัก,Point,template_drainage_system.geojson,invert_depth_m,ความลึกก้นบ่อพัก (เมตร),Float,ความลึกจากระดับผิวทางถึงก้นบ่อ,1.20,ไม่บังคับ,กองช่าง
+4,ระบบระบายน้ำและบ่อพัก,Point,template_drainage_system.geojson,condition,สภาพบ่อพัก,String,สภาพการใช้งานปัจจุบัน,normal (ปกติ) / clogged (อุดตันมีเศษขยะดินทราย) / broken_cover (ฝาชำรุด),ไม่บังคับ,กองช่าง
+5,ระบบประปาและหัวดับเพลิง,Point,template_water_supply_hydrants.geojson,asset_id,รหัสหัวดับเพลิง,String,รหัสทรัพย์สินหัวจ่ายน้ำดับเพลิง,HYD-01,บังคับ,งานป้องกันและบรรเทาสาธารณภัย / กองการประปา
+5,ระบบประปาและหัวดับเพลิง,Point,template_water_supply_hydrants.geojson,name_th,จุดติดตั้ง/ชื่อเรียก,String,สถานที่ตั้งหัวดับเพลิง,หัวจ่ายน้ำดับเพลิง หน้าตลาดเทศบาล,ไม่บังคับ,งานป้องกันฯ
+5,ระบบประปาและหัวดับเพลิง,Point,template_water_supply_hydrants.geojson,outlet_size_inch,ขนาดเกลียวข้อต่อ (นิ้ว),Float,ขนาดหัวข้อต่อสายส่งน้ำดับเพลิง,2.5 / 4.0,บังคับ,งานป้องกันฯ
+5,ระบบประปาและหัวดับเพลิง,Point,template_water_supply_hydrants.geojson,water_pressure,ระดับแรงดันน้ำ,String,แรงดันน้ำของหัวดับเพลิง,high (แรงดันสูง) / medium (ปานกลาง) / low (แรงดันต่ำ),ไม่บังคับ,งานป้องกันฯ / กองการประปา
+5,ระบบประปาและหัวดับเพลิง,Point,template_water_supply_hydrants.geojson,service_radius_m,รัศมีความคุ้มครอง (เมตร),Float,ระยะการลากสายดับเพลิงเข้าถึงเป้าหมาย,150.0,ไม่บังคับ,งานป้องกันฯ
+5,ระบบประปาและหัวดับเพลิง,Point,template_water_supply_hydrants.geojson,status,ความพร้อมใช้งาน,String,สภาพความพร้อมในการระงับเหตุ,ready (พร้อมใช้งาน 100%) / maintenance (ชำรุด/ปิดซ่อม),บังคับ,งานป้องกันฯ
+5,ระบบประปาและหัวดับเพลิง,LineString,template_water_supply_hydrants.geojson,asset_id,รหัสท่อเมนประปา,String,รหัสแนวท่อส่งน้ำประปา,PIPE-HDPE-100,บังคับ,กองการประปาเทศบาล
+5,ระบบประปาและหัวดับเพลิง,LineString,template_water_supply_hydrants.geojson,material,ชนิดวัสดุท่อ,String,วัสดุที่ใช้ผลิตท่อประปา,HDPE / PVC / Ductile_Iron (เหล็กเหนียว),บังคับ,กองการประปา
+5,ระบบประปาและหัวดับเพลิง,LineString,template_water_supply_hydrants.geojson,diameter_mm,ขนาดท่อ (มิลลิเมตร),Integer,ขนาดเส้นผ่านศูนย์กลางภายในท่อ,50 / 100 / 150 / 200,บังคับ,กองการประปา
+5,ระบบประปาและหัวดับเพลิง,LineString,template_water_supply_hydrants.geojson,depth_m,ความลึกฝังกลบ (เมตร),Float,ระดับความลึกใต้ดินของท่อส่งน้ำ,1.0 / 1.5,ไม่บังคับ,กองการประปา
+6,กล้อง CCTV และจุดเสี่ยงจราจร,Point,template_cctv_traffic_safety.geojson,device_id,รหัสกล้อง CCTV,String,รหัสประจำอุปกรณ์กล้อง,CCTV-DC-01,บังคับ,งานป้องกันและบรรเทาสาธารณภัย / สภ.เด่นชัย
+6,กล้อง CCTV และจุดเสี่ยงจราจร,Point,template_cctv_traffic_safety.geojson,camera_type,ประเภทกล้องวงจรปิด,String,ชนิดและฟังก์ชันของกล้อง,lpr_license_plate (อ่านป้ายทะเบียน AI) / ptz (หมุน-ก้มเงย-ซูม) / fixed (มุมมองคงที่),บังคับ,งานป้องกันฯ
+6,กล้อง CCTV และจุดเสี่ยงจราจร,Point,template_cctv_traffic_safety.geojson,fov_angle_deg,องศามุมมองภาพ (FOV),Integer,ความกว้างของมุมมองเลนส์กล้อง (องศา),90 / 120 / 360,ไม่บังคับ,งานป้องกันฯ
+6,กล้อง CCTV และจุดเสี่ยงจราจร,Point,template_cctv_traffic_safety.geojson,facing_direction_deg,ทิศทางการส่อง (องศา),Integer,มุมอะซิมุททิศทางที่กล้องหันไป (0-360),45 (ทิศตะวันออกเฉียงเหนือ),ไม่บังคับ,งานป้องกันฯ
+6,กล้อง CCTV และจุดเสี่ยงจราจร,Point,template_cctv_traffic_safety.geojson,resolution,ความละเอียดกล้อง,String,ความคมชัดของภาพบันทึก,1080p (Full HD) / 4K (8MP),ไม่บังคับ,งานป้องกันฯ
+6,กล้อง CCTV และจุดเสี่ยงจราจร,Point,template_cctv_traffic_safety.geojson,status,สถานะการเชื่อมต่อ,String,สถานะการรับส่งสัญญาณภาพ,online (ออนไลน์ปกติ) / offline (ออฟไลน์/สัญญาณขาด),บังคับ,งานป้องกันฯ
+6,กล้อง CCTV และจุดเสี่ยงจราจร,Point,template_cctv_traffic_safety.geojson,spot_id,รหัสจุดเสี่ยงอุบัติเหตุ,String,รหัสบริเวณจุดเสี่ยงจราจร,BS-01,บังคับ,กองช่าง / งานจราจร
+6,กล้อง CCTV และจุดเสี่ยงจราจร,Point,template_cctv_traffic_safety.geojson,risk_level,ระดับความเสี่ยงอุบัติเหตุ,String,ระดับความอันตรายของจุดทางแยก,critical (วิกฤต) / high (สูง) / medium (ปานกลาง),บังคับ,กองช่าง
+6,กล้อง CCTV และจุดเสี่ยงจราจร,Point,template_cctv_traffic_safety.geojson,main_cause,สาเหตุหลักการเกิดเหตุ,String,ปัจจัยที่ก่อให้เกิดอุบัติเหตุซ้ำซาก,ทัศนวิสัยจำกัด / รถใช้ความเร็วสูง / ไม่มีไฟส่องสว่าง,ไม่บังคับ,กองช่าง
+6,กล้อง CCTV และจุดเสี่ยงจราจร,Point,template_cctv_traffic_safety.geojson,accident_count_2566,สถิติอุบัติเหตุรอบปี,Integer,จำนวนครั้งที่เกิดอุบัติเหตุในรอบปี,5,ไม่บังคับ,สภ.เด่นชัย / งานจราจร
+7,พื้นที่เสี่ยงภัยและศูนย์อพยพ,Polygon,template_hazard_evacuation.geojson,zone_id,รหัสโซนเสี่ยงภัย,String,รหัสพื้นที่เสี่ยงภัยธรรมชาติ,FL-ZONE-01,บังคับ,งานป้องกันและบรรเทาสาธารณภัย
+7,พื้นที่เสี่ยงภัยและศูนย์อพยพ,Polygon,template_hazard_evacuation.geojson,hazard_type,ประเภทภัยพิบัติ,String,ชนิดของภัยธรรมชาติ,flood_risk_zone (น้ำท่วมซ้ำซาก) / landslide_risk_zone (ดินถล่ม-ตลิ่งทรุด),บังคับ,งานป้องกันฯ
+7,พื้นที่เสี่ยงภัยและศูนย์อพยพ,Polygon,template_hazard_evacuation.geojson,risk_level,ระดับความรุนแรง,String,ระดับความเสี่ยงภัยในพื้นที่,critical (วิกฤต) / high (สูง) / medium (ปานกลาง),บังคับ,งานป้องกันฯ
+7,พื้นที่เสี่ยงภัยและศูนย์อพยพ,Polygon,template_hazard_evacuation.geojson,max_flood_depth_m,ระดับน้ำท่วมสูงสุด (เมตร),Float,ความสูงระดับน้ำท่วมขังสูงสุดในอดีต,1.20,ไม่บังคับ,งานป้องกันฯ
+7,พื้นที่เสี่ยงภัยและศูนย์อพยพ,Polygon,template_hazard_evacuation.geojson,affected_households,จำนวนครัวเรือนที่กระทบ,Integer,จำนวนบ้านเรือนในแนวเสี่ยงภัย,45,ไม่บังคับ,งานป้องกันฯ / สำนักปลัด
+7,พื้นที่เสี่ยงภัยและศูนย์อพยพ,Point,template_hazard_evacuation.geojson,center_id,รหัสศูนย์อพยพพักพิง,String,รหัสศูนย์พักพิงชั่วคราว,EVAC-01,บังคับ,งานป้องกันฯ / กองสาธารณสุข
+7,พื้นที่เสี่ยงภัยและศูนย์อพยพ,Point,template_hazard_evacuation.geojson,name_th,ชื่อสถานที่ศูนย์พักพิง,String,ชื่ออาคารหรือศูนย์รองรับผู้อพยพ,ศูนย์พักพิงชั่วคราว หอประชุมโรงเรียนเด่นชัยวิทยา,บังคับ,งานป้องกันฯ
+7,พื้นที่เสี่ยงภัยและศูนย์อพยพ,Point,template_hazard_evacuation.geojson,capacity_persons,ความจุรองรับคน (คน),Integer,จำนวนประชาชนที่สามารถรองรับได้สูงสุด,300,บังคับ,งานป้องกันฯ
+7,พื้นที่เสี่ยงภัยและศูนย์อพยพ,Point,template_hazard_evacuation.geojson,facilities,สิ่งอำนวยความสะดวก,String,ระบบสนับสนุนการดำรงชีพ,โรงครัวสนาม / เครื่องปั่นไฟสำรอง / หน่วยพยาบาล,ไม่บังคับ,งานป้องกันฯ
+7,พื้นที่เสี่ยงภัยและศูนย์อพยพ,Point,template_hazard_evacuation.geojson,contact_phone,เบอร์โทรประสานงาน,String,หมายเลขติดต่อผู้ดูแลศูนย์,054-613999,ไม่บังคับ,งานป้องกันฯ
+8,การจัดการขยะมูลฝอย,Point,template_waste_management.geojson,station_id,รหัสจุดตั้งถังขยะ,String,รหัสจุดรวบรวมขยะชุมชน,BIN-DC-01,บังคับ,กองสาธารณสุขและสิ่งแวดล้อม
+8,การจัดการขยะมูลฝอย,Point,template_waste_management.geojson,bin_types,ประเภทถังขยะที่มี,String,ชนิดของถังขยะที่ตั้งวาง,ขยะทั่วไป / ขยะเปียกอินทรีย์ / ขยะรีไซเคิล / ขยะอันตราย,บังคับ,กองสาธารณสุข
+8,การจัดการขยะมูลฝอย,Point,template_waste_management.geojson,bin_count,จำนวนถังขยะ (ถัง),Integer,จำนวนถังขยะในจุดบริการ,4,ไม่บังคับ,กองสาธารณสุข
+8,การจัดการขยะมูลฝอย,Point,template_waste_management.geojson,capacity_liters,ความจุรวม (ลิตร),Integer,ปริมาตรรองรับขยะรวม,960,ไม่บังคับ,กองสาธารณสุข
+8,การจัดการขยะมูลฝอย,Point,template_waste_management.geojson,collection_frequency,รอบเวลาการจัดเก็บ,String,ตารางเวลาการเข้าเก็บขยะของรถเทศบาล,ทุกวัน (ช่วง 04:00 - 06:00 น.) / จันทร์-พุธ-ศุกร์,ไม่บังคับ,กองสาธารณสุข
+8,การจัดการขยะมูลฝอย,LineString,template_waste_management.geojson,route_id,รหัสสายเดินรถขยะ,String,รหัสเส้นทางวิ่งของรถเก็บขยะ,ROUTE-TRUCK-01,บังคับ,กองสาธารณสุข
+8,การจัดการขยะมูลฝอย,LineString,template_waste_management.geojson,truck_license_plate,ทะเบียนรถเก็บขยะ,String,หมายเลขทะเบียนรถบรรทุกขยะประจำสาย,81-1234 แพร่,ไม่บังคับ,กองสาธารณสุข
+8,การจัดการขยะมูลฝอย,LineString,template_waste_management.geojson,est_waste_ton_per_day,ปริมาณขยะเฉลี่ย (ตัน/วัน),Float,ปริมาณขยะมูลฝอยที่จัดเก็บได้ต่อวัน,2.8,ไม่บังคับ,กองสาธารณสุข
+9,พิกัดบ้านกลุ่มเปราะบางทางสังคม,Point,template_vulnerable_citizens.geojson,person_id,รหัสเคสกลุ่มเปราะบาง,String,รหัสปกปิดตัวตนตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล,VUL-DC-001,บังคับ,กองสวัสดิการสังคม / กองสาธารณสุข
+9,พิกัดบ้านกลุ่มเปราะบางทางสังคม,Point,template_vulnerable_citizens.geojson,house_no,บ้านเลขที่,String,เลขที่บ้านที่พักอาศัยจริง,45/2,บังคับ,กองสวัสดิการสังคม
+9,พิกัดบ้านกลุ่มเปราะบางทางสังคม,Point,template_vulnerable_citizens.geojson,vulnerability_group,ประเภทกลุ่มเปราะบาง,String,ภาวะความเปราะบางทางร่างกาย/สังคม,bedridden_elderly (ผู้ป่วยติดเตียง) / wheelchair_user (ผู้พิการ) / dialysis_patient (ผู้ป่วยฟอกไต) / solitary_elderly (ผู้สูงอายุอยู่ลำพัง),บังคับ,กองสวัสดิการสังคม
+9,พิกัดบ้านกลุ่มเปราะบางทางสังคม,Point,template_vulnerable_citizens.geojson,medical_conditions,โรคประจำตัว/ภาวะสุขภาพ,String,รายละเอียดโรคหรือข้อจำกัดด้านสุขภาพ,โรคหลอดเลือดสมอง / อัมพฤกษ์ / ข้อเข่าเสื่อม,ไม่บังคับ,กองสาธารณสุข / รพ.สต.
+9,พิกัดบ้านกลุ่มเปราะบางทางสังคม,Point,template_vulnerable_citizens.geojson,requires_power_medical_device,ต้องใช้เครื่องมือแพทย์ไฟฟ้า,Boolean,ต้องใช้อุปกรณ์ช่วยชีวิตที่ใช้ไฟตลอดเวลาหรือไม่,true (ต้องใช้ เช่น เครื่องผลิตออกซิเจน) / false (ไม่ต้องใช้),บังคับ,กองสาธารณสุข / งานป้องกันฯ
+9,พิกัดบ้านกลุ่มเปราะบางทางสังคม,Point,template_vulnerable_citizens.geojson,emergency_evacuation_priority,ลำดับความสำคัญในการอพยพ,String,ลำดับการเข้าช่วยเหลือเมื่อเกิดภัยพิบัติ,priority_1_highest (เข้าช่วยก่อนทันที) / priority_2_medium,บังคับ,งานป้องกันฯ / กองสวัสดิการสังคม
+9,พิกัดบ้านกลุ่มเปราะบางทางสังคม,Point,template_vulnerable_citizens.geojson,emergency_contact_phone,เบอร์โทรญาติ/ผู้ดูแล,String,เบอร์ติดต่อกรณีฉุกเฉิน,081-234-5678,ไม่บังคับ,กองสวัสดิการสังคม
+9,พิกัดบ้านกลุ่มเปราะบางทางสังคม,Point,template_vulnerable_citizens.geojson,assigned_vhv_name,ชื่อ อสม. ผู้รับผิดชอบ,String,ชื่ออาสาสมัครสาธารณสุขประจำหมู่บ้านที่ดูแล,อสม. มาลี ใจดี,ไม่บังคับ,กองสาธารณสุข
+10,ขอบเขตชุมชนและหมู่บ้าน,Polygon,template_community_boundaries.geojson,moo_no,หมู่ที่,Integer,หมายเลขหมู่บ้านตามเขตการปกครอง,1 / 2 / 3,บังคับ,สำนักปลัดเทศบาล
+10,ขอบเขตชุมชนและหมู่บ้าน,Polygon,template_community_boundaries.geojson,village_name_th,ชื่อหมู่บ้าน/ชุมชน (ไทย),String,ชื่อหมู่บ้านหรือชุมชนอย่างเป็นทางการ,บ้านเด่นชัย,บังคับ,สำนักปลัด
+10,ขอบเขตชุมชนและหมู่บ้าน,Polygon,template_community_boundaries.geojson,village_name_en,ชื่อหมู่บ้าน/ชุมชน (อังกฤษ),String,ชื่อภาษาอังกฤษ,Ban Den Chai,ไม่บังคับ,สำนักปลัด
+10,ขอบเขตชุมชนและหมู่บ้าน,Polygon,template_community_boundaries.geojson,headman_name,ชื่อผู้นำชุมชน/ผู้ใหญ่บ้าน,String,ชื่อ-สกุล ผู้ใหญ่บ้านหรือประธานชุมชน,นายสมศักดิ์ เด่นภูมิ,ไม่บังคับ,สำนักปลัด
+10,ขอบเขตชุมชนและหมู่บ้าน,Polygon,template_community_boundaries.geojson,headman_phone,เบอร์โทรศัพท์ผู้นำชุมชน,String,หมายเลขติดต่อผู้ใหญ่บ้าน,081-555-0101,ไม่บังคับ,สำนักปลัด
+10,ขอบเขตชุมชนและหมู่บ้าน,Polygon,template_community_boundaries.geojson,population_total,ประชากรรวม (คน),Integer,จำนวนประชากรตามทะเบียนราษฎร์,1300,ไม่บังคับ,สำนักปลัด (งานทะเบียน)
+10,ขอบเขตชุมชนและหมู่บ้าน,Polygon,template_community_boundaries.geojson,household_count,จำนวนครัวเรือน,Integer,จำนวนหลังคาเรือนในหมู่บ้าน,420,ไม่บังคับ,สำนักปลัด
+10,ขอบเขตชุมชนและหมู่บ้าน,Polygon,template_community_boundaries.geojson,area_sqkm,พื้นที่ชุมชน (ตร.กม.),Float,ขนาดพื้นที่ของหมู่บ้าน,2.45,ไม่บังคับ,กองช่าง
+11,สถานที่สำคัญ (POI),Point,template_poi.geojson,id,รหัสสถานที่,String,รหัสประจำสถานที่สำคัญ,poi-01,บังคับ,สำนักปลัด / กองช่าง
+11,สถานที่สำคัญ (POI),Point,template_poi.geojson,name_th,ชื่อสถานที่ (ไทย),String,ชื่อสถานที่สำคัญภาษาไทย,โรงพยาบาลสมเด็จพระยุพราชเด่นชัย,บังคับ,สำนักปลัด
+11,สถานที่สำคัญ (POI),Point,template_poi.geojson,name_en,ชื่อสถานที่ (อังกฤษ),String,ชื่อสถานที่ภาษาอังกฤษ,Crown Prince Hospital Den Chai,ไม่บังคับ,สำนักปลัด
+11,สถานที่สำคัญ (POI),Point,template_poi.geojson,category,หมวดหมู่สถานที่,String,กลุ่มประเภทของสถานที่,hospital (รพ.) / clinic (คลินิก) / school (โรงเรียน) / temple (วัด) / market (ตลาด) / transport (ขนส่ง) / government (ราชการ) / park (สวนสาธารณะ) / bank (ธนาคาร),บังคับ,สำนักปลัด
+11,สถานที่สำคัญ (POI),Point,template_poi.geojson,description_th,รายละเอียดการบริการ,String,คำอธิบายลักษณะการให้บริการ,โรงพยาบาลชุมชนระดับแม่ข่าย ให้บริการ 24 ชม.,ไม่บังคับ,สำนักปลัด
+11,สถานที่สำคัญ (POI),Point,template_poi.geojson,phone,เบอร์โทรศัพท์ติดต่อ,String,หมายเลขโทรศัพท์ของสถานที่,054-613111,ไม่บังคับ,สำนักปลัด
+12,โครงข่ายถนนและคมนาคม,LineString,template_roads_transport.geojson,id,รหัสสายทาง,String,รหัสประจำสายทางถนน,road-main-01,บังคับ,กองช่าง (งานก่อสร้างและผังเมือง)
+12,โครงข่ายถนนและคมนาคม,LineString,template_roads_transport.geojson,name_th,ชื่อสายทาง (ไทย),String,ชื่อถนนหรือซอย,ถนนเทศบาล 1 (สายประธาน),บังคับ,กองช่าง
+12,โครงข่ายถนนและคมนาคม,LineString,template_roads_transport.geojson,category,ลำดับชั้นสายทาง,String,ระดับความสำคัญของถนน,highway (ทางหลวงแผ่นดิน) / rural_road (ทางหลวงชนบท) / main_road (สายประธานเทศบาล) / collector_road (สายรอง) / local_road (ถนนซอย) / agri_road (ถนนเพื่อการเกษตร),บังคับ,กองช่าง
+12,โครงข่ายถนนและคมนาคม,LineString,template_roads_transport.geojson,surface_type,ชนิดผิวจราจร,String,วัสดุผิวทาง,asphalt (ลาดยางแอสฟัลต์) / concrete (คอนกรีต คสล.) / gravel (ลูกรัง) / dirt (ดิน),บังคับ,กองช่าง
+12,โครงข่ายถนนและคมนาคม,LineString,template_roads_transport.geojson,condition,สภาพผิวจราจร,String,ระดับความสมบูรณ์ของผิวถนน,good (ดี) / fair (พอใช้) / poor (ชำรุดเป็นหลุมบ่อ),บังคับ,กองช่าง
+12,โครงข่ายถนนและคมนาคม,LineString,template_roads_transport.geojson,width_m,ความกว้างผิวจราจร (เมตร),Float,ความกว้างของถนน,6.0 / 8.0 / 12.0,บังคับ,กองช่าง
+12,โครงข่ายถนนและคมนาคม,LineString,template_roads_transport.geojson,right_of_way_m,เขตทางสาธารณะ (เมตร),Float,ความกว้างของเขตทางทั้งหมด,8.0 / 12.0 / 20.0,ไม่บังคับ,กองช่าง
+12,โครงข่ายถนนและคมนาคม,LineString,template_roads_transport.geojson,lanes,จำนวนช่องจราจร,Integer,จำนวนเลนของถนน,2 / 4,ไม่บังคับ,กองช่าง
+12,โครงข่ายถนนและคมนาคม,LineString,template_roads_transport.geojson,drainage,สภาพระบบระบายน้ำข้างทาง,String,รูปแบบรางระบายน้ำริมถนน,covered_u_ditch (รางยูมีฝาปิด) / open_u_ditch (รางยูเปิด) / none (ไม่มีรางระบายน้ำ),ไม่บังคับ,กองช่าง
+12,โครงข่ายถนนและคมนาคม,LineString,template_roads_transport.geojson,lighting,สภาพไฟส่องสว่าง,String,ระบบโคมไฟถนน,led / solar_led / none,ไม่บังคับ,กองช่าง
+12,โครงข่ายถนนและคมนาคม,LineString,template_roads_transport.geojson,fiscal_year,ปีงบประมาณปรับปรุง,String,ปี พ.ศ. ที่ดำเนินการก่อสร้าง/ซ่อมแซม,2567,ไม่บังคับ,กองช่าง
+13,แหล่งน้ำผิวดิน,Polygon,template_water_bodies.geojson,id,รหัสแหล่งน้ำ,String,รหัสประจำแหล่งน้ำ,water-river-01,บังคับ,กองช่าง / กองสาธารณสุข
+13,แหล่งน้ำผิวดิน,Polygon,template_water_bodies.geojson,name_th,ชื่อแหล่งน้ำ,String,ชื่อแม่น้ำ ลำห้วย หรืออ่างเก็บน้ำ,แม่น้ำยม (ช่วงผ่านเทศบาลตำบลเด่นชัย),บังคับ,กองช่าง
+13,แหล่งน้ำผิวดิน,Polygon,template_water_bodies.geojson,category,ประเภทแหล่งน้ำ,String,ชนิดของแหล่งน้ำผิวดิน,river (แม่น้ำ) / canal (ลำห้วย/คลอง) / reservoir (อ่างเก็บน้ำ) / pond (สระแก้มลิง/หนองน้ำ) / water_plant (สระพักน้ำดิบประปา),บังคับ,กองช่าง
+13,แหล่งน้ำผิวดิน,Polygon,template_water_bodies.geojson,area_sqm,พื้นที่ผิวน้ำ (ตร.ม.),Float,ขนาดพื้นที่ผิวน้ำ,85400.0,ไม่บังคับ,กองช่าง
+13,แหล่งน้ำผิวดิน,Polygon,template_water_bodies.geojson,capacity_m3,ความจุกักเก็บน้ำ (ลบ.ม.),Float,ปริมาตรความจุน้ำสูงสุด,250000.0,ไม่บังคับ,กองช่าง / งานป้องกันฯ
+13,แหล่งน้ำผิวดิน,Polygon,template_water_bodies.geojson,water_quality,คุณภาพน้ำ,String,สถานะคุณภาพน้ำผิวดิน,good (ดี) / moderate (ปานกลาง) / poor (เสื่อมโทรม),ไม่บังคับ,กองสาธารณสุข
+13,แหล่งน้ำผิวดิน,Polygon,template_water_bodies.geojson,purpose,วัตถุประสงค์การใช้งาน,String,การใช้ประโยชน์จากแหล่งน้ำ,อุปโภค-บริโภค / ชลประทาน / หน่วงน้ำหลาก,ไม่บังคับ,กองช่าง
+14,ศูนย์บริการประชาชน,Point,template_public_services.geojson,id,รหัสหน่วยบริการ,String,รหัสประจำศูนย์บริการ,svc-01,บังคับ,สำนักปลัด
+14,ศูนย์บริการประชาชน,Point,template_public_services.geojson,name_th,ชื่อหน่วยงานบริการ,String,ชื่อจุดบริการประชาชน,งานป้องกันและบรรเทาสาธารณภัย (ดับเพลิงเทศบาลเด่นชัย),บังคับ,สำนักปลัด / งานป้องกันฯ
+14,ศูนย์บริการประชาชน,Point,template_public_services.geojson,category,ประเภทบริการ,String,หมวดหมู่งานบริการสาธารณะ,police (ความปลอดภัย) / fire (ดับเพลิงกู้ภัย) / health (สาธารณสุข) / welfare (พัฒนาสังคม) / post (ไปรษณีย์) / waste (สุขาภิบาล),บังคับ,สำนักปลัด
+14,ศูนย์บริการประชาชน,Point,template_public_services.geojson,phone,เบอร์โทรศัพท์สายด่วน,String,หมายเลขติดต่อหน่วยบริการ,054-613999,ไม่บังคับ,สำนักปลัด
+14,ศูนย์บริการประชาชน,Point,template_public_services.geojson,service_hours,เวลาทำการ,String,ช่วงเวลาเปิดให้บริการประชาชน,24 ชั่วโมง / 08:30 - 16:30 น.,ไม่บังคับ,สำนักปลัด
+15,ศักยภาพโซลาร์เซลล์หลังคา,Polygon,template_solar_rooftops.geojson,id,รหัสระนาบหลังคา,String,รหัสเฉพาะของ Facet หลังคา,c3_001,บังคับ,งาน AI / กองช่าง
+15,ศักยภาพโซลาร์เซลล์หลังคา,Polygon,template_solar_rooftops.geojson,building_id,รหัสอาคารที่สังกัด,String,รหัสอาคารแม่ของหลังคา,BLD-0101-001,บังคับ,งาน AI / กองช่าง
+15,ศักยภาพโซลาร์เซลล์หลังคา,Polygon,template_solar_rooftops.geojson,class_id,รหัสทิศทางหลังคา (1-7),Integer,รหัสจำแนกทิศทางและประเภทหลังคา,1 (N-Roof) / 2 (E-Roof) / 3 (S-Roof) / 4 (W-Roof) / 5 (Flat Roof) / 6 (U-Roof) / 7 (PV Panel),บังคับ,งาน AI / Smart City
+15,ศักยภาพโซลาร์เซลล์หลังคา,Polygon,template_solar_rooftops.geojson,area_2d,พื้นที่ 2 มิติ (ตร.ม.),Float,พื้นที่แนวราบของหลังคา,120.50,บังคับ,งาน AI
+15,ศักยภาพโซลาร์เซลล์หลังคา,Polygon,template_solar_rooftops.geojson,area_3d,พื้นที่ 3 มิติจริง (ตร.ม.),Float,พื้นที่ผิวจริงตามความลาดเอียง,128.25,บังคับ,งาน AI
+15,ศักยภาพโซลาร์เซลล์หลังคา,Polygon,template_solar_rooftops.geojson,slope_deg,มุมลาดเอียง (องศา),Float,มุมความชันของหลังคาเทียบแนวราบ,15.00,บังคับ,งาน AI
+15,ศักยภาพโซลาร์เซลล์หลังคา,Polygon,template_solar_rooftops.geojson,aspect_deg,ทิศทางการหัน (องศา),Float,มุมอะซิมุทที่หลังคาหันไป (0-360),180.00 (ทิศใต้),บังคับ,งาน AI
+15,ศักยภาพโซลาร์เซลล์หลังคา,Polygon,template_solar_rooftops.geojson,capacity_kwp,กำลังผลิตติดตั้ง (kWp),Float,ศักยภาพการติดตั้งแผงโซลาร์เซลล์,25.65,บังคับ,งาน AI / Smart City
+15,ศักยภาพโซลาร์เซลล์หลังคา,Polygon,template_solar_rooftops.geojson,energy_kwh,พลังงานที่ผลิตได้ (kWh/ปี),Float,ประมาณการหน่วยไฟฟ้าที่ผลิตได้ต่อปี,37240.00,บังคับ,งาน AI / Smart City
+15,ศักยภาพโซลาร์เซลล์หลังคา,Polygon,template_solar_rooftops.geojson,savings_thb,ประหยัดค่าไฟ (บาท/ปี),Float,ยอดเงินค่าไฟฟ้าที่ประหยัดได้ต่อปี,167580.00,บังคับ,Smart City / ผู้บริหาร
+15,ศักยภาพโซลาร์เซลล์หลังคา,Polygon,template_solar_rooftops.geojson,co2_reduction_kg,ลดก๊าซเรือนกระจก (kgCO2/ปี),Float,ปริมาณคาร์บอนไดออกไซด์ที่ลดได้ต่อปี,18620.00,ไม่บังคับ,Smart City / สิ่งแวดล้อม
+15,ศักยภาพโซลาร์เซลล์หลังคา,Polygon,template_solar_rooftops.geojson,payback_years,ระยะเวลาคืนทุน (ปี),Float,ประมาณการระยะเวลาคืนทุนการลงทุน,4.8,ไม่บังคับ,Smart City / ผู้บริหาร
+16,แนวเขตการปกครองเทศบาล,Polygon,template_municipal_boundary.geojson,admin_id,รหัสเขตการปกครอง,String,รหัสราชการตามกรมการปกครอง,ADM-540501,บังคับ,สำนักปลัด
+16,แนวเขตการปกครองเทศบาล,Polygon,template_municipal_boundary.geojson,name_th,ชื่อองค์กรปกครองท้องถิ่น,String,ชื่อเทศบาลภาษาไทย,เทศบาลตำบลเด่นชัย,บังคับ,สำนักปลัด
+16,แนวเขตการปกครองเทศบาล,Polygon,template_municipal_boundary.geojson,name_en,ชื่อภาษาอังกฤษ,String,ชื่อเทศบาลภาษาอังกฤษ,Den Chai Sub-district Municipality,ไม่บังคับ,สำนักปลัด
+16,แนวเขตการปกครองเทศบาล,Polygon,template_municipal_boundary.geojson,amphoe_th,อำเภอ,String,ชื่ออำเภอ,อำเภอเด่นชัย,บังคับ,สำนักปลัด
+16,แนวเขตการปกครองเทศบาล,Polygon,template_municipal_boundary.geojson,province_th,จังหวัด,String,ชื่อจังหวัด,จังหวัดแพร่,บังคับ,สำนักปลัด
+16,แนวเขตการปกครองเทศบาล,Polygon,template_municipal_boundary.geojson,area_sqkm,พื้นที่รับผิดชอบ (ตร.กม.),Float,ขนาดพื้นที่รวมทั้งหมดของเทศบาล,26.50,ไม่บังคับ,กองช่าง
+16,แนวเขตการปกครองเทศบาล,Polygon,template_municipal_boundary.geojson,population,ประชากร (คน),Integer,จำนวนประชากรตามทะเบียนราษฎร์รวม,12850,ไม่บังคับ,สำนักปลัด
+16,แนวเขตการปกครองเทศบาล,Polygon,template_municipal_boundary.geojson,households,จำนวนบ้าน (หลัง),Integer,จำนวนหลังคาเรือนทั้งหมดในเขตเทศบาล,4620,ไม่บังคับ,สำนักปลัด

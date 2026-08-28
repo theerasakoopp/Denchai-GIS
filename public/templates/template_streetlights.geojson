@@ -1,0 +1,57 @@
+{
+  "type": "FeatureCollection",
+  "name": "Template_Streetlights_Denchai",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "pole_id": "POLE-DC-001",
+        "pole_owner": "municipality",
+        "pole_owner_th": "เสาไฟเทศบาล",
+        "lamp_type": "led",
+        "lamp_type_th": "โคมไฟ LED ประหยัดพลังงาน",
+        "wattage_w": 100,
+        "pole_height_m": 8.0,
+        "power_source": "grid",
+        "status": "normal",
+        "status_th": "ใช้งานได้ปกติ (ติด)",
+        "road_name": "ถนนเด่นชัย-แพร่ (ทล.101)",
+        "community_name": "ชุมชนบ้านเด่นชัย",
+        "moo_no": 1,
+        "install_year": 2566,
+        "last_inspected": "2026-06-15",
+        "notes": "ส่องสว่างทางแยกหน้าสำนักงาน"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [100.05445, 17.98510]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "pole_id": "POLE-DC-002",
+        "pole_owner": "pea",
+        "pole_owner_th": "เสาไฟ กฟภ. (ติดตั้งโคมเทศบาล)",
+        "lamp_type": "solar_led",
+        "lamp_type_th": "โคมไฟถนนโซลาร์เซลล์",
+        "wattage_w": 60,
+        "pole_height_m": 6.0,
+        "power_source": "solar",
+        "status": "damaged",
+        "status_th": "ชำรุด/ดับ (รอดำเนินการซ่อม)",
+        "road_name": "ถนนซอยร่วมใจ",
+        "community_name": "ชุมชนเด่นชัยพัฒนา",
+        "moo_no": 1,
+        "install_year": 2565,
+        "last_inspected": "2026-08-10",
+        "notes": "แจ้งซ่อมผ่านระบบสายด่วนเทศบาล"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [100.05490, 17.98535]
+      }
+    }
+  ]
+}

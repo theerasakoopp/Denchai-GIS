@@ -1,0 +1,36 @@
+{
+  "type": "FeatureCollection",
+  "name": "Template_Community_Boundaries_Denchai",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "moo_no": 1,
+        "village_name_th": "บ้านเด่นชัย",
+        "village_name_en": "Ban Den Chai",
+        "community_type": "urban_community",
+        "headman_title": "ผู้ใหญ่บ้านหมู่ที่ 1",
+        "headman_name": "นายสมศักดิ์ เด่นภูมิ",
+        "headman_phone": "081-555-0101",
+        "population_male": 620,
+        "population_female": 680,
+        "population_total": 1300,
+        "household_count": 420,
+        "area_sqkm": 2.45
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [100.04800, 17.98000],
+            [100.05800, 17.98000],
+            [100.05900, 17.99000],
+            [100.04700, 17.98900],
+            [100.04800, 17.98000]
+          ]
+        ]
+      }
+    }
+  ]
+}
