@@ -68,6 +68,8 @@ export default function FeatureEditModal({
       const area = Number(p.area_3d || p.area_2d || 50.0);
       const cap = Number(p.capacity_kwp || ((area * 0.18) * 0.20));
       const eng = Number(p.energy_corrected_kwh || p.energy_kwh || (cap * 1350));
+      const slope = typeof p.slope_deg === 'number' ? p.slope_deg : parseFloat(p.slope_deg) || 20.0;
+      const aspect = typeof p.aspect_deg === 'number' ? p.aspect_deg : parseFloat(p.aspect_deg) || 180.0;
 
       setFormData({
         id: p.id || `custom-${Date.now()}`,
@@ -94,8 +96,8 @@ export default function FeatureEditModal({
         purpose: p.purpose || 'อุปโภค-บริโภค / ชลประทาน',
         class_id: cid,
         area_3d: Number(area.toFixed(1)),
-        slope_deg: Number((p.slope_deg || 20.0).toFixed ? p.slope_deg.toFixed(1) : 20.0),
-        aspect_deg: Number((p.aspect_deg || 180.0).toFixed ? p.aspect_deg.toFixed(1) : 180.0),
+        slope_deg: Number(slope.toFixed(1)),
+        aspect_deg: Number(aspect.toFixed(1)),
         building_id: p.building_id || '',
         capacity_kwp: Number(cap.toFixed(2)),
         energy_kwh: Number(eng.toFixed(0))
@@ -280,34 +282,42 @@ export default function FeatureEditModal({
         {/* Form Body */}
         <form onSubmit={handleSubmit} style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Category selection */}
-          <div>
-            <label className="form-label" style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: 6, display: 'block' }}>
-              {lang === 'th' ? 'หมวดหมู่สถานที่' : 'Category'}
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, maxHeight: 130, overflowY: 'auto', paddingRight: 4 }}>
-              {Object.entries(categories || {}).map(([key, cat]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, category: key })}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '6px 10px', borderRadius: 8, fontSize: '0.78rem',
-                    textAlign: 'left', border: formData.category === key ? `2px solid ${cat.color}` : '1px solid var(--border-subtle)',
-                    background: formData.category === key ? `${cat.color}15` : '#f8fafc',
-                    color: formData.category === key ? '#0f172a' : 'var(--text-sub)',
-                    fontWeight: formData.category === key ? 700 : 500,
-                    cursor: 'pointer', transition: 'all 0.15s'
-                  }}
-                >
-                  <span style={{ fontSize: '1rem' }}>{cat.icon}</span>
-                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {lang === 'th' ? cat.name_th : cat.name_en}
-                  </span>
-                </button>
-              ))}
+          {!isSolar && categories && Object.keys(categories).length > 0 && (
+            <div>
+              <label className="form-label" style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: 6, display: 'block' }}>
+                {lang === 'th' ? 'หมวดหมู่สถานที่ / ชั้นข้อมูล' : 'Category'}
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, maxHeight: 130, overflowY: 'auto', paddingRight: 4 }}>
+                {Object.entries(categories).map(([key, cat]) => {
+                  const color = cat?.color || '#3b82f6';
+                  const icon = cat?.icon || '📍';
+                  const label = (lang === 'th' ? cat?.name_th : cat?.name_en) || cat?.name || key;
+                  const isSelected = formData.category === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, category: key })}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 8,
+                        padding: '6px 10px', borderRadius: 8, fontSize: '0.78rem',
+                        textAlign: 'left', border: isSelected ? `2px solid ${color}` : '1px solid var(--border-subtle)',
+                        background: isSelected ? `${color}15` : '#f8fafc',
+                        color: isSelected ? '#0f172a' : 'var(--text-sub)',
+                        fontWeight: isSelected ? 700 : 500,
+                        cursor: 'pointer', transition: 'all 0.15s'
+                      }}
+                    >
+                      <span style={{ fontSize: '1rem' }}>{icon}</span>
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Name fields */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
