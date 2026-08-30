@@ -551,7 +551,6 @@ export default function Sidebar({
     { key: 'infra',   icon: '🏗️', label: t.tabInfra },
     { key: 'water',   icon: '💧', label: lang === 'th' ? 'แหล่งน้ำ' : 'Water' },
     { key: 'service', icon: '🏥', label: t.tabService },
-    { key: 'solar',   icon: '☀️', label: t.tabSolar },
   ];
 
   return (
