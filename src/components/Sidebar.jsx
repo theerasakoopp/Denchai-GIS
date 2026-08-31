@@ -367,80 +367,15 @@ function CategoryListPanel({
         })}
       </div>
 
-      {/* Quick Action Toolbar at Bottom of Tab */}
-      <div style={{
-        background: '#f8fafc', border: '1px solid #e2e8f0',
-        borderRadius: 10, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8,
-        marginTop: 4, flexShrink: 0
-      }}>
-        {datasetType === 'infra' ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-            <button
-              type="button"
-              className="btn btn-primary"
-              style={{
-                justifyContent: 'center', padding: '8px 6px', fontSize: '0.76rem', fontWeight: 700, gap: 5,
-                background: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none'
-              }}
-              onClick={() => onStartDrawRoad?.()}
-            >
-              🛣️ {lang === 'th' ? '+ วาดถนนใหม่' : '+ Draw Road'}
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              style={{
-                justifyContent: 'center', padding: '8px 6px', fontSize: '0.76rem', fontWeight: 600, gap: 5,
-                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)'
-              }}
-              onClick={() => onAddFeature(datasetType)}
-            >
-              📍 {lang === 'th' ? '+ เพิ่มสิ่งก่อสร้าง' : '+ Add Node'}
-            </button>
-          </div>
-        ) : datasetType === 'water' ? (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-            <button
-              type="button"
-              className="btn btn-primary"
-              style={{
-                justifyContent: 'center', padding: '8px 6px', fontSize: '0.76rem', fontWeight: 700, gap: 5,
-                background: 'linear-gradient(135deg, #0284c7, #0369a1)', border: 'none'
-              }}
-              onClick={() => onStartDrawWater?.()}
-            >
-              💧 {lang === 'th' ? '+ วาดแหล่งน้ำ' : '+ Draw Water'}
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              style={{
-                justifyContent: 'center', padding: '8px 6px', fontSize: '0.76rem', fontWeight: 600, gap: 5,
-                background: 'linear-gradient(135deg, #06b6d4, #0891b2)'
-              }}
-              onClick={() => onAddFeature(datasetType)}
-            >
-              📍 {lang === 'th' ? '+ เพิ่มข้อมูลน้ำ' : '+ Add Info'}
-            </button>
-          </div>
-        ) : (
-          onAddFeature && (
-            <button
-              type="button"
-              className="btn btn-primary"
-              style={{
-                width: '100%', justifyContent: 'center', padding: '8px 12px',
-                fontSize: '0.82rem', fontWeight: 600, gap: 6,
-                background: 'linear-gradient(135deg, #2563eb, #1d4ed8)'
-              }}
-              onClick={() => onAddFeature(datasetType)}
-            >
-              {datasetType === 'service' ? t.addServiceBtn : t.addPoiBtn}
-            </button>
-          )
-        )}
+      {/* Quick Action — ลิงก์ไป Editor Studio เท่านั้น */}
+      <div style={{ background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:10, padding:'10px 12px', display:'flex', flexDirection:'column', gap:8, marginTop:4, flexShrink:0 }}>
+        <a href="#/editor" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:7, padding:'9px 12px', background:'#0f172a', border:'1px solid rgba(56,189,248,0.4)', borderRadius:9, color:'#38bdf8', fontSize:'0.8rem', fontWeight:600, textDecoration:'none' }}>
+          <i className="ti ti-pencil-plus" style={{ fontSize:15 }} aria-hidden="true" />
+          {lang === 'th' ? 'เพิ่ม / แก้ไขข้อมูล → Editor Studio' : 'Add / Edit → Editor Studio'}
+          <i className="ti ti-arrow-right" style={{ fontSize:13, marginLeft:'auto', opacity:.6 }} aria-hidden="true" />
+        </a>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
           {onExportData && (
             <button
               type="button"
