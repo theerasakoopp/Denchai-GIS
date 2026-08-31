@@ -70,7 +70,7 @@ function downloadCSVTemplate(layer) {
     trashbin:    'id,name_th,name_en,category,lat,lng,capacity_l,collect_day,remark\ntb_001,ถังขยะหมู่ 1,Trash Bin 1,general,17.9818,100.0508,240,จันทร์-พฤหัส,',
     hydrant:     'id,name_th,name_en,category,lat,lng,pipe_diameter,pressure_bar,remark\nhy_001,หัวจ่ายน้ำ 1,Hydrant 1,active,17.9822,100.0512,100,3.5,',
     drain:       'id,name_th,name_en,category,lat,lng\ndr_001,คูระบายน้ำ 1,Drain 1,main,17.9820,100.0510',
-    building_sc: 'id,name_th,name_en,category,lat,lng,floors,area_sqm,owner,remark\nbld_001,อาคาร 1,Building 1,residential,17.9819,100.0509,2,120,นายสมชาย,',
+    building_sc: 'id,house_no,moo,road,tambon,name_th,name_en,category,lat,lng,floors,area_sqm,height_m,width_m,length_m,wall_mat,roof_mat,year_built,condition,land_deed_no,parcel_id,owner_name,owner_id,tax_value,tax_year,permit_no,survey_date,surveyor,remark\nbld_001,123/4,5,ถนนเด่นชัย-งาว,เด่นชัย,บ้านนายสมชาย,,residential,17.9819,100.0509,2,120,,8,15,คสล.,กระเบื้อง,2545,ดี,,,นายสมชาย ใจดี,1234567890123,,2567,,2567-08-31,เจ้าหน้าที่สำรวจ,',
     poi:         'id,name_th,name_en,category,lat,lng,address,phone,remark\npoi_001,วัดตัวอย่าง,Sample Temple,วัด/ศาสนสถาน,17.9820,100.0510,หมู่ 1 ต.เด่นชัย,,',
     infra:       'id,name_th,name_en,category,lat,lng,road_type,width_m,surface,remark\nrd_001,ถนนตัวอย่าง,Sample Road,ถนนคอนกรีต,17.9820,100.0510,คอนกรีต,6,,',
     service:     'id,name_th,name_en,category,lat,lng,phone,open_hours,remark\nsv_001,โรงพยาบาลตัวอย่าง,Sample Hospital,โรงพยาบาล/สถานพยาบาล,17.9820,100.0510,054-000000,08:00-16:00,',

@@ -77,17 +77,61 @@ export const DRAIN_DATA = {
   "features": []
 };
 
-// ── 7. ชั้นอาคาร ─────────────────────────────────────────
+// ── 7. ชั้นอาคาร (เชื่อมข้อมูลภาษีที่ดินและสิ่งปลูกสร้าง) ────
 export const BUILDING_CATEGORIES = {
-  "residential":  { "name_th": "บ้านพักอาศัย",     "name_en": "Residential",  "color": "#94a3b8", "icon": "🏠" },
-  "commercial":   { "name_th": "พาณิชยกรรม",       "name_en": "Commercial",   "color": "#f97316", "icon": "🏪" },
-  "government":   { "name_th": "ราชการ/สาธารณะ",  "name_en": "Government",   "color": "#3b82f6", "icon": "🏛️" },
-  "education":    { "name_th": "การศึกษา",          "name_en": "Education",    "color": "#8b5cf6", "icon": "🏫" },
-  "religious":    { "name_th": "ศาสนสถาน",          "name_en": "Religious",    "color": "#f59e0b", "icon": "⛪" },
-  "industrial":   { "name_th": "อุตสาหกรรม/โกดัง", "name_en": "Industrial",   "color": "#6b7280", "icon": "🏭" },
-  "health":       { "name_th": "สถานพยาบาล",        "name_en": "Health",       "color": "#ef4444", "icon": "🏥" },
-  "agricultural": { "name_th": "เกษตร/โรงเก็บ",    "name_en": "Agricultural", "color": "#22c55e", "icon": "🌾" }
+  // ── ประเภทตาม พ.ร.บ.ภาษีที่ดินฯ 2562 ──
+  "residential":     { "name_th": "บ้านพักอาศัย",          "name_en": "Residential",        "color": "#64748b", "icon": "🏠", "tax_rate": 0.02 },
+  "commercial":      { "name_th": "พาณิชยกรรม/ห้องแถว",    "name_en": "Commercial",         "color": "#f97316", "icon": "🏪", "tax_rate": 0.30 },
+  "mixed":           { "name_th": "อยู่อาศัย+พาณิชย์",     "name_en": "Mixed Use",          "color": "#eab308", "icon": "🏘️", "tax_rate": 0.15 },
+  "government":      { "name_th": "ราชการ/สาธารณะ",        "name_en": "Government",         "color": "#3b82f6", "icon": "🏛️", "tax_rate": 0.00 },
+  "education":       { "name_th": "การศึกษา",               "name_en": "Education",          "color": "#8b5cf6", "icon": "🏫", "tax_rate": 0.00 },
+  "religious":       { "name_th": "ศาสนสถาน",               "name_en": "Religious",          "color": "#a78bfa", "icon": "⛪", "tax_rate": 0.00 },
+  "health":          { "name_th": "สถานพยาบาล/คลินิก",     "name_en": "Health",             "color": "#ef4444", "icon": "🏥", "tax_rate": 0.00 },
+  "industrial":      { "name_th": "อุตสาหกรรม/โรงงาน",    "name_en": "Industrial",         "color": "#475569", "icon": "🏭", "tax_rate": 0.30 },
+  "warehouse":       { "name_th": "โกดัง/โรงเก็บสินค้า",  "name_en": "Warehouse",          "color": "#78716c", "icon": "🏗️", "tax_rate": 0.30 },
+  "agricultural":    { "name_th": "โรงเรือนเกษตร",         "name_en": "Agricultural",       "color": "#22c55e", "icon": "🌾", "tax_rate": 0.01 },
+  "vacant":          { "name_th": "อาคารร้าง/ว่างเปล่า",  "name_en": "Vacant",             "color": "#dc2626", "icon": "🚫", "tax_rate": 0.30 },
+  "under_const":     { "name_th": "อยู่ระหว่างก่อสร้าง",   "name_en": "Under Construction", "color": "#fb923c", "icon": "🔨", "tax_rate": 0.00 }
 };
+
+// ── Schema อ้างอิงสำหรับ Feature properties ──
+// properties ของแต่ละ Feature ควรมี field ดังนี้:
+//
+// [ระบุตัวตน]
+//   id          : รหัสอาคารในระบบ  เช่น "bld_001"
+//   house_no    : เลขที่บ้าน        เช่น "123/4"
+//   moo         : หมู่ที่           เช่น "5"
+//   road        : ถนน/ซอย          เช่น "ถนนเด่นชัย-งาว"
+//   tambon      : ตำบล             เช่น "เด่นชัย"
+//   name_th     : ชื่ออาคาร (ถ้ามี) เช่น "ตลาดเทศบาล"
+//   name_en     : ชื่ออาคาร (EN)
+//
+// [กายภาพ]
+//   category    : ประเภทอาคาร (ตาม BUILDING_CATEGORIES)
+//   floors      : จำนวนชั้น
+//   area_sqm    : พื้นที่ก่อสร้าง (ตร.ม.)
+//   height_m    : ความสูง (ม.)
+//   width_m     : ความกว้าง (ม.)
+//   length_m    : ความยาว (ม.)
+//   wall_mat    : วัสดุผนัง  เช่น "คสล." / "อิฐ" / "ไม้" / "เหล็ก"
+//   roof_mat    : วัสดุหลังคา เช่น "กระเบื้อง" / "สังกะสี" / "คสล."
+//   year_built  : ปีที่สร้าง (พ.ศ.)
+//   condition   : สภาพ  "ดี" / "ปานกลาง" / "ชำรุด" / "รื้อถอน"
+//
+// [ภาษีที่ดินและสิ่งปลูกสร้าง]
+//   land_deed_no : เลขโฉนด/น.ส.3
+//   parcel_id    : รหัสแปลงที่ดิน (เชื่อม GIS กรมที่ดิน)
+//   owner_name   : ชื่อเจ้าของ
+//   owner_id     : เลขบัตรประชาชนเจ้าของ (13 หลัก)
+//   tax_value    : มูลค่าอาคาร (บาท)
+//   tax_year     : ปีภาษี (พ.ศ.)
+//   permit_no    : เลขที่ใบอนุญาตก่อสร้าง
+//
+// [อื่นๆ]
+//   remark       : หมายเหตุ
+//   survey_date  : วันที่สำรวจ (YYYY-MM-DD)
+//   surveyor     : ผู้สำรวจ
+
 export const BUILDING_DATA = {
   "type": "FeatureCollection",
   "name": "Denchai_Buildings",
