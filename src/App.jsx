@@ -10,6 +10,7 @@ import { POI_DATA, POI_CATEGORIES } from './data/poi_data';
 import { INFRA_DATA, INFRA_CATEGORIES } from './data/infra_data';
 import { SERVICE_DATA, SERVICE_CATEGORIES } from './data/service_data';
 import { WATER_DATA, WATER_CATEGORIES } from './data/water_data';
+import { pushFileToGitHub, getGithubToken, buildJsContent, DATASET_FILE_MAP } from './utils/githubSync';
 import {
   STREETLIGHT_DATA, STREETLIGHT_CATEGORIES,
   WATERMETER_DATA,  WATERMETER_CATEGORIES,
@@ -229,50 +230,40 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
 
   const handleSaveFeature = (savedFeature, datasetType) => {
     const targetId = savedFeature.properties?.id || savedFeature.id;
+
+    // Helper: update state + localStorage + auto-push to GitHub
+    const updateDataset = (setter, storageKey, currentData, categoriesObj, dataExport, catsExport) => {
+      setter(prev => {
+        const existing = prev.features || [];
+        const idx = existing.findIndex(f => (f.properties?.id || f.id) === targetId);
+        const updated = idx >= 0
+          ? existing.map(f => (f.properties?.id || f.id) === targetId ? savedFeature : f)
+          : [...existing, savedFeature];
+        const newCol = { type: 'FeatureCollection', features: updated };
+        localStorage.setItem(storageKey, JSON.stringify(newCol));
+
+        // Auto-push to GitHub if token exists
+        if (getGithubToken() && DATASET_FILE_MAP[datasetType]) {
+          const { path } = DATASET_FILE_MAP[datasetType];
+          const content = buildJsContent(dataExport, catsExport, categoriesObj, newCol);
+          pushFileToGitHub({
+            path,
+            content,
+            message: `update ${datasetType} data — ${updated.length} features`
+          }).catch(err => console.warn('GitHub push failed:', err));
+        }
+        return newCol;
+      });
+    };
+
     if (datasetType === 'poi') {
-      setPoiData(prev => {
-        const existing = prev.features || [];
-        const idx = existing.findIndex(f => (f.properties?.id || f.id) === targetId);
-        const updated = idx >= 0
-          ? existing.map(f => (f.properties?.id || f.id) === targetId ? savedFeature : f)
-          : [...existing, savedFeature];
-        const newCol = { type: 'FeatureCollection', features: updated };
-        localStorage.setItem('denchai_poi_data', JSON.stringify(newCol));
-        return newCol;
-      });
+      updateDataset(setPoiData, 'denchai_poi_data', poiData, POI_CATEGORIES, 'POI_DATA', 'POI_CATEGORIES');
     } else if (datasetType === 'infra') {
-      setInfraData(prev => {
-        const existing = prev.features || [];
-        const idx = existing.findIndex(f => (f.properties?.id || f.id) === targetId);
-        const updated = idx >= 0
-          ? existing.map(f => (f.properties?.id || f.id) === targetId ? savedFeature : f)
-          : [...existing, savedFeature];
-        const newCol = { type: 'FeatureCollection', features: updated };
-        localStorage.setItem('denchai_infra_data', JSON.stringify(newCol));
-        return newCol;
-      });
+      updateDataset(setInfraData, 'denchai_infra_data', infraData, INFRA_CATEGORIES, 'INFRA_DATA', 'INFRA_CATEGORIES');
     } else if (datasetType === 'service') {
-      setServiceData(prev => {
-        const existing = prev.features || [];
-        const idx = existing.findIndex(f => (f.properties?.id || f.id) === targetId);
-        const updated = idx >= 0
-          ? existing.map(f => (f.properties?.id || f.id) === targetId ? savedFeature : f)
-          : [...existing, savedFeature];
-        const newCol = { type: 'FeatureCollection', features: updated };
-        localStorage.setItem('denchai_service_data', JSON.stringify(newCol));
-        return newCol;
-      });
+      updateDataset(setServiceData, 'denchai_service_data', serviceData, SERVICE_CATEGORIES, 'SERVICE_DATA', 'SERVICE_CATEGORIES');
     } else if (datasetType === 'water') {
-      setWaterData(prev => {
-        const existing = prev.features || [];
-        const idx = existing.findIndex(f => (f.properties?.id || f.id) === targetId);
-        const updated = idx >= 0
-          ? existing.map(f => (f.properties?.id || f.id) === targetId ? savedFeature : f)
-          : [...existing, savedFeature];
-        const newCol = { type: 'FeatureCollection', features: updated };
-        localStorage.setItem('denchai_water_data', JSON.stringify(newCol));
-        return newCol;
-      });
+      updateDataset(setWaterData, 'denchai_water_data', waterData, WATER_CATEGORIES, 'WATER_DATA', 'WATER_CATEGORIES');
     } else if (datasetType === 'solar' || datasetType === 'roof') {
       setGeoDataFacets(prev => {
         const existing = prev?.features || [];

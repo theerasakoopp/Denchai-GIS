@@ -12,6 +12,7 @@ import { ROOF_CLASSES } from '../App';
 import { translations } from '../translations';
 import * as turf from '@turf/turf';
 import shp from 'shpjs';
+import GitHubSyncPanel from './GitHubSyncPanel';
 
 const fmt = (n) => new Intl.NumberFormat('en-US').format(Math.round(n || 0));
 
@@ -725,6 +726,9 @@ export default function Sidebar({
                 </div>
               </div>
             ))}
+
+            {/* GitHub Sync Panel */}
+            <GitHubSyncPanel lang={lang} />
 
             {/* Info box */}
             <div style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: '0.76rem', color: '#93c5fd', lineHeight: 1.6 }}>
