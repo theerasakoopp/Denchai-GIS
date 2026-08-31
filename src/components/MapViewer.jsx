@@ -1274,7 +1274,7 @@ export default function MapViewer({
           type: 'symbol',
           source: 'water-src',
           layout: {
-            visibility: 'visible',
+            visibility: 'none',
             'text-field': ['get', 'name_th'],
             'text-size': 11.5,
             'text-offset': [0, 0],
