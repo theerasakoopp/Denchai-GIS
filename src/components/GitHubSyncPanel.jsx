@@ -6,7 +6,7 @@ export default function GitHubSyncPanel({ lang, dark = false }) {
   const [saved, setSaved]       = useState(false);
   const [status, setStatus]     = useState(null);
   const [username, setUsername] = useState('');
-  const [show, setShow]         = useState(false);
+  const [show, setShow]         = useState(true);
 
   useEffect(() => {
     const t = getGithubToken();
