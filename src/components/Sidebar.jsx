@@ -1122,33 +1122,6 @@ export default function Sidebar({
           </>
         )}
 
-        {/* ── GIS Templates Center Quick Access Button (Always accessible at bottom) ── */}
-        <div style={{
-          background: 'linear-gradient(135deg, #f0fdf4, #eff6ff)', border: '1px solid #bfdbfe',
-          borderRadius: 10, padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          marginTop: 8, flexShrink: 0
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <FolderDown size={18} color="#2563eb" />
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '0.76rem', color: '#1e3a8a' }}>
-                {lang === 'th' ? 'แม่แบบชั้นข้อมูล GIS (16 หมวด)' : 'GIS Layer Templates (16)'}
-              </div>
-              <div style={{ fontSize: '0.66rem', color: '#64748b' }}>
-                {lang === 'th' ? 'GeoJSON Template & CSV Data Dictionary' : 'Standard GeoJSON & CSV for Excel'}
-              </div>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="btn btn-sm"
-            style={{ background: '#2563eb', color: '#ffffff', fontSize: '0.7rem', fontWeight: 600, padding: '5px 9px', border: 'none' }}
-            onClick={() => setShowTemplatesModal(true)}
-          >
-            📥 {lang === 'th' ? 'ดาวน์โหลด' : 'Download'}
-          </button>
-        </div>
-
       </div>
 
       {/* ── Solar Economic ROI Settings Modal ── */}
