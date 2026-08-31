@@ -82,6 +82,78 @@ async function fetchWithFallback(filename) {
   throw new Error(`Failed to load ${filename}`);
 }
 
+// ── GitHub Auto-Save Panel (inline) ──────────────────────
+function GitHubAutoSave({ lang }) {
+  const [token, setToken]   = React.useState('');
+  const [saved, setSaved]   = React.useState(false);
+  const [status, setStatus] = React.useState(null);
+  const [user, setUser]     = React.useState('');
+  const [open, setOpen]     = React.useState(true);
+
+  React.useEffect(() => {
+    const t = localStorage.getItem('denchai_github_token');
+    if (t) { setSaved(true); setToken(t.slice(0,8) + '••••••••'); }
+  }, []);
+
+  async function connect() {
+    if (!token || token.includes('•')) return;
+    setStatus('checking');
+    try {
+      const res = await fetch('https://api.github.com/user', {
+        headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json' }
+      });
+      if (res.ok) {
+        const d = await res.json();
+        localStorage.setItem('denchai_github_token', token);
+        setSaved(true); setUser(d.login); setStatus('ok');
+        setToken(token.slice(0,8) + '••••••••');
+      } else { setStatus('fail'); }
+    } catch { setStatus('fail'); }
+  }
+
+  function disconnect() {
+    localStorage.removeItem('denchai_github_token');
+    setSaved(false); setToken(''); setStatus(null); setUser('');
+  }
+
+  return (
+    <div style={{ background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:10, overflow:'hidden', marginBottom:2 }}>
+      <div onClick={() => setOpen(!open)} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', cursor:'pointer', background:'#f1f5f9' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <span>🔗</span>
+          <span style={{ fontSize:'0.8rem', fontWeight:700, color:'#1e293b' }}>GitHub Auto-Save</span>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+          {saved && <span style={{ fontSize:'0.68rem', background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.3)', color:'#10b981', padding:'2px 7px', borderRadius:99 }}>✓ Connected</span>}
+          <span style={{ color:'#94a3b8', fontSize:12 }}>{open ? '▲' : '▼'}</span>
+        </div>
+      </div>
+      {open && (
+        <div style={{ padding:'12px 14px', display:'flex', flexDirection:'column', gap:8 }}>
+          {status === 'ok' && <div style={{ background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.25)', borderRadius:8, padding:'8px 12px', fontSize:'0.76rem', color:'#10b981' }}>✅ เชื่อมต่อสำเร็จ! บัญชี: <strong>{user}</strong></div>}
+          {status === 'fail' && <div style={{ background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.25)', borderRadius:8, padding:'8px 12px', fontSize:'0.76rem', color:'#ef4444' }}>❌ Token ไม่ถูกต้อง</div>}
+          <div style={{ fontSize:'0.72rem', color:'#64748b' }}>🔒 Token เก็บใน Browser เท่านั้น ไม่ได้ upload ขึ้น GitHub</div>
+          {!saved ? (
+            <>
+              <input type="password" placeholder="วาง GitHub Token (ghp_...)" value={token} onChange={e => setToken(e.target.value)}
+                style={{ padding:'8px 10px', borderRadius:8, fontSize:'0.78rem', width:'100%', background:'#fff', border:'1px solid #cbd5e1', color:'#1e293b', outline:'none' }} />
+              <button onClick={connect} disabled={!token || status === 'checking'}
+                style={{ padding:'8px', borderRadius:8, background: token ? 'linear-gradient(135deg,#2563eb,#3b82f6)' : '#e2e8f0', border:'none', color: token ? '#fff' : '#94a3b8', fontWeight:700, fontSize:'0.78rem', cursor: token ? 'pointer' : 'not-allowed' }}>
+                {status === 'checking' ? '⏳ กำลังตรวจสอบ...' : '🔗 เชื่อมต่อ GitHub'}
+              </button>
+            </>
+          ) : (
+            <button onClick={disconnect} style={{ padding:'7px', borderRadius:8, background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.2)', color:'#ef4444', fontWeight:600, fontSize:'0.76rem', cursor:'pointer' }}>
+              🔓 ยกเลิกการเชื่อมต่อ
+            </button>
+          )}
+          <div style={{ fontSize:'0.72rem', color:'#94a3b8', lineHeight:1.5 }}>กดบันทึกใน Editor จะ Push ขึ้น GitHub อัตโนมัติ รอ ~2 นาที เว็บจะอัปเดตเลย</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTariff, systemCostPerKwp = 28000, setSystemCostPerKwp }) {
   const t = translations[lang] || translations.th;
   const navigate = useNavigate();
@@ -549,8 +621,8 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
             </div>
           </div>
 
-          {/* GitHub Auto-Save */}
-          <GitHubSyncPanel lang={lang} />
+          {/* GitHub Auto-Save — inline */}
+          <GitHubAutoSave lang={lang} />
 
           {/* GIS Templates Center Action Banner */}
           <div style={{
