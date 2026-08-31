@@ -612,6 +612,11 @@ export default function Sidebar({
       {/* Main Scrollable Area */}
       <div className="sidebar-scroll">
 
+        {/* ── ปุ่มไปที่ Editor Studio (แสดงทุก Tab) ── */}
+        <a href="#/editor" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'9px 14px', background:'linear-gradient(135deg,#1e293b,#0f172a)', border:'1px solid #38bdf8', borderRadius:10, color:'#fff', textDecoration:'none', fontSize:'0.78rem', fontWeight:700, marginBottom:2 }}>
+          🛠️ {lang === 'th' ? 'เพิ่ม/แก้ไขข้อมูล → Editor Studio' : 'Add/Edit Data → Editor Studio'} ➔
+        </a>
+
         {/* ═══════════ TAB: POI ═══════════ */}
         {activeTab === 'poi' && poiData && poiCategories && (
           <CategoryListPanel
@@ -625,11 +630,6 @@ export default function Sidebar({
             summaryLabel={t.poiHeader}
             onItemClick={onSelectFeature}
             datasetType="poi"
-            onAddFeature={onAddFeature}
-            onEditFeature={onEditFeature}
-            onDeleteFeature={onDeleteFeature}
-            onResetData={onResetData}
-            onExportData={onExportData}
           />
         )}
 
@@ -647,13 +647,6 @@ export default function Sidebar({
             summaryLabel={t.infraHeader}
             onItemClick={onSelectFeature}
             datasetType="infra"
-            onAddFeature={onAddFeature}
-            onEditFeature={onEditFeature}
-            onDeleteFeature={onDeleteFeature}
-            onResetData={onResetData}
-            onExportData={onExportData}
-            onStartDrawRoad={onStartDrawRoad}
-            onReshapeRoad={onReshapeRoad}
           />
 
           {/* ── Smart City Layers ── */}
@@ -715,13 +708,6 @@ export default function Sidebar({
             summaryLabel={t.waterHeader || 'แหล่งน้ำและแหล่งกักเก็บน้ำ'}
             onItemClick={onSelectFeature}
             datasetType="water"
-            onAddFeature={onAddFeature}
-            onEditFeature={onEditFeature}
-            onDeleteFeature={onDeleteFeature}
-            onResetData={onResetData}
-            onExportData={onExportData}
-            onStartDrawWater={onStartDrawWater}
-            onReshapeRoad={onReshapeRoad}
           />
         )}
 
@@ -738,11 +724,6 @@ export default function Sidebar({
             summaryLabel={t.serviceHeader}
             onItemClick={onSelectFeature}
             datasetType="service"
-            onAddFeature={onAddFeature}
-            onEditFeature={onEditFeature}
-            onDeleteFeature={onDeleteFeature}
-            onResetData={onResetData}
-            onExportData={onExportData}
           />
         )}
 
