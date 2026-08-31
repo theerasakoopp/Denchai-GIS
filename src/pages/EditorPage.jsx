@@ -62,6 +62,27 @@ function triggerTemplateDownload(filename) {
   document.body.removeChild(link);
 }
 
+function downloadCSVTemplate(layer) {
+  const templates = {
+    streetlight: 'id,name_th,name_en,category,lat,lng,status,install_year,watt,remark\nsl_001,เสาไฟฟ้าหมู่ 1,Streetlight 1,light_on,17.9820,100.0510,ปกติ,2563,150,',
+    watermeter:  'id,name_th,name_en,category,lat,lng,meter_no,owner_name,usage_type,remark\nwm_001,มิเตอร์น้ำ 1,Water Meter 1,residential,17.9815,100.0505,WM-0001,นายสมชาย,บ้านพักอาศัย,',
+    transformer: 'id,name_th,name_en,category,lat,lng,kva,owner,install_year,remark\ntr_001,หม้อแปลง 1,Transformer 1,pea,17.9825,100.0515,100,การไฟฟ้าส่วนภูมิภาค,2560,',
+    trashbin:    'id,name_th,name_en,category,lat,lng,capacity_l,collect_day,remark\ntb_001,ถังขยะหมู่ 1,Trash Bin 1,general,17.9818,100.0508,240,จันทร์-พฤหัส,',
+    hydrant:     'id,name_th,name_en,category,lat,lng,pipe_diameter,pressure_bar,remark\nhy_001,หัวจ่ายน้ำ 1,Hydrant 1,active,17.9822,100.0512,100,3.5,',
+    drain:       'id,name_th,name_en,category,lat,lng\ndr_001,คูระบายน้ำ 1,Drain 1,main,17.9820,100.0510',
+    building_sc: 'id,name_th,name_en,category,lat,lng,floors,area_sqm,owner,remark\nbld_001,อาคาร 1,Building 1,residential,17.9819,100.0509,2,120,นายสมชาย,',
+    poi:         'id,name_th,name_en,category,lat,lng,address,phone,remark\npoi_001,วัดตัวอย่าง,Sample Temple,วัด/ศาสนสถาน,17.9820,100.0510,หมู่ 1 ต.เด่นชัย,,',
+    infra:       'id,name_th,name_en,category,lat,lng,road_type,width_m,surface,remark\nrd_001,ถนนตัวอย่าง,Sample Road,ถนนคอนกรีต,17.9820,100.0510,คอนกรีต,6,,',
+    service:     'id,name_th,name_en,category,lat,lng,phone,open_hours,remark\nsv_001,โรงพยาบาลตัวอย่าง,Sample Hospital,โรงพยาบาล/สถานพยาบาล,17.9820,100.0510,054-000000,08:00-16:00,',
+  };
+  const csv = templates[layer] || templates.poi;
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `template_${layer}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
 // Helper: fetch with fallback paths
 async function fetchWithFallback(filename) {
   const base = import.meta.env.BASE_URL || './';
@@ -374,35 +395,155 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
 
     try {
       let geojson = null;
-      if (file.name.endsWith('.geojson') || file.name.endsWith('.json')) {
+      const name = file.name.toLowerCase();
+
+      if (name.endsWith('.geojson') || name.endsWith('.json')) {
         const text = await file.text();
         geojson = JSON.parse(text);
-      } else if (file.name.endsWith('.zip')) {
+
+      } else if (name.endsWith('.zip')) {
         const buffer = await file.arrayBuffer();
         geojson = await shp(buffer);
+
+      } else if (name.endsWith('.csv')) {
+        const text = await file.text();
+        geojson = csvToGeoJSON(text, activeLayer);
+
+      } else if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+        const buffer = await file.arrayBuffer();
+        const XLSX = await import('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/xlsx.mjs');
+        const wb = XLSX.read(buffer, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+        geojson = rowsToGeoJSON(rows, activeLayer);
+
+      } else {
+        alert('รองรับไฟล์: GeoJSON, Shapefile (ZIP), CSV, Excel (.xlsx)');
+        return;
       }
 
-      if (geojson && geojson.features) {
-        if (activeLayer === 'poi') { localStorage.setItem('denchai_poi_data', JSON.stringify(geojson)); setPoiData(geojson); }
-        else if (activeLayer === 'infra') { localStorage.setItem('denchai_infra_data', JSON.stringify(geojson)); setInfraData(geojson); }
-        else if (activeLayer === 'water') { localStorage.setItem('denchai_water_data', JSON.stringify(geojson)); setWaterData(geojson); }
-        else if (activeLayer === 'service') { localStorage.setItem('denchai_service_data', JSON.stringify(geojson)); setServiceData(geojson); }
-        else if (activeLayer === 'solar') { localStorage.setItem('denchai_rooftop_facets', JSON.stringify(geojson)); setGeoDataFacets(geojson); }
-        alert(lang === 'th' ? `นำเข้าข้อมูล ${geojson.features.length} รายการสำเร็จ!` : `Successfully imported ${geojson.features.length} features!`);
+      if (geojson && geojson.features?.length > 0) {
+        applyImportedData(geojson);
+        alert(lang === 'th' ? `✅ นำเข้าข้อมูล ${geojson.features.length} รายการสำเร็จ!` : `✅ Imported ${geojson.features.length} features!`);
+      } else {
+        alert(lang === 'th' ? '⚠️ ไม่พบข้อมูล หรือไฟล์ไม่ถูกต้อง' : '⚠️ No valid data found in file');
       }
     } catch (err) {
-      alert('Error parsing file. Please provide valid GeoJSON or Shapefile ZIP.');
+      console.error(err);
+      alert('เกิดข้อผิดพลาด: ' + err.message);
+    }
+    e.target.value = '';
+  };
+
+  // ── CSV → GeoJSON ─────────────────────────────────────────
+  const csvToGeoJSON = (text, layer) => {
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
+    const latKey  = headers.find(h => /^(lat|latitude|ละติจูด|y)$/i.test(h));
+    const lngKey  = headers.find(h => /^(lng|lon|longitude|ลองจิจูด|x)$/i.test(h));
+    if (!latKey || !lngKey) throw new Error(`ไม่พบคอลัมน์พิกัด (lat/lng หรือ latitude/longitude)\nคอลัมน์ที่พบ: ${headers.join(', ')}`);
+
+    const features = lines.slice(1).filter(l => l.trim()).map((line, i) => {
+      const vals = line.split(',').map(v => v.trim().replace(/^["']|["']$/g, ''));
+      const props = {};
+      headers.forEach((h, j) => { props[h] = vals[j] || ''; });
+      const lat = parseFloat(props[latKey]);
+      const lng = parseFloat(props[lngKey]);
+      if (isNaN(lat) || isNaN(lng)) return null;
+      props.id = props.id || `${layer}_${String(i+1).padStart(3,'0')}`;
+      return { type: 'Feature', properties: props, geometry: { type: 'Point', coordinates: [lng, lat] } };
+    }).filter(Boolean);
+
+    return { type: 'FeatureCollection', features };
+  };
+
+  // ── Excel rows → GeoJSON ──────────────────────────────────
+  const rowsToGeoJSON = (rows, layer) => {
+    if (!rows.length) return { type: 'FeatureCollection', features: [] };
+    const keys = Object.keys(rows[0]);
+    const latKey = keys.find(k => /^(lat|latitude|ละติจูด|y)$/i.test(k));
+    const lngKey = keys.find(k => /^(lng|lon|longitude|ลองจิจูด|x)$/i.test(k));
+    if (!latKey || !lngKey) throw new Error(`ไม่พบคอลัมน์พิกัด\nคอลัมน์ที่พบ: ${keys.join(', ')}`);
+
+    const features = rows.map((row, i) => {
+      const lat = parseFloat(row[latKey]);
+      const lng = parseFloat(row[lngKey]);
+      if (isNaN(lat) || isNaN(lng)) return null;
+      const props = { ...row };
+      props.id = props.id || `${layer}_${String(i+1).padStart(3,'0')}`;
+      return { type: 'Feature', properties: props, geometry: { type: 'Point', coordinates: [lng, lat] } };
+    }).filter(Boolean);
+
+    return { type: 'FeatureCollection', features };
+  };
+
+  // ── Apply imported data to correct layer ──────────────────
+  const applyImportedData = (geojson) => {
+    const storageMap = {
+      poi: 'denchai_poi_data', infra: 'denchai_infra_data',
+      water: 'denchai_water_data', service: 'denchai_service_data',
+      solar: 'denchai_rooftop_facets',
+      streetlight: 'denchai_streetlight_data', watermeter: 'denchai_watermeter_data',
+      transformer: 'denchai_transformer_data',  trashbin: 'denchai_trashbin_data',
+      hydrant: 'denchai_hydrant_data',           drain: 'denchai_drain_data',
+      building_sc: 'denchai_building_sc_data',
+    };
+    const setterMap = {
+      poi: setPoiData, infra: setInfraData, water: setWaterData, service: setServiceData,
+      solar: setGeoDataFacets,
+      streetlight: setStreetlightData, watermeter: setWatermeterData,
+      transformer: setTransformerData, trashbin: setTrashbinData,
+      hydrant: setHydrantData, drain: setDrainData, building_sc: setBuildingScData,
+    };
+    const key = storageMap[activeLayer];
+    const setter = setterMap[activeLayer];
+    if (key && setter) {
+      localStorage.setItem(key, JSON.stringify(geojson));
+      setter(geojson);
+      // Auto-push to GitHub if token exists
+      if (getGithubToken() && DATASET_FILE_MAP[activeLayer]) {
+        const { path } = DATASET_FILE_MAP[activeLayer];
+        const cats = { poi: 'POI_CATEGORIES', infra: 'INFRA_CATEGORIES', water: 'WATER_CATEGORIES', service: 'SERVICE_CATEGORIES', streetlight: 'STREETLIGHT_CATEGORIES', watermeter: 'WATERMETER_CATEGORIES', transformer: 'TRANSFORMER_CATEGORIES', trashbin: 'TRASHBIN_CATEGORIES', hydrant: 'HYDRANT_CATEGORIES', drain: 'DRAIN_CATEGORIES', building_sc: 'BUILDING_CATEGORIES' };
+        const datas = { poi: 'POI_DATA', infra: 'INFRA_DATA', water: 'WATER_DATA', service: 'SERVICE_DATA', streetlight: 'STREETLIGHT_DATA', watermeter: 'WATERMETER_DATA', transformer: 'TRANSFORMER_DATA', trashbin: 'TRASHBIN_DATA', hydrant: 'HYDRANT_DATA', drain: 'DRAIN_DATA', building_sc: 'BUILDING_DATA' };
+        import('../utils/githubSync').then(({ buildJsContent, pushFileToGitHub }) => {
+          const content = buildJsContent(datas[activeLayer] || 'DATA', cats[activeLayer] || 'CATEGORIES', {}, geojson);
+          pushFileToGitHub({ path, content, message: `import ${activeLayer} data — ${geojson.features.length} features` }).catch(console.warn);
+        });
+      }
     }
   };
 
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   return (
-    <div className="app-container" style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      
+    <div className="app-container" style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+
+      {/* ── Mobile overlay backdrop ── */}
+      {isMobile && sidebarOpen && (
+        <div onClick={() => setSidebarOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 999 }}/>
+      )}
+
+      {/* ── Mobile toggle button ── */}
+      {isMobile && !sidebarOpen && (
+        <button onClick={() => setSidebarOpen(true)} style={{
+          position: 'absolute', top: 14, left: 14, zIndex: 1100,
+          padding: '10px 14px', background: '#0f172a', border: '1px solid #38bdf8',
+          borderRadius: 10, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer'
+        }}>☰ เมนู</button>
+      )}
+
       {/* ── Left Editor Sidebar Panel ── */}
       <aside style={{
-        width: 440, minWidth: 440, background: '#ffffff', borderRight: '1px solid #e2e8f0',
-        display: 'flex', flexDirection: 'column', zIndex: 1000, boxShadow: '4px 0 20px rgba(0,0,0,0.06)',
-        height: '100%'
+        width: isMobile ? '100vw' : 440,
+        minWidth: isMobile ? 'unset' : 440,
+        background: '#ffffff', borderRight: '1px solid #e2e8f0',
+        display: sidebarOpen ? 'flex' : 'none',
+        flexDirection: 'column', zIndex: 1000,
+        boxShadow: '4px 0 20px rgba(0,0,0,0.06)',
+        height: '100%',
+        position: isMobile ? 'absolute' : 'relative',
+        left: 0, top: 0
       }}>
         
         {/* Top Studio Header */}
@@ -433,25 +574,12 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 4 }}>
-            <button
-              style={{
-                background: lang === 'th' ? '#2563eb' : 'transparent', color: '#fff', border: 'none',
-                borderRadius: 5, padding: '3px 7px', fontSize: '0.68rem', cursor: 'pointer'
-              }}
-              onClick={() => setLang?.('th')}
-            >
-              TH
-            </button>
-            <button
-              style={{
-                background: lang === 'en' ? '#2563eb' : 'transparent', color: '#fff', border: 'none',
-                borderRadius: 5, padding: '3px 7px', fontSize: '0.68rem', cursor: 'pointer'
-              }}
-              onClick={() => setLang?.('en')}
-            >
-              EN
-            </button>
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <button style={{ background: lang === 'th' ? '#2563eb' : 'transparent', color: '#fff', border: 'none', borderRadius: 5, padding: '3px 7px', fontSize: '0.68rem', cursor: 'pointer' }} onClick={() => setLang?.('th')}>TH</button>
+            <button style={{ background: lang === 'en' ? '#2563eb' : 'transparent', color: '#fff', border: 'none', borderRadius: 5, padding: '3px 7px', fontSize: '0.68rem', cursor: 'pointer' }} onClick={() => setLang?.('en')}>EN</button>
+            {isMobile && (
+              <button onClick={() => setSidebarOpen(false)} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 8px', fontSize: 16, cursor: 'pointer', marginLeft: 4 }}>✕</button>
+            )}
           </div>
         </div>
 
@@ -512,6 +640,34 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
               <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
                 {currentDataset.data?.features?.length || 0} {lang === 'th' ? 'รายการ' : 'items'}
               </span>
+            </div>
+
+            {/* GPS + Template buttons */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+              <button
+                type="button"
+                style={{ padding: '7px 8px', borderRadius: 8, border: '1px solid #10b981', background: 'rgba(16,185,129,0.08)', color: '#059669', fontSize: '0.74rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                onClick={() => {
+                  if (!navigator.geolocation) { alert('Browser ไม่รองรับ GPS'); return; }
+                  navigator.geolocation.getCurrentPosition(
+                    pos => {
+                      const { latitude, longitude } = pos.coords;
+                      alert(`📍 ตำแหน่งของคุณ:\nLat: ${latitude.toFixed(6)}\nLng: ${longitude.toFixed(6)}\n\nคัดลอกพิกัดนี้ใส่ใน CSV หรือกด "+ เพิ่มจุด" แล้วแผนที่จะ zoom มาหาคุณ`);
+                    },
+                    err => alert('ไม่สามารถดึง GPS ได้: ' + err.message),
+                    { enableHighAccuracy: true }
+                  );
+                }}
+              >
+                📍 GPS ตำแหน่งฉัน
+              </button>
+              <button
+                type="button"
+                style={{ padding: '7px 8px', borderRadius: 8, border: '1px solid #6366f1', background: 'rgba(99,102,241,0.08)', color: '#4f46e5', fontSize: '0.74rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                onClick={() => downloadCSVTemplate(activeLayer)}
+              >
+                📋 Template CSV
+              </button>
             </div>
 
             {/* Dynamic Buttons */}
@@ -598,15 +754,15 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
                 className="btn btn-sm"
                 style={{ justifyContent: 'center', fontSize: '0.72rem', padding: '6px 8px' }}
                 onClick={() => fileInputRef.current?.click()}
-                title="Import GeoJSON or Shapefile ZIP"
+                title="Import GeoJSON, Shapefile ZIP, CSV, Excel"
               >
-                <Upload size={13} /> {lang === 'th' ? 'นำเข้าไฟล์ (SHP/JSON)' : 'Import File'}
+                <Upload size={13} /> {lang === 'th' ? 'นำเข้าไฟล์ (CSV/Excel/GeoJSON)' : 'Import File'}
               </button>
               <input
                 type="file"
                 ref={fileInputRef}
                 style={{ display: 'none' }}
-                accept=".geojson,.json,.zip"
+                accept=".geojson,.json,.zip,.csv,.xlsx,.xls"
                 onChange={handleImportFile}
               />
               <button
