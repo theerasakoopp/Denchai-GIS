@@ -6,6 +6,17 @@ import { POI_DATA, POI_CATEGORIES } from '../data/poi_data';
 import { INFRA_DATA, INFRA_CATEGORIES } from '../data/infra_data';
 import { SERVICE_DATA, SERVICE_CATEGORIES } from '../data/service_data';
 import { WATER_DATA, WATER_CATEGORIES } from '../data/water_data';
+import {
+  STREETLIGHT_DATA, STREETLIGHT_CATEGORIES,
+  WATERMETER_DATA,  WATERMETER_CATEGORIES,
+  TRANSFORMER_DATA, TRANSFORMER_CATEGORIES,
+  TRASHBIN_DATA,    TRASHBIN_CATEGORIES,
+  HYDRANT_DATA,     HYDRANT_CATEGORIES,
+  DRAIN_DATA,       DRAIN_CATEGORIES,
+  BUILDING_DATA,    BUILDING_CATEGORIES,
+} from '../data/smartcity_data';
+import { pushFileToGitHub, getGithubToken, buildJsContent, DATASET_FILE_MAP } from '../utils/githubSync';
+import GitHubSyncPanel from '../components/GitHubSyncPanel';
 import { ROOF_CLASSES } from '../App';
 import { translations } from '../translations';
 import {
@@ -114,6 +125,14 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
     } catch { return WATER_DATA; }
   });
 
+  const [streetlightData, setStreetlightData] = useState(() => { try { const s = localStorage.getItem('denchai_streetlight_data'); return s ? JSON.parse(s) : STREETLIGHT_DATA; } catch { return STREETLIGHT_DATA; } });
+  const [watermeterData,  setWatermeterData]  = useState(() => { try { const s = localStorage.getItem('denchai_watermeter_data');  return s ? JSON.parse(s) : WATERMETER_DATA;  } catch { return WATERMETER_DATA;  } });
+  const [transformerData, setTransformerData] = useState(() => { try { const s = localStorage.getItem('denchai_transformer_data'); return s ? JSON.parse(s) : TRANSFORMER_DATA; } catch { return TRANSFORMER_DATA; } });
+  const [trashbinData,    setTrashbinData]    = useState(() => { try { const s = localStorage.getItem('denchai_trashbin_data');    return s ? JSON.parse(s) : TRASHBIN_DATA;    } catch { return TRASHBIN_DATA;    } });
+  const [hydrantData,     setHydrantData]     = useState(() => { try { const s = localStorage.getItem('denchai_hydrant_data');     return s ? JSON.parse(s) : HYDRANT_DATA;     } catch { return HYDRANT_DATA;     } });
+  const [drainData,       setDrainData]       = useState(() => { try { const s = localStorage.getItem('denchai_drain_data');       return s ? JSON.parse(s) : DRAIN_DATA;       } catch { return DRAIN_DATA;       } });
+  const [buildingScData,  setBuildingScData]  = useState(() => { try { const s = localStorage.getItem('denchai_building_sc_data'); return s ? JSON.parse(s) : BUILDING_DATA;    } catch { return BUILDING_DATA;    } });
+
   const [geoDataFacets, setGeoDataFacets] = useState(null);
   const [geoDataBuildings, setGeoDataBuildings] = useState(null);
   const [municipalBoundary, setMunicipalBoundary] = useState(null);
@@ -191,27 +210,37 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
   const handleSaveFeature = (savedFeature, datasetType = activeLayer) => {
     const targetId = savedFeature.properties?.id || savedFeature.id;
 
-    const updater = (prevData, storageKey) => {
+    const updater = (prevData, storageKey, categoriesObj, dataExport, catsExport) => {
       if (!prevData?.features) return prevData;
       const exists = prevData.features.some(f => (f.properties?.id || f.id) === targetId);
-      let updatedFeatures;
-      if (exists) {
-        updatedFeatures = prevData.features.map(f =>
-          (f.properties?.id || f.id) === targetId ? savedFeature : f
-        );
-      } else {
-        updatedFeatures = [savedFeature, ...prevData.features];
-      }
+      const updatedFeatures = exists
+        ? prevData.features.map(f => (f.properties?.id || f.id) === targetId ? savedFeature : f)
+        : [savedFeature, ...prevData.features];
       const newCollection = { ...prevData, features: updatedFeatures };
       try { localStorage.setItem(storageKey, JSON.stringify(newCollection)); } catch {}
+
+      // GitHub Auto-Save
+      if (getGithubToken() && DATASET_FILE_MAP[datasetType]) {
+        const { path } = DATASET_FILE_MAP[datasetType];
+        const content = buildJsContent(dataExport, catsExport, categoriesObj, newCollection);
+        pushFileToGitHub({ path, content, message: `update ${datasetType} — ${updatedFeatures.length} features` })
+          .catch(err => console.warn('GitHub push failed:', err));
+      }
       return newCollection;
     };
 
-    if (datasetType === 'poi') setPoiData(prev => updater(prev, 'denchai_poi_data'));
-    else if (datasetType === 'infra') setInfraData(prev => updater(prev, 'denchai_infra_data'));
-    else if (datasetType === 'service') setServiceData(prev => updater(prev, 'denchai_service_data'));
-    else if (datasetType === 'water') setWaterData(prev => updater(prev, 'denchai_water_data'));
-    else if (datasetType === 'solar') setGeoDataFacets(prev => updater(prev, 'denchai_rooftop_facets'));
+    if (datasetType === 'poi')         setPoiData(prev        => updater(prev, 'denchai_poi_data',         POI_CATEGORIES,         'POI_DATA',         'POI_CATEGORIES'));
+    else if (datasetType === 'infra')  setInfraData(prev      => updater(prev, 'denchai_infra_data',       INFRA_CATEGORIES,       'INFRA_DATA',       'INFRA_CATEGORIES'));
+    else if (datasetType === 'service')setServiceData(prev    => updater(prev, 'denchai_service_data',     SERVICE_CATEGORIES,     'SERVICE_DATA',     'SERVICE_CATEGORIES'));
+    else if (datasetType === 'water')  setWaterData(prev      => updater(prev, 'denchai_water_data',       WATER_CATEGORIES,       'WATER_DATA',       'WATER_CATEGORIES'));
+    else if (datasetType === 'solar')  setGeoDataFacets(prev  => updater(prev, 'denchai_rooftop_facets',   {},                     'ROOFTOP_DATA',     'ROOF_CLASSES'));
+    else if (datasetType === 'streetlight') setStreetlightData(prev => updater(prev, 'denchai_streetlight_data', STREETLIGHT_CATEGORIES, 'STREETLIGHT_DATA', 'STREETLIGHT_CATEGORIES'));
+    else if (datasetType === 'watermeter')  setWatermeterData(prev  => updater(prev, 'denchai_watermeter_data',  WATERMETER_CATEGORIES,  'WATERMETER_DATA',  'WATERMETER_CATEGORIES'));
+    else if (datasetType === 'transformer') setTransformerData(prev => updater(prev, 'denchai_transformer_data', TRANSFORMER_CATEGORIES, 'TRANSFORMER_DATA', 'TRANSFORMER_CATEGORIES'));
+    else if (datasetType === 'trashbin')    setTrashbinData(prev    => updater(prev, 'denchai_trashbin_data',    TRASHBIN_CATEGORIES,    'TRASHBIN_DATA',    'TRASHBIN_CATEGORIES'));
+    else if (datasetType === 'hydrant')     setHydrantData(prev     => updater(prev, 'denchai_hydrant_data',     HYDRANT_CATEGORIES,     'HYDRANT_DATA',     'HYDRANT_CATEGORIES'));
+    else if (datasetType === 'drain')       setDrainData(prev       => updater(prev, 'denchai_drain_data',       DRAIN_CATEGORIES,       'DRAIN_DATA',       'DRAIN_CATEGORIES'));
+    else if (datasetType === 'building_sc') setBuildingScData(prev  => updater(prev, 'denchai_building_sc_data', BUILDING_CATEGORIES,    'BUILDING_DATA',    'BUILDING_CATEGORIES'));
 
     setIsEditModalOpen(false);
     setSelectedFeature(savedFeature);
@@ -364,11 +393,18 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
               {[
-                { key: 'poi',     icon: '📍', label: t.tabPoi },
-                { key: 'infra',   icon: '🛣️', label: lang === 'th' ? 'ถนน/คมนาคม' : 'Roads' },
-                { key: 'water',   icon: '💧', label: lang === 'th' ? 'แหล่งน้ำ' : 'Water' },
-                { key: 'service', icon: '🏥', label: t.tabService },
-                { key: 'solar',   icon: '☀️', label: lang === 'th' ? 'หลังคาโซลาร์' : 'Solar Roof' },
+                { key: 'poi',         icon: '📍', label: t.tabPoi },
+                { key: 'infra',       icon: '🛣️', label: lang === 'th' ? 'ถนน/คมนาคม' : 'Roads' },
+                { key: 'water',       icon: '💧', label: lang === 'th' ? 'แหล่งน้ำ' : 'Water' },
+                { key: 'service',     icon: '🏥', label: t.tabService },
+                { key: 'solar',       icon: '☀️', label: lang === 'th' ? 'หลังคาโซลาร์' : 'Solar Roof' },
+                { key: 'streetlight', icon: '💡', label: lang === 'th' ? 'เสาไฟฟ้า' : 'Streetlight' },
+                { key: 'watermeter',  icon: '💧', label: lang === 'th' ? 'มิเตอร์น้ำ' : 'Water Meter' },
+                { key: 'transformer', icon: '⚡', label: lang === 'th' ? 'หม้อแปลง' : 'Transformer' },
+                { key: 'trashbin',    icon: '🗑️', label: lang === 'th' ? 'ถังขยะ' : 'Trash Bin' },
+                { key: 'hydrant',     icon: '🚒', label: lang === 'th' ? 'หัวจ่ายน้ำ' : 'Hydrant' },
+                { key: 'drain',       icon: '🌊', label: lang === 'th' ? 'ระบายน้ำ' : 'Drainage' },
+                { key: 'building_sc', icon: '🏢', label: lang === 'th' ? 'อาคาร' : 'Building' },
               ].map(lay => (
                 <button
                   key={lay.key}
@@ -512,6 +548,9 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
               </button>
             </div>
           </div>
+
+          {/* GitHub Auto-Save */}
+          <GitHubSyncPanel lang={lang} />
 
           {/* GIS Templates Center Action Banner */}
           <div style={{
