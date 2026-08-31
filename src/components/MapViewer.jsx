@@ -1515,9 +1515,9 @@ export default function MapViewer({
           source: 'bound-src',
           layout: { visibility: 'visible', 'line-cap': 'round', 'line-join': 'round' },
           paint: {
-            'line-color': '#1a1a1a',
-            'line-width': 1.5,
-            'line-opacity': 0.4,
+            'line-color': '#444444',
+            'line-width': 0.8,
+            'line-opacity': 0.5,
             'line-dasharray': [6, 3, 1, 3]
           }
         },
@@ -1527,10 +1527,10 @@ export default function MapViewer({
           source: 'bound-src',
           layout: { visibility: 'visible', 'line-cap': 'round', 'line-join': 'round' },
           paint: {
-            'line-color': '#000000',
-            'line-width': 0.5,
-            'line-opacity': 0.15,
-            'line-dasharray': [6, 3, 1, 3]
+            'line-color': '#333333',
+            'line-width': 0,
+            'line-opacity': 0,
+            'line-dasharray': [8, 4, 1, 4]
           }
         },
 
@@ -2561,8 +2561,8 @@ export default function MapViewer({
           ))}
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="legend-row">
-              <div style={{ width: 14, height: 3, borderTop: '3px solid #00f0ff' }} />
-              <span style={{ color: '#00f0ff', fontWeight: 700 }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
+              <div style={{ width: 28, height: 3, borderTop: '2px dashed #555555' }} />
+              <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'</span>
             </div>
             {uploadedBoundary && (
               <div className="legend-row">
@@ -2586,8 +2586,8 @@ export default function MapViewer({
           ))}
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="legend-row">
-              <div style={{ width: 14, height: 3, borderTop: '3px solid #00f0ff' }} />
-              <span style={{ color: '#00f0ff', fontWeight: 700 }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
+              <div style={{ width: 28, height: 3, borderTop: '2px dashed #555555' }} />
+              <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'</span>
             </div>
           </div>
         </div>
@@ -2605,8 +2605,8 @@ export default function MapViewer({
           ))}
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="legend-row">
-              <div style={{ width: 14, height: 3, borderTop: '3px solid #00f0ff' }} />
-              <span style={{ color: '#00f0ff', fontWeight: 700 }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
+              <div style={{ width: 28, height: 3, borderTop: '2px dashed #555555' }} />
+              <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'</span>
             </div>
           </div>
         </div>
@@ -2624,8 +2624,8 @@ export default function MapViewer({
           ))}
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="legend-row">
-              <div style={{ width: 14, height: 3, borderTop: '3px solid #00f0ff' }} />
-              <span style={{ color: '#00f0ff', fontWeight: 700 }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
+              <div style={{ width: 28, height: 3, borderTop: '2px dashed #555555' }} />
+              <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'</span>
             </div>
           </div>
         </div>

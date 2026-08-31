@@ -635,6 +635,7 @@ export default function Sidebar({
 
         {/* ═══════════ TAB: INFRASTRUCTURE ═══════════ */}
         {activeTab === 'infra' && infraData && infraCategories && (
+          <>
           <CategoryListPanel
             data={infraData}
             categories={infraCategories}
@@ -654,6 +655,51 @@ export default function Sidebar({
             onStartDrawRoad={onStartDrawRoad}
             onReshapeRoad={onReshapeRoad}
           />
+
+          {/* ── Smart City Layers ── */}
+          <div style={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'10px 14px' }}>
+            <div style={{ fontSize:'0.72rem', fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:8 }}>
+              🏙️ {lang === 'th' ? 'โครงสร้างพื้นฐานเมืองอัจฉริยะ' : 'Smart City Infrastructure'}
+            </div>
+            {[
+              { icon:'💡', label: lang==='th' ? 'เสาไฟฟ้า/ไฟส่องสว่าง' : 'Street Lights',   count: streetlightData?.features?.length || 0, color:'#facc15' },
+              { icon:'💧', label: lang==='th' ? 'มิเตอร์น้ำ'           : 'Water Meters',    count: watermeterData?.features?.length  || 0, color:'#0ea5e9' },
+              { icon:'⚡', label: lang==='th' ? 'หม้อแปลงไฟฟ้า'       : 'Transformers',    count: transformerData?.features?.length || 0, color:'#eab308' },
+              { icon:'🗑️', label: lang==='th' ? 'ถังขยะ'              : 'Trash Bins',      count: trashbinData?.features?.length   || 0, color:'#64748b' },
+              { icon:'🚒', label: lang==='th' ? 'หัวจ่ายน้ำดับเพลิง' : 'Fire Hydrants',   count: hydrantData?.features?.length    || 0, color:'#ef4444' },
+              { icon:'🌊', label: lang==='th' ? 'แนวทางระบายน้ำ'      : 'Drainage Lines',  count: drainData?.features?.length      || 0, color:'#0284c7' },
+              { icon:'🏢', label: lang==='th' ? 'ชั้นอาคาร'           : 'Buildings',       count: buildingData?.features?.length   || 0, color:'#94a3b8' },
+            ].map((item, i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'5px 0', borderBottom: i < 6 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <div style={{ width:8, height:8, borderRadius:2, background:item.color, flexShrink:0 }}></div>
+                  <span style={{ fontSize:'0.76rem', color:'#f0f4ff' }}>{item.icon} {item.label}</span>
+                </div>
+                <span style={{ fontSize:'0.72rem', color: item.count > 0 ? '#34d399' : '#475569', fontWeight:600 }}>
+                  {item.count > 0 ? `${item.count} จุด` : 'ว่างเปล่า'}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* ── ขอบเขตเทศบาล ── */}
+          <div style={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'10px 14px' }}>
+            <div style={{ fontSize:'0.72rem', fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:8 }}>
+              🗺️ {lang === 'th' ? 'ขอบเขตการปกครอง' : 'Administrative Boundary'}
+            </div>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'6px 0' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <svg width="28" height="10"><line x1="0" y1="5" x2="8" y2="5" stroke="#888" strokeWidth="1.5" strokeDasharray="4,2"/><circle cx="12" cy="5" r="1.5" fill="#888"/><line x1="16" y1="5" x2="28" y2="5" stroke="#888" strokeWidth="1.5" strokeDasharray="4,2"/></svg>
+                <span style={{ fontSize:'0.78rem', fontWeight:600, color:'#f0f4ff' }}>
+                  {lang === 'th' ? 'แนวเขตเทศบาลตำบลเด่นชัย' : 'Denchai Municipal Boundary'}
+                </span>
+              </div>
+              <span style={{ fontSize:'0.72rem', color:'#34d399', background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.2)', padding:'2px 8px', borderRadius:99 }}>
+                {lang === 'th' ? 'แสดงตลอด' : 'Always On'}
+              </span>
+            </div>
+          </div>
+          </>
         )}
 
         {/* ═══════════ TAB: WATER BODIES (POLYGON) ═══════════ */}
@@ -712,27 +758,30 @@ export default function Sidebar({
               </div>
             </div>
 
-            {/* Layer list */}
-            {[
-              { icon: '💡', label: lang === 'th' ? 'เสาไฟฟ้า/ไฟส่องสว่าง' : 'Street Lights',    count: streetlightData?.features?.length || 0, color: '#facc15' },
-              { icon: '💧', label: lang === 'th' ? 'มิเตอร์น้ำ'            : 'Water Meters',     count: watermeterData?.features?.length  || 0, color: '#0ea5e9' },
-              { icon: '⚡', label: lang === 'th' ? 'หม้อแปลงไฟฟ้า'        : 'Transformers',     count: transformerData?.features?.length || 0, color: '#eab308' },
-              { icon: '🗑️', label: lang === 'th' ? 'ถังขยะ'               : 'Trash Bins',       count: trashbinData?.features?.length   || 0, color: '#64748b' },
-              { icon: '🚒', label: lang === 'th' ? 'หัวจ่ายน้ำดับเพลิง'  : 'Fire Hydrants',    count: hydrantData?.features?.length    || 0, color: '#ef4444' },
-              { icon: '🌊', label: lang === 'th' ? 'แนวทางระบายน้ำ'       : 'Drainage Lines',   count: drainData?.features?.length      || 0, color: '#0284c7' },
-              { icon: '🏢', label: lang === 'th' ? 'ชั้นอาคาร'            : 'Buildings',        count: buildingData?.features?.length   || 0, color: '#94a3b8' },
-            ].map((item, i) => (
-              <div key={i} style={{ background: '#141c2e', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: 3, background: item.color, flexShrink: 0 }}></div>
-                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#f0f4ff' }}>{item.icon} {item.label}</span>
+            {/* Summary stats */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {[
+                { icon:'💡', label:'เสาไฟฟ้า',    count: streetlightData?.features?.length || 0 },
+                { icon:'💧', label:'มิเตอร์น้ำ',   count: watermeterData?.features?.length  || 0 },
+                { icon:'⚡', label:'หม้อแปลง',     count: transformerData?.features?.length || 0 },
+                { icon:'🗑️', label:'ถังขยะ',       count: trashbinData?.features?.length   || 0 },
+                { icon:'🚒', label:'หัวจ่ายน้ำ',   count: hydrantData?.features?.length    || 0 },
+                { icon:'🌊', label:'ระบายน้ำ',     count: drainData?.features?.length      || 0 },
+              ].map((item, i) => (
+                <div key={i} style={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'8px 10px', display:'flex', alignItems:'center', gap:8 }}>
+                  <span style={{ fontSize:'1rem' }}>{item.icon}</span>
+                  <div>
+                    <div style={{ fontSize:'0.68rem', color:'#64748b' }}>{item.label}</div>
+                    <div style={{ fontSize:'0.9rem', fontWeight:700, color: item.count > 0 ? '#34d399' : '#475569' }}>{item.count} <span style={{ fontSize:'0.65rem', fontWeight:400 }}>จุด</span></div>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: '0.75rem', color: item.count > 0 ? '#34d399' : '#64748b', fontWeight: 600 }}>{item.count} จุด</span>
-                  {item.count === 0 && <span style={{ fontSize: '0.68rem', color: '#475569', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: 6 }}>ว่างเปล่า</span>}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            {/* Link to infra tab */}
+            <button onClick={() => setActiveTab('infra')} style={{ padding:'10px', borderRadius:8, background:'linear-gradient(135deg,#2563eb,#3b82f6)', border:'none', color:'#fff', fontWeight:700, fontSize:'0.8rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+              🏗️ {lang === 'th' ? 'ดูรายละเอียดใน Tab โครงสร้างพื้นฐาน' : 'View in Infrastructure Tab'} →
+            </button>
 
             {/* GitHub Sync Panel */}
             <GitHubSyncPanel lang={lang} />
