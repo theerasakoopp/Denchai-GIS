@@ -332,6 +332,8 @@ export default function MapViewer({
   onSaveFeature = null,
   triggerDrawRoad = false,
   onResetTriggerDrawRoad = null,
+  triggerDrawDrain = false,
+  onResetTriggerDrawDrain = null,
   triggerDrawWater = false,
   onResetTriggerDrawWater = null,
   triggerDrawRoof = false,
@@ -431,6 +433,14 @@ export default function MapViewer({
       onResetTriggerDrawRoad?.();
     }
   }, [triggerDrawRoad]);
+
+  useEffect(() => {
+    if (triggerDrawDrain && drawRef.current) {
+      drawingDatasetTypeRef.current = 'drain';
+      setDrawMode('line');
+      onResetTriggerDrawDrain?.();
+    }
+  }, [triggerDrawDrain]);
 
   useEffect(() => {
     if (triggerDrawWater && drawRef.current) {

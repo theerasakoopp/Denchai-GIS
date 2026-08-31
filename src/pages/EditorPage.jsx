@@ -237,7 +237,8 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
   const [isPickingLocation, setIsPickingLocation] = useState(false);
   const [pickedCoordinates, setPickedCoordinates] = useState(null);
   const [reshapingFeature, setReshapingFeature] = useState(null);
-  const [triggerDrawRoad, setTriggerDrawRoad] = useState(false);
+  const [triggerDrawRoad,  setTriggerDrawRoad]  = useState(false);
+  const [triggerDrawDrain, setTriggerDrawDrain] = useState(false);
   const [triggerDrawWater, setTriggerDrawWater] = useState(false);
   const [triggerDrawRoof, setTriggerDrawRoof] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState(null);
@@ -701,7 +702,7 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                 <button type="button" className="btn btn-primary"
                   style={{ justifyContent: 'center', padding: '9px 8px', fontSize: '0.78rem', fontWeight: 700, gap: 6, background: 'linear-gradient(135deg, #0284c7, #0369a1)', border: 'none' }}
-                  onClick={() => setTriggerDrawRoad(true)}>
+                  onClick={() => setTriggerDrawDrain(true)}>
                   <i className="ti ti-wave-sine" style={{ fontSize: 15 }} aria-hidden="true" />
                   {lang === 'th' ? '+ วาดแนวระบายน้ำ' : '+ Draw Drain'}
                 </button>
@@ -978,6 +979,8 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
           onMergeFeatures={() => {}}
           triggerDrawRoad={triggerDrawRoad}
           onResetTriggerDrawRoad={() => setTriggerDrawRoad(false)}
+          triggerDrawDrain={triggerDrawDrain}
+          onResetTriggerDrawDrain={() => setTriggerDrawDrain(false)}
           triggerDrawWater={triggerDrawWater}
           onResetTriggerDrawWater={() => setTriggerDrawWater(false)}
           triggerDrawRoof={triggerDrawRoof}
