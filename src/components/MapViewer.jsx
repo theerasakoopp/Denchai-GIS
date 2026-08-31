@@ -2562,7 +2562,7 @@ export default function MapViewer({
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="legend-row">
               <div style={{ width: 28, height: 3, borderTop: '2px dashed #555555' }} />
-              <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'</span>
+              <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
             </div>
             {uploadedBoundary && (
               <div className="legend-row">
@@ -2587,7 +2587,7 @@ export default function MapViewer({
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="legend-row">
               <div style={{ width: 28, height: 3, borderTop: '2px dashed #555555' }} />
-              <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'</span>
+              <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
             </div>
           </div>
         </div>
@@ -2606,7 +2606,7 @@ export default function MapViewer({
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="legend-row">
               <div style={{ width: 28, height: 3, borderTop: '2px dashed #555555' }} />
-              <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'</span>
+              <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
             </div>
           </div>
         </div>
@@ -2625,7 +2625,7 @@ export default function MapViewer({
           <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="legend-row">
               <div style={{ width: 28, height: 3, borderTop: '2px dashed #555555' }} />
-              <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'</span>
+              <span style={{ color: '#94a3b8' }}>{lang === 'th' ? 'ขอบเขตเทศบาลเด่นชัย' : 'Denchai Boundary'}</span>
             </div>
           </div>
         </div>
