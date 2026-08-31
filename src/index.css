@@ -33,7 +33,7 @@
 
 body {
   font-family: 'Sarabun', 'IBM Plex Sans Thai', 'Noto Sans Thai', system-ui, -apple-system, sans-serif;
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.6;
   letter-spacing: 0.01em;
   background: var(--bg-dark);
@@ -108,7 +108,7 @@ body {
   align-items: center;
   gap: 3px;
   padding: 10px 4px 8px;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 500;
   color: #64748b;
   background: transparent;
@@ -133,7 +133,7 @@ body {
 }
 
 .tab-btn .tab-icon {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   line-height: 1;
 }
 
@@ -177,7 +177,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.85rem;
+  font-size: 0.92rem;
   font-weight: 500;
   color: #1e293b;
   flex: 1;
@@ -196,7 +196,7 @@ body {
 }
 
 .category-header .cat-count {
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 500;
   color: #64748b;
   background: #e2e8f0;
@@ -216,8 +216,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px 8px 24px;
-  font-size: 0.82rem;
+  padding: 9px 12px 9px 24px;
+  font-size: 0.88rem;
   font-weight: 400;
   color: #334155;
   border-bottom: 1px solid #f1f5f9;
@@ -461,7 +461,7 @@ body {
 
 .sidebar-header h1 {
   font-family: 'Sarabun', 'IBM Plex Sans Thai', sans-serif;
-  font-size: 1.15rem;
+  font-size: 1.3rem;
   font-weight: 600;
   line-height: 1.3;
   color: #0f172a;
@@ -470,7 +470,7 @@ body {
 }
 
 .sidebar-header p {
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 400;
   color: #64748b;
   line-height: 1.5;
@@ -479,7 +479,7 @@ body {
 
 /* ── Section Title ── */
 .section-title {
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -560,7 +560,7 @@ body {
 }
 
 .stat-label {
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #64748b;
@@ -573,7 +573,7 @@ body {
 
 .stat-value {
   font-family: 'Sarabun', 'IBM Plex Sans Thai', sans-serif;
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   font-weight: 600;
   color: #0f172a;
   display: flex;
@@ -583,17 +583,17 @@ body {
 }
 
 .stat-value.energy {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   color: #059669;
 }
 
 .stat-value.savings {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: #0284c7;
 }
 
 .stat-unit {
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 400;
   color: #64748b;
 }
@@ -722,8 +722,8 @@ input[type=range]::-webkit-slider-thumb:hover {
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 8px 16px;
-  font-size: 0.82rem;
+  padding: 9px 16px;
+  font-size: 0.9rem;
   font-weight: 500;
   border-radius: 8px;
   border: 1px solid #cbd5e1;
@@ -757,8 +757,8 @@ input[type=range]::-webkit-slider-thumb:hover {
 }
 
 .btn-sm {
-  padding: 5px 10px;
-  font-size: 0.76rem;
+  padding: 6px 12px;
+  font-size: 0.82rem;
 }
 
 /* ── Map Container & Floating Controls ── */
@@ -872,7 +872,7 @@ input[type=range]::-webkit-slider-thumb:hover {
   color: #f8fafc !important;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
   font-family: 'Sarabun', 'IBM Plex Sans Thai', sans-serif !important;
-  font-size: 0.85rem !important;
+  font-size: 0.92rem !important;
   line-height: 1.5 !important;
   min-width: 220px;
 }
