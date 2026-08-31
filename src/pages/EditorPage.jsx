@@ -69,7 +69,7 @@ function downloadCSVTemplate(layer) {
     transformer: 'id,name_th,name_en,category,lat,lng,kva,owner,install_year,remark\ntr_001,หม้อแปลง 1,Transformer 1,pea,17.9825,100.0515,100,การไฟฟ้าส่วนภูมิภาค,2560,',
     trashbin:    'id,name_th,name_en,category,lat,lng,capacity_l,collect_day,remark\ntb_001,ถังขยะหมู่ 1,Trash Bin 1,general,17.9818,100.0508,240,จันทร์-พฤหัส,',
     hydrant:     'id,name_th,name_en,category,lat,lng,pipe_diameter,pressure_bar,remark\nhy_001,หัวจ่ายน้ำ 1,Hydrant 1,active,17.9822,100.0512,100,3.5,',
-    drain:       'id,name_th,name_en,category,lat,lng\ndr_001,คูระบายน้ำ 1,Drain 1,main,17.9820,100.0510',
+    drain: 'id,name_th,name_en,category,lat_start,lng_start,lat_end,lng_end,width_m,depth_m,material,condition,remark\ndr_001,คูระบายน้ำสายหลัก 1,Main Drain 1,main,17.9820,100.0510,17.9825,100.0520,1.5,0.8,คสล.,ดี,',
     building_sc: 'id,house_no,moo,road,tambon,name_th,name_en,category,lat,lng,floors,area_sqm,height_m,width_m,length_m,wall_mat,roof_mat,year_built,condition,land_deed_no,parcel_id,owner_name,owner_id,tax_value,tax_year,permit_no,survey_date,surveyor,remark\nbld_001,123/4,5,ถนนเด่นชัย-งาว,เด่นชัย,บ้านนายสมชาย,,residential,17.9819,100.0509,2,120,,8,15,คสล.,กระเบื้อง,2545,ดี,,,นายสมชาย ใจดี,1234567890123,,2567,,2567-08-31,เจ้าหน้าที่สำรวจ,',
     poi:         'id,name_th,name_en,category,lat,lng,address,phone,remark\npoi_001,วัดตัวอย่าง,Sample Temple,วัด/ศาสนสถาน,17.9820,100.0510,หมู่ 1 ต.เด่นชัย,,',
     infra:       'id,name_th,name_en,category,lat,lng,road_type,width_m,surface,remark\nrd_001,ถนนตัวอย่าง,Sample Road,ถนนคอนกรีต,17.9820,100.0510,คอนกรีต,6,,',
@@ -695,6 +695,21 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
                   onClick={() => handleOpenAdd('infra')}
                 >
                   📍 {lang === 'th' ? '+ เพิ่มจุดสิ่งปลูกสร้าง' : '+ Add Node'}
+                </button>
+              </div>
+            ) : activeLayer === 'drain' ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <button type="button" className="btn btn-primary"
+                  style={{ justifyContent: 'center', padding: '9px 8px', fontSize: '0.78rem', fontWeight: 700, gap: 6, background: 'linear-gradient(135deg, #0284c7, #0369a1)', border: 'none' }}
+                  onClick={() => setTriggerDrawRoad(true)}>
+                  <i className="ti ti-wave-sine" style={{ fontSize: 15 }} aria-hidden="true" />
+                  {lang === 'th' ? '+ วาดแนวระบายน้ำ' : '+ Draw Drain'}
+                </button>
+                <button type="button" className="btn btn-primary"
+                  style={{ justifyContent: 'center', padding: '9px 8px', fontSize: '0.78rem', fontWeight: 600, gap: 6, background: 'linear-gradient(135deg, #06b6d4, #0891b2)' }}
+                  onClick={() => handleOpenAdd('drain')}>
+                  <i className="ti ti-map-pin" style={{ fontSize: 15 }} aria-hidden="true" />
+                  {lang === 'th' ? '+ เพิ่มจุดบ่อพัก' : '+ Add Manhole'}
                 </button>
               </div>
             ) : activeLayer === 'water' ? (
