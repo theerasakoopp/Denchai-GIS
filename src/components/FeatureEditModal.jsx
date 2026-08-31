@@ -50,7 +50,27 @@ export default function FeatureEditModal({
     aspect_deg: 180.0,
     building_id: '',
     capacity_kwp: 1.8,
-    energy_kwh: 2500
+    energy_kwh: 2500,
+    // Building Attributes
+    house_no: '',
+    moo: '',
+    road: '',
+    tambon: 'เด่นชัย',
+    floors: 1,
+    height_m: '',
+    length_m: '',
+    wall_mat: 'คสล.',
+    roof_mat: 'กระเบื้อง',
+    year_built: '',
+    land_deed_no: '',
+    parcel_id: '',
+    owner_name: '',
+    owner_id: '',
+    tax_value: '',
+    tax_year: '',
+    permit_no: '',
+    survey_date: '',
+    surveyor: ''
   });
 
   const [error, setError] = useState('');
@@ -202,6 +222,30 @@ export default function FeatureEditModal({
           capacity_m3: Number(formData.capacity_m3) || 25000,
           water_quality: formData.water_quality,
           purpose: formData.purpose
+        } : {}),
+        ...(datasetType === 'building_sc' ? {
+          house_no:     formData.house_no     || '',
+          moo:          formData.moo          || '',
+          road:         formData.road         || '',
+          tambon:       formData.tambon       || '',
+          floors:       Number(formData.floors)    || 1,
+          area_sqm:     Number(formData.area_sqm)  || 0,
+          height_m:     Number(formData.height_m)  || 0,
+          width_m:      Number(formData.width_m)   || 0,
+          length_m:     Number(formData.length_m)  || 0,
+          wall_mat:     formData.wall_mat     || '',
+          roof_mat:     formData.roof_mat     || '',
+          year_built:   formData.year_built   || '',
+          condition:    formData.condition    || 'ดี',
+          land_deed_no: formData.land_deed_no || '',
+          parcel_id:    formData.parcel_id    || '',
+          owner_name:   formData.owner_name   || '',
+          owner_id:     formData.owner_id     || '',
+          tax_value:    Number(formData.tax_value) || 0,
+          tax_year:     formData.tax_year     || '',
+          permit_no:    formData.permit_no    || '',
+          survey_date:  formData.survey_date  || '',
+          surveyor:     formData.surveyor     || '',
         } : {}),
         ...(isSolar ? {
           class_id: cid,
@@ -677,7 +721,104 @@ export default function FeatureEditModal({
             </div>
           )}
 
-          {/* ═══════════ Solar Rooftop Attributes (When datasetType === 'solar' or 'roof') ═══════════ */}
+          {/* ═══════════ Building Attributes (datasetType === 'building_sc') ═══════════ */}
+          {datasetType === 'building_sc' && (
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span>🏢</span>
+                <span>{lang === 'th' ? 'ข้อมูลอาคารและภาษีที่ดิน' : 'Building & Property Tax Data'}</span>
+              </div>
+
+              {/* ── ที่ตั้ง ── */}
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.05em' }}>ที่ตั้ง</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {[
+                  { key: 'house_no', label: 'เลขที่บ้าน', placeholder: 'เช่น 123/4' },
+                  { key: 'moo',      label: 'หมู่ที่',    placeholder: 'เช่น 5' },
+                  { key: 'road',     label: 'ถนน/ซอย',   placeholder: 'เช่น ถนนเด่นชัย-งาว' },
+                  { key: 'tambon',   label: 'ตำบล',      placeholder: 'เช่น เด่นชัย' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>{f.label}</label>
+                    <input type="text" value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
+                      placeholder={f.placeholder} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem' }} />
+                  </div>
+                ))}
+              </div>
+
+              {/* ── กายภาพ ── */}
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.05em' }}>กายภาพอาคาร</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                {[
+                  { key: 'floors',   label: 'จำนวนชั้น', type: 'number', placeholder: '2' },
+                  { key: 'area_sqm', label: 'พื้นที่ (ตร.ม.)', type: 'number', placeholder: '120' },
+                  { key: 'height_m', label: 'ความสูง (ม.)', type: 'number', placeholder: '7' },
+                  { key: 'width_m',  label: 'ความกว้าง (ม.)', type: 'number', placeholder: '8' },
+                  { key: 'length_m', label: 'ความยาว (ม.)', type: 'number', placeholder: '15' },
+                  { key: 'year_built', label: 'ปีที่สร้าง (พ.ศ.)', type: 'text', placeholder: '2545' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>{f.label}</label>
+                    <input type={f.type} value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
+                      placeholder={f.placeholder} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem' }} />
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>วัสดุผนัง</label>
+                  <select value={formData.wall_mat || ''} onChange={e => setFormData({ ...formData, wall_mat: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem' }}>
+                    {['คสล.','อิฐ','ไม้','เหล็ก','อื่นๆ'].map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>วัสดุหลังคา</label>
+                  <select value={formData.roof_mat || ''} onChange={e => setFormData({ ...formData, roof_mat: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem' }}>
+                    {['กระเบื้อง','สังกะสี','คสล.','อื่นๆ'].map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>สภาพ</label>
+                  <select value={formData.condition || 'ดี'} onChange={e => setFormData({ ...formData, condition: e.target.value })}
+                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem' }}>
+                    {['ดี','ปานกลาง','ชำรุด','รื้อถอน'].map(v => <option key={v} value={v}>{v}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* ── ภาษีที่ดิน ── */}
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 4 }}>
+                ภาษีที่ดินและสิ่งปลูกสร้าง
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                {[
+                  { key: 'land_deed_no', label: 'เลขโฉนด/น.ส.3', placeholder: 'เช่น 1234' },
+                  { key: 'parcel_id',    label: 'รหัสแปลงที่ดิน', placeholder: 'เช่น 76010101001' },
+                  { key: 'owner_name',   label: 'ชื่อเจ้าของ', placeholder: 'นายสมชาย ใจดี' },
+                  { key: 'owner_id',     label: 'เลขบัตรประชาชน', placeholder: '13 หลัก' },
+                  { key: 'tax_value',    label: 'มูลค่าอาคาร (บาท)', placeholder: '500000' },
+                  { key: 'tax_year',     label: 'ปีภาษี (พ.ศ.)', placeholder: '2567' },
+                  { key: 'permit_no',    label: 'เลขที่ใบอนุญาตก่อสร้าง', placeholder: 'อ.1/2545' },
+                  { key: 'survey_date',  label: 'วันที่สำรวจ', placeholder: '2567-08-31' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#92400e', display: 'block', marginBottom: 3 }}>{f.label}</label>
+                    <input type="text" value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
+                      placeholder={f.placeholder} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #fde68a', fontSize: '0.78rem', background: '#fffbeb' }} />
+                  </div>
+                ))}
+              </div>
+              <div>
+                <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: 3 }}>ผู้สำรวจ</label>
+                <input type="text" value={formData.surveyor || ''} onChange={e => setFormData({ ...formData, surveyor: e.target.value })}
+                  placeholder="ชื่อเจ้าหน้าที่" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem' }} />
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════ Solar Rooftop Attributes ═══════════ */}
           {isSolar && (
             <div style={{
               background: 'linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%)',
