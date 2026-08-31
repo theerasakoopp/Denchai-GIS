@@ -1516,8 +1516,8 @@ export default function MapViewer({
           layout: { visibility: 'visible', 'line-cap': 'round', 'line-join': 'round' },
           paint: {
             'line-color': '#1a1a1a',
-            'line-width': 3.0,
-            'line-opacity': 0.45,
+            'line-width': 1.5,
+            'line-opacity': 0.4,
             'line-dasharray': [6, 3, 1, 3]
           }
         },
@@ -1528,8 +1528,8 @@ export default function MapViewer({
           layout: { visibility: 'visible', 'line-cap': 'round', 'line-join': 'round' },
           paint: {
             'line-color': '#000000',
-            'line-width': 1.0,
-            'line-opacity': 0.2,
+            'line-width': 0.5,
+            'line-opacity': 0.15,
             'line-dasharray': [6, 3, 1, 3]
           }
         },
