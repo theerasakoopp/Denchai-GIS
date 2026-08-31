@@ -1513,23 +1513,24 @@ export default function MapViewer({
           id: 'bound-line',
           type: 'line',
           source: 'bound-src',
-          layout: { visibility: 'visible' },
+          layout: { visibility: 'visible', 'line-cap': 'round', 'line-join': 'round' },
           paint: {
-            'line-color': '#00f0ff',
-            'line-width': 4.0,
-            'line-opacity': 1.0
+            'line-color': '#1a1a1a',
+            'line-width': 3.0,
+            'line-opacity': 0.45,
+            'line-dasharray': [6, 3, 1, 3]
           }
         },
         {
           id: 'bound-line-inner',
           type: 'line',
           source: 'bound-src',
-          layout: { visibility: 'visible' },
+          layout: { visibility: 'visible', 'line-cap': 'round', 'line-join': 'round' },
           paint: {
-            'line-color': '#ffffff',
-            'line-width': 1.5,
-            'line-dasharray': [4, 3],
-            'line-opacity': 1.0
+            'line-color': '#000000',
+            'line-width': 1.0,
+            'line-opacity': 0.2,
+            'line-dasharray': [6, 3, 1, 3]
           }
         },
 
