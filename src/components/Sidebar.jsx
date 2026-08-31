@@ -547,10 +547,11 @@ export default function Sidebar({
   };
 
   const TABS = [
-    { key: 'poi',     icon: '📍', label: t.tabPoi },
-    { key: 'infra',   icon: '🏗️', label: t.tabInfra },
-    { key: 'water',   icon: '💧', label: lang === 'th' ? 'แหล่งน้ำ' : 'Water' },
-    { key: 'service', icon: '🏥', label: t.tabService },
+    { key: 'poi',       icon: '📍', label: t.tabPoi },
+    { key: 'infra',     icon: '🏗️', label: t.tabInfra },
+    { key: 'water',     icon: '💧', label: lang === 'th' ? 'แหล่งน้ำ' : 'Water' },
+    { key: 'service',   icon: '🏥', label: t.tabService },
+    { key: 'smartcity', icon: '🏙️', label: lang === 'th' ? 'Smart City' : 'Smart City' },
   ];
 
   return (
@@ -689,6 +690,47 @@ export default function Sidebar({
             onResetData={onResetData}
             onExportData={onExportData}
           />
+        )}
+
+        {/* ═══════════ TAB: SMART CITY ═══════════ */}
+        {activeTab === 'smartcity' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {/* Header */}
+            <div style={{ background: 'linear-gradient(135deg,rgba(59,130,246,0.15),rgba(139,92,246,0.1))', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 10, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 24 }}>🏙️</span>
+              <div>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Smart City Layers</div>
+                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#f0f4ff' }}>โครงสร้างพื้นฐานเมือง</div>
+              </div>
+            </div>
+
+            {/* Layer list */}
+            {[
+              { icon: '💡', label: lang === 'th' ? 'เสาไฟฟ้า/ไฟส่องสว่าง' : 'Street Lights',    count: streetlightData?.features?.length || 0, color: '#facc15' },
+              { icon: '💧', label: lang === 'th' ? 'มิเตอร์น้ำ'            : 'Water Meters',     count: watermeterData?.features?.length  || 0, color: '#0ea5e9' },
+              { icon: '⚡', label: lang === 'th' ? 'หม้อแปลงไฟฟ้า'        : 'Transformers',     count: transformerData?.features?.length || 0, color: '#eab308' },
+              { icon: '🗑️', label: lang === 'th' ? 'ถังขยะ'               : 'Trash Bins',       count: trashbinData?.features?.length   || 0, color: '#64748b' },
+              { icon: '🚒', label: lang === 'th' ? 'หัวจ่ายน้ำดับเพลิง'  : 'Fire Hydrants',    count: hydrantData?.features?.length    || 0, color: '#ef4444' },
+              { icon: '🌊', label: lang === 'th' ? 'แนวทางระบายน้ำ'       : 'Drainage Lines',   count: drainData?.features?.length      || 0, color: '#0284c7' },
+              { icon: '🏢', label: lang === 'th' ? 'ชั้นอาคาร'            : 'Buildings',        count: buildingData?.features?.length   || 0, color: '#94a3b8' },
+            ].map((item, i) => (
+              <div key={i} style={{ background: '#141c2e', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: 3, background: item.color, flexShrink: 0 }}></div>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#f0f4ff' }}>{item.icon} {item.label}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: '0.75rem', color: item.count > 0 ? '#34d399' : '#64748b', fontWeight: 600 }}>{item.count} จุด</span>
+                  {item.count === 0 && <span style={{ fontSize: '0.68rem', color: '#475569', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: 6 }}>ว่างเปล่า</span>}
+                </div>
+              </div>
+            ))}
+
+            {/* Info box */}
+            <div style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: '0.76rem', color: '#93c5fd', lineHeight: 1.6 }}>
+              💡 {lang === 'th' ? 'เพิ่มข้อมูลได้ผ่าน Editor Studio → เลือก Layer → วาดจุดบนแผนที่' : 'Add data via Editor Studio → Select Layer → Draw on map'}
+            </div>
+          </div>
         )}
 
         {/* ═══════════ TAB: SOLAR POTENTIAL (Original Dashboard) ═══════════ */}

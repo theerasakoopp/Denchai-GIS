@@ -10,6 +10,15 @@ import { POI_DATA, POI_CATEGORIES } from './data/poi_data';
 import { INFRA_DATA, INFRA_CATEGORIES } from './data/infra_data';
 import { SERVICE_DATA, SERVICE_CATEGORIES } from './data/service_data';
 import { WATER_DATA, WATER_CATEGORIES } from './data/water_data';
+import {
+  STREETLIGHT_DATA, STREETLIGHT_CATEGORIES,
+  WATERMETER_DATA,  WATERMETER_CATEGORIES,
+  TRANSFORMER_DATA, TRANSFORMER_CATEGORIES,
+  TRASHBIN_DATA,    TRASHBIN_CATEGORIES,
+  HYDRANT_DATA,     HYDRANT_CATEGORIES,
+  DRAIN_DATA,       DRAIN_CATEGORIES,
+  BUILDING_DATA,    BUILDING_CATEGORIES,
+} from './data/smartcity_data';
 import './index.css';
 
 const API = 'http://localhost:8000';
@@ -131,6 +140,27 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
   );
   const [waterVisible, setWaterVisible] = useState(
     Object.fromEntries(Object.keys(WATER_CATEGORIES).map(k => [k, true]))
+  );
+  const [streetlightVisible, setStreetlightVisible] = useState(
+    Object.fromEntries(Object.keys(STREETLIGHT_CATEGORIES).map(k => [k, true]))
+  );
+  const [watermeterVisible, setWatermeterVisible] = useState(
+    Object.fromEntries(Object.keys(WATERMETER_CATEGORIES).map(k => [k, true]))
+  );
+  const [transformerVisible, setTransformerVisible] = useState(
+    Object.fromEntries(Object.keys(TRANSFORMER_CATEGORIES).map(k => [k, true]))
+  );
+  const [trashbinVisible, setTrashbinVisible] = useState(
+    Object.fromEntries(Object.keys(TRASHBIN_CATEGORIES).map(k => [k, true]))
+  );
+  const [hydrantVisible, setHydrantVisible] = useState(
+    Object.fromEntries(Object.keys(HYDRANT_CATEGORIES).map(k => [k, true]))
+  );
+  const [drainVisible, setDrainVisible] = useState(
+    Object.fromEntries(Object.keys(DRAIN_CATEGORIES).map(k => [k, true]))
+  );
+  const [buildingVisible, setBuildingVisible] = useState(
+    Object.fromEntries(Object.keys(BUILDING_CATEGORIES).map(k => [k, true]))
   );
 
   useEffect(() => {
@@ -470,6 +500,20 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         infraVisible={infraVisible} setInfraVisible={setInfraVisible}
         serviceVisible={serviceVisible} setServiceVisible={setServiceVisible}
         waterVisible={waterVisible} setWaterVisible={setWaterVisible}
+        streetlightData={STREETLIGHT_DATA} streetlightCategories={STREETLIGHT_CATEGORIES}
+        watermeterData={WATERMETER_DATA}   watermeterCategories={WATERMETER_CATEGORIES}
+        transformerData={TRANSFORMER_DATA} transformerCategories={TRANSFORMER_CATEGORIES}
+        trashbinData={TRASHBIN_DATA}       trashbinCategories={TRASHBIN_CATEGORIES}
+        hydrantData={HYDRANT_DATA}         hydrantCategories={HYDRANT_CATEGORIES}
+        drainData={DRAIN_DATA}             drainCategories={DRAIN_CATEGORIES}
+        buildingData={BUILDING_DATA}       buildingCategories={BUILDING_CATEGORIES}
+        streetlightVisible={streetlightVisible} setStreetlightVisible={setStreetlightVisible}
+        watermeterVisible={watermeterVisible}   setWatermeterVisible={setWatermeterVisible}
+        transformerVisible={transformerVisible} setTransformerVisible={setTransformerVisible}
+        trashbinVisible={trashbinVisible}       setTrashbinVisible={setTrashbinVisible}
+        hydrantVisible={hydrantVisible}         setHydrantVisible={setHydrantVisible}
+        drainVisible={drainVisible}             setDrainVisible={setDrainVisible}
+        buildingVisible={buildingVisible}       setBuildingVisible={setBuildingVisible}
         onSelectFeature={setSelectedFeature}
         onAddFeature={handleOpenAdd}
         onEditFeature={handleOpenEdit}
@@ -501,6 +545,13 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         infraVisible={infraVisible}
         serviceVisible={serviceVisible}
         waterVisible={waterVisible}
+        streetlightData={STREETLIGHT_DATA} streetlightVisible={streetlightVisible}
+        watermeterData={WATERMETER_DATA}   watermeterVisible={watermeterVisible}
+        transformerData={TRANSFORMER_DATA} transformerVisible={transformerVisible}
+        trashbinData={TRASHBIN_DATA}       trashbinVisible={trashbinVisible}
+        hydrantData={HYDRANT_DATA}         hydrantVisible={hydrantVisible}
+        drainData={DRAIN_DATA}             drainVisible={drainVisible}
+        buildingData={BUILDING_DATA}       buildingVisible={buildingVisible}
         selectedFeature={selectedFeature}
         isEditorMode={false}
         isPickingLocation={isPickingLocation}
