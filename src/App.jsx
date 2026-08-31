@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import UploadPage from './pages/UploadPage';
 import ProcessingPage from './pages/ProcessingPage';
 import EditorPage from './pages/EditorPage';
+import DashboardPage from './pages/DashboardPage';
 import { Loader2 } from 'lucide-react';
 import { POI_DATA, POI_CATEGORIES } from './data/poi_data';
 import { INFRA_DATA, INFRA_CATEGORIES } from './data/infra_data';
@@ -449,11 +450,25 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         </div>
       )}
 
-      {/* Top-Right Navigation Button to GIS Editor Studio */}
+      {/* Top-Right Navigation Buttons */}
       <div style={{
         position: 'absolute', top: 14, right: 16, zIndex: 2000,
-        display: 'flex', gap: 10, alignItems: 'center'
+        display: 'flex', gap: 8, alignItems: 'center'
       }}>
+        <Link
+          to="/dashboard"
+          style={{
+            padding: '8px 14px', background: 'linear-gradient(135deg, #0f2a1e, #0a1f2e)',
+            border: '1px solid #34d399', borderRadius: 10,
+            color: '#ffffff', textDecoration: 'none', fontSize: '0.78rem',
+            fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
+            fontFamily: 'Prompt, Inter, sans-serif'
+          }}
+          title={lang === 'th' ? 'Dashboard ผู้บริหาร' : 'Executive Dashboard'}
+        >
+          <span>📊</span>
+          <span>{lang === 'th' ? 'Dashboard ผู้บริหาร' : 'Dashboard'}</span>
+        </Link>
         <Link
           to="/editor"
           style={{
@@ -679,16 +694,8 @@ export default function App() {
             />
           }
         />
-        <Route
-          path="/editor"
-          element={
-            <EditorPage
-              lang={lang} setLang={setLang}
-              tariff={tariff} setTariff={setTariff}
-              systemCostPerKwp={systemCostPerKwp} setSystemCostPerKwp={setSystemCostPerKwp}
-            />
-          }
-        />
+        <Route path="/editor" element={<EditorPage lang={lang} setLang={setLang} tariff={tariff} setTariff={setTariff} systemCostPerKwp={systemCostPerKwp} setSystemCostPerKwp={setSystemCostPerKwp}/>}/>
+        <Route path="/dashboard" element={<DashboardPage lang={lang}/>}/>
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/processing/:jobId" element={<ProcessingPage />} />
         <Route
