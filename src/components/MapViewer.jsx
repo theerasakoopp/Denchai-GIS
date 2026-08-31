@@ -1716,6 +1716,29 @@ export default function MapViewer({
             setTimeout(() => {
               onEditFeatureRef.current?.(newRoadFeat, 'infra');
             }, 100);
+          } else if (activeDs === 'drain' && targetFeat.geometry?.type === 'LineString') {
+            const lenM = turf.length(targetFeat, { units: 'kilometers' }) * 1000;
+            const newDrainFeat = {
+              type: 'Feature',
+              id: `drain-${Date.now()}`,
+              geometry: targetFeat.geometry,
+              properties: {
+                id: `drain-${Date.now()}`,
+                name_th: '',
+                name_en: '',
+                category: 'main',
+                width_m: 1.0,
+                depth_m: 0.5,
+                material: 'คสล.',
+                condition: 'ดี',
+                length_m: Number(lenM.toFixed(1)),
+                description_th: `คูระบายน้ำที่วาดใหม่ ความยาว ${lenM.toFixed(0)} ม.`
+              }
+            };
+            drawingDatasetTypeRef.current = null;
+            setTimeout(() => {
+              onEditFeatureRef.current?.(newDrainFeat, 'drain');
+            }, 100);
           }
         });
         map.on('draw.update', updateMeasurements);
