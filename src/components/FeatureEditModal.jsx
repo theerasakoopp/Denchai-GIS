@@ -279,7 +279,7 @@ export default function FeatureEditModal({
 
   return (
     <div className="modal-backdrop" style={{ zIndex: 6000 }}>
-      <div className="modal-card" style={{ maxWidth: 520, width: '92%' }}>
+      <div className="modal-card" style={{ maxWidth: datasetType === 'building_sc' ? 780 : 520, width: '96%' }}>
         {/* Header */}
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -721,99 +721,183 @@ export default function FeatureEditModal({
             </div>
           )}
 
-          {/* ═══════════ Building Attributes (datasetType === 'building_sc') ═══════════ */}
+          {/* ═══════════ Building Attributes 3-column layout ═══════════ */}
           {datasetType === 'building_sc' && (
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>🏢</span>
-                <span>{lang === 'th' ? 'ข้อมูลอาคารและภาษีที่ดิน' : 'Building & Property Tax Data'}</span>
+            <div style={{ border: '0.5px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
+
+              {/* Header */}
+              <div style={{ padding: '10px 14px', background: '#f8fafc', borderBottom: '0.5px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <i className="ti ti-building-skyscraper" style={{ fontSize: 16, color: '#2563eb' }} aria-hidden="true" />
+                <span style={{ fontSize: '0.84rem', fontWeight: 600, color: '#1e293b' }}>
+                  {lang === 'th' ? 'ข้อมูลอาคารและภาษีที่ดินและสิ่งปลูกสร้าง' : 'Building & Property Tax Data'}
+                </span>
               </div>
 
-              {/* ── ที่ตั้ง ── */}
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.05em' }}>ที่ตั้ง</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                {[
-                  { key: 'house_no', label: 'เลขที่บ้าน', placeholder: 'เช่น 123/4' },
-                  { key: 'moo',      label: 'หมู่ที่',    placeholder: 'เช่น 5' },
-                  { key: 'road',     label: 'ถนน/ซอย',   placeholder: 'เช่น ถนนเด่นชัย-งาว' },
-                  { key: 'tambon',   label: 'ตำบล',      placeholder: 'เช่น เด่นชัย' },
-                ].map(f => (
-                  <div key={f.key}>
-                    <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>{f.label}</label>
-                    <input type="text" value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
-                      placeholder={f.placeholder} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem' }} />
-                  </div>
-                ))}
-              </div>
+              {/* 3 columns */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
 
-              {/* ── กายภาพ ── */}
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.05em' }}>กายภาพอาคาร</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                {[
-                  { key: 'floors',   label: 'จำนวนชั้น', type: 'number', placeholder: '2' },
-                  { key: 'area_sqm', label: 'พื้นที่ (ตร.ม.)', type: 'number', placeholder: '120' },
-                  { key: 'height_m', label: 'ความสูง (ม.)', type: 'number', placeholder: '7' },
-                  { key: 'width_m',  label: 'ความกว้าง (ม.)', type: 'number', placeholder: '8' },
-                  { key: 'length_m', label: 'ความยาว (ม.)', type: 'number', placeholder: '15' },
-                  { key: 'year_built', label: 'ปีที่สร้าง (พ.ศ.)', type: 'text', placeholder: '2545' },
-                ].map(f => (
-                  <div key={f.key}>
-                    <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>{f.label}</label>
-                    <input type={f.type} value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
-                      placeholder={f.placeholder} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem' }} />
+                {/* ── คอลัมน์ 1: ที่ตั้ง ── */}
+                <div style={{ padding: '12px 14px', borderRight: '0.5px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingBottom: 8, borderBottom: '0.5px solid #f1f5f9' }}>
+                    <i className="ti ti-map-pin" style={{ fontSize: 14, color: '#2563eb' }} aria-hidden="true" />
+                    <span style={{ fontSize: '0.76rem', fontWeight: 600, color: '#1e293b' }}>ที่ตั้งและระบุตัวตน</span>
                   </div>
-                ))}
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                <div>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>วัสดุผนัง</label>
-                  <select value={formData.wall_mat || ''} onChange={e => setFormData({ ...formData, wall_mat: e.target.value })}
-                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem' }}>
-                    {['คสล.','อิฐ','ไม้','เหล็ก','อื่นๆ'].map(v => <option key={v} value={v}>{v}</option>)}
-                  </select>
+                  {[
+                    { key: 'house_no', label: 'เลขที่บ้าน *', placeholder: '123/4' },
+                    { key: 'road',     label: 'ถนน/ซอย',     placeholder: 'ถนนเด่นชัย-งาว' },
+                    { key: 'name_th',  label: 'ชื่ออาคาร (ถ้ามี)', placeholder: 'เช่น ตลาดเทศบาล' },
+                  ].map(f => (
+                    <div key={f.key}>
+                      <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>{f.label}</label>
+                      <input type="text" value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
+                        placeholder={f.placeholder} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
+                    </div>
+                  ))}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                    <div>
+                      <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>หมู่ที่</label>
+                      <input type="text" value={formData.moo || ''} onChange={e => setFormData({ ...formData, moo: e.target.value })}
+                        placeholder="5" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>ตำบล</label>
+                      <input type="text" value={formData.tambon || ''} onChange={e => setFormData({ ...formData, tambon: e.target.value })}
+                        placeholder="เด่นชัย" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
+                    </div>
+                  </div>
+                  {/* GPS */}
+                  <div style={{ padding: 8, background: '#eff6ff', borderRadius: 8, border: '1px solid #bfdbfe' }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#1d4ed8', marginBottom: 5 }}>
+                      <i className="ti ti-current-location" style={{ fontSize: 12, marginRight: 4 }} aria-hidden="true" />พิกัด GPS
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+                      <input type="number" value={formData.lat || ''} onChange={e => setFormData({ ...formData, lat: parseFloat(e.target.value) })}
+                        placeholder="Lat: 17.985" style={{ padding: '5px 7px', borderRadius: 6, border: '1px solid #bfdbfe', fontSize: '0.76rem', background: '#fff' }} />
+                      <input type="number" value={formData.lon || ''} onChange={e => setFormData({ ...formData, lon: parseFloat(e.target.value) })}
+                        placeholder="Lng: 100.055" style={{ padding: '5px 7px', borderRadius: 6, border: '1px solid #bfdbfe', fontSize: '0.76rem', background: '#fff' }} />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>วัสดุหลังคา</label>
-                  <select value={formData.roof_mat || ''} onChange={e => setFormData({ ...formData, roof_mat: e.target.value })}
-                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem' }}>
-                    {['กระเบื้อง','สังกะสี','คสล.','อื่นๆ'].map(v => <option key={v} value={v}>{v}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: 3 }}>สภาพ</label>
-                  <select value={formData.condition || 'ดี'} onChange={e => setFormData({ ...formData, condition: e.target.value })}
-                    style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem' }}>
-                    {['ดี','ปานกลาง','ชำรุด','รื้อถอน'].map(v => <option key={v} value={v}>{v}</option>)}
-                  </select>
-                </div>
-              </div>
 
-              {/* ── ภาษีที่ดิน ── */}
-              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#92400e', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 4 }}>
-                ภาษีที่ดินและสิ่งปลูกสร้าง
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                {[
-                  { key: 'land_deed_no', label: 'เลขโฉนด/น.ส.3', placeholder: 'เช่น 1234' },
-                  { key: 'parcel_id',    label: 'รหัสแปลงที่ดิน', placeholder: 'เช่น 76010101001' },
-                  { key: 'owner_name',   label: 'ชื่อเจ้าของ', placeholder: 'นายสมชาย ใจดี' },
-                  { key: 'owner_id',     label: 'เลขบัตรประชาชน', placeholder: '13 หลัก' },
-                  { key: 'tax_value',    label: 'มูลค่าอาคาร (บาท)', placeholder: '500000' },
-                  { key: 'tax_year',     label: 'ปีภาษี (พ.ศ.)', placeholder: '2567' },
-                  { key: 'permit_no',    label: 'เลขที่ใบอนุญาตก่อสร้าง', placeholder: 'อ.1/2545' },
-                  { key: 'survey_date',  label: 'วันที่สำรวจ', placeholder: '2567-08-31' },
-                ].map(f => (
-                  <div key={f.key}>
-                    <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#92400e', display: 'block', marginBottom: 3 }}>{f.label}</label>
-                    <input type="text" value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
-                      placeholder={f.placeholder} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #fde68a', fontSize: '0.78rem', background: '#fffbeb' }} />
+                {/* ── คอลัมน์ 2: กายภาพ ── */}
+                <div style={{ padding: '12px 14px', borderRight: '0.5px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingBottom: 8, borderBottom: '0.5px solid #f1f5f9' }}>
+                    <i className="ti ti-ruler-measure" style={{ fontSize: 14, color: '#059669' }} aria-hidden="true" />
+                    <span style={{ fontSize: '0.76rem', fontWeight: 600, color: '#1e293b' }}>กายภาพอาคาร</span>
                   </div>
-                ))}
-              </div>
-              <div>
-                <label style={{ fontSize: '0.72rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: 3 }}>ผู้สำรวจ</label>
-                <input type="text" value={formData.surveyor || ''} onChange={e => setFormData({ ...formData, surveyor: e.target.value })}
-                  placeholder="ชื่อเจ้าหน้าที่" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: '0.78rem' }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                    {[
+                      { key: 'floors',     label: 'จำนวนชั้น',      placeholder: '2',    type: 'number' },
+                      { key: 'year_built', label: 'ปีสร้าง (พ.ศ.)',  placeholder: '2545', type: 'text' },
+                    ].map(f => (
+                      <div key={f.key}>
+                        <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>{f.label}</label>
+                        <input type={f.type} value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
+                          placeholder={f.placeholder} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>พื้นที่ก่อสร้าง (ตร.ม.)</label>
+                    <input type="number" value={formData.area_sqm || ''} onChange={e => setFormData({ ...formData, area_sqm: e.target.value })}
+                      placeholder="120" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 5 }}>
+                    {[
+                      { key: 'height_m', label: 'สูง (ม.)',   placeholder: '7' },
+                      { key: 'width_m',  label: 'กว้าง (ม.)', placeholder: '8' },
+                      { key: 'length_m', label: 'ยาว (ม.)',   placeholder: '15' },
+                    ].map(f => (
+                      <div key={f.key}>
+                        <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>{f.label}</label>
+                        <input type="number" value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
+                          placeholder={f.placeholder} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                    <div>
+                      <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>วัสดุผนัง</label>
+                      <select value={formData.wall_mat || 'คสล.'} onChange={e => setFormData({ ...formData, wall_mat: e.target.value })}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }}>
+                        {['คสล.','อิฐ','ไม้','เหล็ก','อื่นๆ'].map(v => <option key={v}>{v}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>วัสดุหลังคา</label>
+                      <select value={formData.roof_mat || 'กระเบื้อง'} onChange={e => setFormData({ ...formData, roof_mat: e.target.value })}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }}>
+                        {['กระเบื้อง','สังกะสี','คสล.','อื่นๆ'].map(v => <option key={v}>{v}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  {/* สภาพ toggle */}
+                  <div>
+                    <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 5 }}>สภาพอาคาร</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 5 }}>
+                      {['ดี','ปานกลาง','ชำรุด','รื้อถอน'].map(v => (
+                        <button key={v} type="button"
+                          onClick={() => setFormData({ ...formData, condition: v })}
+                          style={{
+                            padding: '5px 4px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 500,
+                            border: formData.condition === v ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
+                            background: formData.condition === v ? '#eff6ff' : '#fff',
+                            color: formData.condition === v ? '#1d4ed8' : '#64748b',
+                            cursor: 'pointer'
+                          }}>
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ── คอลัมน์ 3: ภาษี ── */}
+                <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, paddingBottom: 8, borderBottom: '0.5px solid #f1f5f9' }}>
+                    <i className="ti ti-receipt-tax" style={{ fontSize: 14, color: '#b45309' }} aria-hidden="true" />
+                    <span style={{ fontSize: '0.76rem', fontWeight: 600, color: '#1e293b' }}>ภาษีที่ดินและสิ่งปลูกสร้าง</span>
+                  </div>
+                  {[
+                    { key: 'land_deed_no', label: 'เลขโฉนด / น.ส.3',        placeholder: 'เช่น 1234' },
+                    { key: 'parcel_id',    label: 'รหัสแปลงที่ดิน',          placeholder: '76010101001' },
+                    { key: 'owner_name',   label: 'ชื่อเจ้าของ',              placeholder: 'นายสมชาย ใจดี' },
+                    { key: 'owner_id',     label: 'เลขบัตรประชาชน (13 หลัก)', placeholder: '1234567890123' },
+                    { key: 'permit_no',    label: 'เลขที่ใบอนุญาตก่อสร้าง',   placeholder: 'อ.1/2545' },
+                  ].map(f => (
+                    <div key={f.key}>
+                      <label style={{ fontSize: '0.7rem', color: '#92400e', display: 'block', marginBottom: 3 }}>{f.label}</label>
+                      <input type="text" value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
+                        placeholder={f.placeholder}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #fde68a', fontSize: '0.8rem', background: '#fffbeb' }} />
+                    </div>
+                  ))}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                    <div>
+                      <label style={{ fontSize: '0.7rem', color: '#92400e', display: 'block', marginBottom: 3 }}>มูลค่าอาคาร (บาท)</label>
+                      <input type="number" value={formData.tax_value || ''} onChange={e => setFormData({ ...formData, tax_value: e.target.value })}
+                        placeholder="500000" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #fde68a', fontSize: '0.8rem', background: '#fffbeb' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.7rem', color: '#92400e', display: 'block', marginBottom: 3 }}>ปีภาษี (พ.ศ.)</label>
+                      <input type="text" value={formData.tax_year || ''} onChange={e => setFormData({ ...formData, tax_year: e.target.value })}
+                        placeholder="2567" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #fde68a', fontSize: '0.8rem', background: '#fffbeb' }} />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                    <div>
+                      <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>วันที่สำรวจ</label>
+                      <input type="text" value={formData.survey_date || ''} onChange={e => setFormData({ ...formData, survey_date: e.target.value })}
+                        placeholder="2567-08-31" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>ผู้สำรวจ</label>
+                      <input type="text" value={formData.surveyor || ''} onChange={e => setFormData({ ...formData, surveyor: e.target.value })}
+                        placeholder="ชื่อเจ้าหน้าที่" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
