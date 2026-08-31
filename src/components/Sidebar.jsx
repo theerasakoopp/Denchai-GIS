@@ -555,44 +555,55 @@ export default function Sidebar({
   };
 
   const TABS = [
-    { key: 'poi',       icon: '📍', label: t.tabPoi },
-    { key: 'infra',     icon: '🏗️', label: t.tabInfra },
-    { key: 'water',     icon: '💧', label: lang === 'th' ? 'แหล่งน้ำ' : 'Water' },
-    { key: 'service',   icon: '🏥', label: t.tabService },
-    { key: 'smartcity', icon: '🏙️', label: lang === 'th' ? 'Smart City' : 'Smart City' },
+    { key: 'poi',     icon: 'ti-map-pin',            label: lang === 'th' ? 'สถานที่' : 'Places' },
+    { key: 'infra',   icon: 'ti-road',               label: lang === 'th' ? 'โครงสร้าง' : 'Infra' },
+    { key: 'water',   icon: 'ti-droplet',            label: lang === 'th' ? 'น้ำ' : 'Water' },
+    { key: 'service', icon: 'ti-heart-rate-monitor', label: lang === 'th' ? 'บริการ' : 'Service' },
   ];
 
   return (
     <aside className="sidebar">
-      {/* Header */}
+      {/* ── Header ── */}
       <div className="sidebar-header">
         <div className="brand-badge-container">
           <div className="brand-badge">
             <span className="brand-pulse" />
-            <span>{t.badgeSmartCity || t.badgeLive}</span>
+            <span>{lang === 'th' ? 'เมืองอัจฉริยะ' : 'Smart City'}</span>
           </div>
-
           <div className="lang-switch">
-            <button
-              className={`lang-btn ${lang === 'th' ? 'active' : ''}`}
-              onClick={() => setLang('th')}
-            >
-              🇹🇭 TH
-            </button>
-            <button
-              className={`lang-btn ${lang === 'en' ? 'active' : ''}`}
-              onClick={() => setLang('en')}
-            >
-              🇬🇧 EN
-            </button>
+            <button className={`lang-btn ${lang === 'th' ? 'active' : ''}`} onClick={() => setLang('th')}>TH</button>
+            <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>EN</button>
           </div>
         </div>
+        <h1 style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <i className="ti ti-building-community" style={{ fontSize:18, color:'#60a5fa' }} aria-hidden="true" />
+          {t.appTitle}
+        </h1>
+        <p style={{ fontSize:'0.72rem', color:'#475569', marginTop:2 }}>{t.appSubtitle}</p>
 
-        <h1>{t.appTitle}</h1>
-        <p>{t.appSubtitle}</p>
+        {/* ── Navigation buttons ── */}
+        <div style={{ display:'flex', gap:6, marginTop:10 }}>
+          {[
+            { href:'#/', icon:'ti-map', label: lang === 'th' ? 'แผนที่' : 'Map', active: true },
+            { href:'#/dashboard', icon:'ti-layout-dashboard', label: lang === 'th' ? 'Dashboard' : 'Dashboard', active: false },
+            { href:'#/editor', icon:'ti-pencil', label: lang === 'th' ? 'จัดการข้อมูล' : 'Editor', active: false },
+          ].map((b, i) => (
+            <a key={i} href={b.href} style={{
+              flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+              padding:'7px 6px', borderRadius:8, fontSize:11, fontWeight:700, textDecoration:'none',
+              border: b.active ? '1px solid rgba(59,130,246,0.4)' : '1px solid rgba(255,255,255,0.08)',
+              background: b.active ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.04)',
+              color: b.active ? '#60a5fa' : '#64748b',
+              transition:'all 0.15s'
+            }}>
+              <i className={`ti ${b.icon}`} style={{ fontSize:13 }} aria-hidden="true" />
+              {b.label}
+            </a>
+          ))}
+        </div>
       </div>
 
-      {/* ── Top Smart City Tab Navigation (Original Clean 5 Tabs) ── */}
+      {/* ── Tab Nav ── */}
       {setActiveTab && (
         <nav className="tab-nav">
           {TABS.map(tab => (
@@ -600,9 +611,8 @@ export default function Sidebar({
               key={tab.key}
               className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.key)}
-              title={tab.label}
             >
-              <span className="tab-icon">{tab.icon}</span>
+              <i className={`ti ${tab.icon} tab-icon`} aria-hidden="true" />
               <span>{tab.label}</span>
             </button>
           ))}
@@ -612,10 +622,19 @@ export default function Sidebar({
       {/* Main Scrollable Area */}
       <div className="sidebar-scroll">
 
-        {/* ── ปุ่มไปที่ Editor Studio (แสดงทุก Tab) ── */}
-        <a href="#/editor" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'9px 14px', background:'linear-gradient(135deg,#1e293b,#0f172a)', border:'1px solid #38bdf8', borderRadius:10, color:'#fff', textDecoration:'none', fontSize:'0.78rem', fontWeight:700, marginBottom:2 }}>
-          🛠️ {lang === 'th' ? 'เพิ่ม/แก้ไขข้อมูล → Editor Studio' : 'Add/Edit Data → Editor Studio'} ➔
-        </a>
+        {/* ── ปุ่มนำทางหลัก ── */}
+        <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:4 }}>
+          <a href="#/editor" style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', background:'rgba(30,41,59,0.8)', border:'1px solid rgba(56,189,248,0.4)', borderRadius:9, color:'#38bdf8', fontSize:'0.78rem', fontWeight:700, textDecoration:'none', transition:'all 0.15s' }}>
+            <i className="ti ti-pencil-plus" style={{ fontSize:15 }} aria-hidden="true" />
+            {lang === 'th' ? 'เพิ่ม / แก้ไขข้อมูล' : 'Add / Edit Data'}
+            <i className="ti ti-arrow-right" style={{ fontSize:13, marginLeft:'auto' }} aria-hidden="true" />
+          </a>
+          <a href="#/dashboard" style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.3)', borderRadius:9, color:'#34d399', fontSize:'0.78rem', fontWeight:700, textDecoration:'none', transition:'all 0.15s' }}>
+            <i className="ti ti-layout-dashboard" style={{ fontSize:15 }} aria-hidden="true" />
+            {lang === 'th' ? 'Dashboard ผู้บริหาร' : 'Executive Dashboard'}
+            <i className="ti ti-arrow-right" style={{ fontSize:13, marginLeft:'auto' }} aria-hidden="true" />
+          </a>
+        </div>
 
         {/* ═══════════ TAB: POI ═══════════ */}
         {activeTab === 'poi' && poiData && poiCategories && (
@@ -641,53 +660,74 @@ export default function Sidebar({
             categories={infraCategories}
             visibleCats={infraVisible || {}}
             setVisibleCats={setInfraVisible || (() => {})}
-            lang={lang}
-            t={t}
+            lang={lang} t={t}
             summaryIcon="🏗️"
             summaryLabel={t.infraHeader}
             onItemClick={onSelectFeature}
             datasetType="infra"
           />
 
-          {/* ── Smart City Layers ── */}
-          <div style={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'10px 14px' }}>
-            <div style={{ fontSize:'0.72rem', fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:8 }}>
-              🏙️ {lang === 'th' ? 'โครงสร้างพื้นฐานเมืองอัจฉริยะ' : 'Smart City Infrastructure'}
+          {/* ── กลุ่ม: ระบบไฟฟ้า ── */}
+          <div style={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.07)', borderRadius:10, overflow:'hidden' }}>
+            <div style={{ padding:'8px 12px', background:'rgba(255,255,255,0.03)', borderBottom:'1px solid rgba(255,255,255,0.05)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <span style={{ fontSize:11, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', display:'flex', alignItems:'center', gap:6 }}>
+                <i className="ti ti-bolt" style={{ fontSize:13 }} aria-hidden="true" /> {lang === 'th' ? 'ระบบไฟฟ้า' : 'Electrical'}
+              </span>
+              <span style={{ fontSize:10, background:'rgba(255,255,255,0.07)', color:'#64748b', padding:'2px 7px', borderRadius:99 }}>
+                {(streetlightData?.features?.length || 0) + (transformerData?.features?.length || 0)} จุด
+              </span>
             </div>
             {[
-              { icon:'💡', label: lang==='th' ? 'เสาไฟฟ้า/ไฟส่องสว่าง' : 'Street Lights',   count: streetlightData?.features?.length || 0, color:'#facc15' },
-              { icon:'💧', label: lang==='th' ? 'มิเตอร์น้ำ'           : 'Water Meters',    count: watermeterData?.features?.length  || 0, color:'#0ea5e9' },
-              { icon:'⚡', label: lang==='th' ? 'หม้อแปลงไฟฟ้า'       : 'Transformers',    count: transformerData?.features?.length || 0, color:'#eab308' },
-              { icon:'🗑️', label: lang==='th' ? 'ถังขยะ'              : 'Trash Bins',      count: trashbinData?.features?.length   || 0, color:'#64748b' },
-              { icon:'🚒', label: lang==='th' ? 'หัวจ่ายน้ำดับเพลิง' : 'Fire Hydrants',   count: hydrantData?.features?.length    || 0, color:'#ef4444' },
-              { icon:'🌊', label: lang==='th' ? 'แนวทางระบายน้ำ'      : 'Drainage Lines',  count: drainData?.features?.length      || 0, color:'#0284c7' },
-              { icon:'🏢', label: lang==='th' ? 'ชั้นอาคาร'           : 'Buildings',       count: buildingData?.features?.length   || 0, color:'#94a3b8' },
+              { icon:'ti-bulb', label: lang==='th' ? 'เสาไฟฟ้า/ไฟส่องสว่าง' : 'Street Lights', count: streetlightData?.features?.length || 0, color:'#facc15' },
+              { icon:'ti-bolt', label: lang==='th' ? 'หม้อแปลงไฟฟ้า' : 'Transformers',         count: transformerData?.features?.length  || 0, color:'#eab308' },
             ].map((item, i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'5px 0', borderBottom: i < 6 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                  <div style={{ width:8, height:8, borderRadius:2, background:item.color, flexShrink:0 }}></div>
-                  <span style={{ fontSize:'0.76rem', color:'#f0f4ff' }}>{item.icon} {item.label}</span>
-                </div>
-                <span style={{ fontSize:'0.72rem', color: item.count > 0 ? '#34d399' : '#475569', fontWeight:600 }}>
-                  {item.count > 0 ? `${item.count} จุด` : 'ว่างเปล่า'}
+              <div key={i} style={{ display:'flex', alignItems:'center', padding:'7px 12px 7px 24px', borderBottom:'1px solid rgba(255,255,255,0.03)', cursor:'pointer' }}>
+                <i className={`ti ${item.icon}`} style={{ fontSize:13, color:item.color, marginRight:8, flexShrink:0 }} aria-hidden="true" />
+                <span style={{ fontSize:12, color:'#c8d3e8', flex:1 }}>{item.label}</span>
+                <span style={{ fontSize:11, fontWeight:600, color: item.count > 0 ? '#34d399' : '#475569' }}>
+                  {item.count > 0 ? `${item.count} จุด` : lang === 'th' ? 'ว่างเปล่า' : 'Empty'}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* ── กลุ่ม: สิ่งแวดล้อมและความปลอดภัย ── */}
+          <div style={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.07)', borderRadius:10, overflow:'hidden' }}>
+            <div style={{ padding:'8px 12px', background:'rgba(255,255,255,0.03)', borderBottom:'1px solid rgba(255,255,255,0.05)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <span style={{ fontSize:11, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', display:'flex', alignItems:'center', gap:6 }}>
+                <i className="ti ti-shield-check" style={{ fontSize:13 }} aria-hidden="true" /> {lang === 'th' ? 'สิ่งแวดล้อมและความปลอดภัย' : 'Safety & Environment'}
+              </span>
+              <span style={{ fontSize:10, background:'rgba(255,255,255,0.07)', color:'#64748b', padding:'2px 7px', borderRadius:99 }}>
+                {(trashbinData?.features?.length || 0) + (hydrantData?.features?.length || 0) + (drainData?.features?.length || 0)} จุด
+              </span>
+            </div>
+            {[
+              { icon:'ti-trash',          label: lang==='th' ? 'ถังขยะ' : 'Trash Bins',         count: trashbinData?.features?.length || 0, color:'#64748b' },
+              { icon:'ti-fire-hydrant',   label: lang==='th' ? 'หัวจ่ายน้ำดับเพลิง' : 'Hydrants', count: hydrantData?.features?.length  || 0, color:'#ef4444' },
+              { icon:'ti-wave-sine',      label: lang==='th' ? 'แนวระบายน้ำ' : 'Drainage',       count: drainData?.features?.length    || 0, color:'#0284c7' },
+            ].map((item, i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', padding:'7px 12px 7px 24px', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.03)' : 'none', cursor:'pointer' }}>
+                <i className={`ti ${item.icon}`} style={{ fontSize:13, color:item.color, marginRight:8, flexShrink:0 }} aria-hidden="true" />
+                <span style={{ fontSize:12, color:'#c8d3e8', flex:1 }}>{item.label}</span>
+                <span style={{ fontSize:11, fontWeight:600, color: item.count > 0 ? '#34d399' : '#475569' }}>
+                  {item.count > 0 ? `${item.count} จุด` : lang === 'th' ? 'ว่างเปล่า' : 'Empty'}
                 </span>
               </div>
             ))}
           </div>
 
           {/* ── ขอบเขตเทศบาล ── */}
-          <div style={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.08)', borderRadius:10, padding:'10px 14px' }}>
-            <div style={{ fontSize:'0.72rem', fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:8 }}>
-              🗺️ {lang === 'th' ? 'ขอบเขตการปกครอง' : 'Administrative Boundary'}
+          <div style={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.07)', borderRadius:10, padding:'10px 14px' }}>
+            <div style={{ fontSize:11, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:8, display:'flex', alignItems:'center', gap:6 }}>
+              <i className="ti ti-map-2" style={{ fontSize:13 }} aria-hidden="true" />
+              {lang === 'th' ? 'ขอบเขตการปกครอง' : 'Administrative Boundary'}
             </div>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'6px 0' }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                 <svg width="28" height="10"><line x1="0" y1="5" x2="8" y2="5" stroke="#888" strokeWidth="1.5" strokeDasharray="4,2"/><circle cx="12" cy="5" r="1.5" fill="#888"/><line x1="16" y1="5" x2="28" y2="5" stroke="#888" strokeWidth="1.5" strokeDasharray="4,2"/></svg>
-                <span style={{ fontSize:'0.78rem', fontWeight:600, color:'#f0f4ff' }}>
-                  {lang === 'th' ? 'แนวเขตเทศบาลตำบลเด่นชัย' : 'Denchai Municipal Boundary'}
-                </span>
+                <span style={{ fontSize:12, fontWeight:600, color:'#f0f4ff' }}>{lang === 'th' ? 'แนวเขตเทศบาลตำบลเด่นชัย' : 'Denchai Municipal Boundary'}</span>
               </div>
-              <span style={{ fontSize:'0.72rem', color:'#34d399', background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.2)', padding:'2px 8px', borderRadius:99 }}>
+              <span style={{ fontSize:10, color:'#34d399', background:'rgba(16,185,129,0.1)', border:'1px solid rgba(16,185,129,0.2)', padding:'2px 8px', borderRadius:99 }}>
                 {lang === 'th' ? 'แสดงตลอด' : 'Always On'}
               </span>
             </div>
@@ -695,85 +735,79 @@ export default function Sidebar({
           </>
         )}
 
-        {/* ═══════════ TAB: WATER BODIES (POLYGON) ═══════════ */}
+        {/* ═══════════ TAB: WATER ═══════════ */}
         {activeTab === 'water' && waterData && waterCategories && (
+          <>
           <CategoryListPanel
             data={waterData}
             categories={waterCategories}
             visibleCats={waterVisible || {}}
             setVisibleCats={setWaterVisible || (() => {})}
-            lang={lang}
-            t={t}
+            lang={lang} t={t}
             summaryIcon="💧"
             summaryLabel={t.waterHeader || 'แหล่งน้ำและแหล่งกักเก็บน้ำ'}
             onItemClick={onSelectFeature}
             datasetType="water"
           />
+
+          {/* ── กลุ่ม: ระบบประปาและน้ำ ── */}
+          <div style={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.07)', borderRadius:10, overflow:'hidden' }}>
+            <div style={{ padding:'8px 12px', background:'rgba(255,255,255,0.03)', borderBottom:'1px solid rgba(255,255,255,0.05)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <span style={{ fontSize:11, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', display:'flex', alignItems:'center', gap:6 }}>
+                <i className="ti ti-droplet-half-2" style={{ fontSize:13 }} aria-hidden="true" /> {lang === 'th' ? 'ระบบประปาและน้ำ' : 'Water System'}
+              </span>
+              <span style={{ fontSize:10, background:'rgba(255,255,255,0.07)', color:'#64748b', padding:'2px 7px', borderRadius:99 }}>
+                {watermeterData?.features?.length || 0} จุด
+              </span>
+            </div>
+            <div style={{ display:'flex', alignItems:'center', padding:'7px 12px 7px 24px', cursor:'pointer' }}>
+              <i className="ti ti-gauge" style={{ fontSize:13, color:'#0ea5e9', marginRight:8, flexShrink:0 }} aria-hidden="true" />
+              <span style={{ fontSize:12, color:'#c8d3e8', flex:1 }}>{lang === 'th' ? 'มิเตอร์น้ำ' : 'Water Meters'}</span>
+              <span style={{ fontSize:11, fontWeight:600, color: (watermeterData?.features?.length || 0) > 0 ? '#34d399' : '#475569' }}>
+                {(watermeterData?.features?.length || 0) > 0 ? `${watermeterData.features.length} จุด` : lang === 'th' ? 'ว่างเปล่า' : 'Empty'}
+              </span>
+            </div>
+          </div>
+          </>
         )}
 
         {/* ═══════════ TAB: PUBLIC SERVICES ═══════════ */}
         {activeTab === 'service' && serviceData && serviceCategories && (
+          <>
           <CategoryListPanel
             data={serviceData}
             categories={serviceCategories}
             visibleCats={serviceVisible || {}}
             setVisibleCats={setServiceVisible || (() => {})}
-            lang={lang}
-            t={t}
+            lang={lang} t={t}
             summaryIcon="🏥"
             summaryLabel={t.serviceHeader}
             onItemClick={onSelectFeature}
             datasetType="service"
           />
+
+          {/* ── กลุ่ม: ชุมชนและอาคาร ── */}
+          <div style={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.07)', borderRadius:10, overflow:'hidden' }}>
+            <div style={{ padding:'8px 12px', background:'rgba(255,255,255,0.03)', borderBottom:'1px solid rgba(255,255,255,0.05)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <span style={{ fontSize:11, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', display:'flex', alignItems:'center', gap:6 }}>
+                <i className="ti ti-building" style={{ fontSize:13 }} aria-hidden="true" /> {lang === 'th' ? 'ชุมชนและอาคาร' : 'Community and Buildings'}
+              </span>
+              <span style={{ fontSize:10, background:'rgba(255,255,255,0.07)', color:'#64748b', padding:'2px 7px', borderRadius:99 }}>
+                {buildingData?.features?.length || 0} จุด
+              </span>
+            </div>
+            <div style={{ display:'flex', alignItems:'center', padding:'7px 12px 7px 24px', cursor:'pointer' }}>
+              <i className="ti ti-building-skyscraper" style={{ fontSize:13, color:'#94a3b8', marginRight:8, flexShrink:0 }} aria-hidden="true" />
+              <span style={{ fontSize:12, color:'#c8d3e8', flex:1 }}>{lang === 'th' ? 'ชั้นอาคาร' : 'Buildings'}</span>
+              <span style={{ fontSize:11, fontWeight:600, color: (buildingData?.features?.length || 0) > 0 ? '#34d399' : '#475569' }}>
+                {(buildingData?.features?.length || 0) > 0 ? `${buildingData.features.length} จุด` : lang === 'th' ? 'ว่างเปล่า' : 'Empty'}
+              </span>
+            </div>
+          </div>
+          </>
         )}
 
         {/* ═══════════ TAB: SMART CITY ═══════════ */}
-        {activeTab === 'smartcity' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {/* Header */}
-            <div style={{ background: 'linear-gradient(135deg,rgba(59,130,246,0.15),rgba(139,92,246,0.1))', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 10, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 24 }}>🏙️</span>
-              <div>
-                <div style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Smart City Layers</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#f0f4ff' }}>โครงสร้างพื้นฐานเมือง</div>
-              </div>
-            </div>
-
-            {/* Summary stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-              {[
-                { icon:'💡', label:'เสาไฟฟ้า',    count: streetlightData?.features?.length || 0 },
-                { icon:'💧', label:'มิเตอร์น้ำ',   count: watermeterData?.features?.length  || 0 },
-                { icon:'⚡', label:'หม้อแปลง',     count: transformerData?.features?.length || 0 },
-                { icon:'🗑️', label:'ถังขยะ',       count: trashbinData?.features?.length   || 0 },
-                { icon:'🚒', label:'หัวจ่ายน้ำ',   count: hydrantData?.features?.length    || 0 },
-                { icon:'🌊', label:'ระบายน้ำ',     count: drainData?.features?.length      || 0 },
-              ].map((item, i) => (
-                <div key={i} style={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.08)', borderRadius:8, padding:'8px 10px', display:'flex', alignItems:'center', gap:8 }}>
-                  <span style={{ fontSize:'1rem' }}>{item.icon}</span>
-                  <div>
-                    <div style={{ fontSize:'0.68rem', color:'#64748b' }}>{item.label}</div>
-                    <div style={{ fontSize:'0.9rem', fontWeight:700, color: item.count > 0 ? '#34d399' : '#475569' }}>{item.count} <span style={{ fontSize:'0.65rem', fontWeight:400 }}>จุด</span></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Link to infra tab */}
-            <button onClick={() => setActiveTab('infra')} style={{ padding:'10px', borderRadius:8, background:'linear-gradient(135deg,#2563eb,#3b82f6)', border:'none', color:'#fff', fontWeight:700, fontSize:'0.8rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-              🏗️ {lang === 'th' ? 'ดูรายละเอียดใน Tab โครงสร้างพื้นฐาน' : 'View in Infrastructure Tab'} →
-            </button>
-
-            {/* GitHub Sync Panel */}
-            <GitHubSyncPanel lang={lang} />
-
-            {/* Info box */}
-            <div style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)', borderRadius: 10, padding: '10px 14px', fontSize: '0.76rem', color: '#93c5fd', lineHeight: 1.6 }}>
-              💡 {lang === 'th' ? 'เพิ่มข้อมูลได้ผ่าน Editor Studio → เลือก Layer → วาดจุดบนแผนที่' : 'Add data via Editor Studio → Select Layer → Draw on map'}
-            </div>
-          </div>
-        )}
-
         {/* ═══════════ TAB: SOLAR POTENTIAL (Original Dashboard) ═══════════ */}
         {activeTab === 'solar' && (
           <>

@@ -260,14 +260,23 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
   // ── Current Dataset Context ──
   const currentDataset = useMemo(() => {
     switch (activeLayer) {
-      case 'poi':     return { type: 'poi',     name: lang === 'th' ? 'สถานที่สำคัญ (POI)' : 'Points of Interest', data: poiData, categories: POI_CATEGORIES, icon: '📍' };
-      case 'infra':   return { type: 'infra',   name: lang === 'th' ? 'โครงข่ายถนน/คมนาคม' : 'Roads & Infrastructure', data: infraData, categories: INFRA_CATEGORIES, icon: '🛣️' };
-      case 'water':   return { type: 'water',   name: lang === 'th' ? 'แหล่งน้ำ (Polygon)' : 'Water Bodies', data: waterData, categories: WATER_CATEGORIES, icon: '💧' };
-      case 'service': return { type: 'service', name: lang === 'th' ? 'บริการสาธารณะ' : 'Public Services', data: serviceData, categories: SERVICE_CATEGORIES, icon: '🏥' };
-      case 'solar':   return { type: 'solar',   name: lang === 'th' ? 'ผืนหลังคาโซลาร์ (Facets)' : 'Solar Rooftops', data: geoDataFacets, categories: ROOF_CLASSES, icon: '☀️' };
-      default:        return { type: 'poi',     name: 'POI', data: poiData, categories: POI_CATEGORIES, icon: '📍' };
+      case 'poi':         return { type: 'poi',         name: lang === 'th' ? 'สถานที่สำคัญ (POI)' : 'Points of Interest',    data: poiData,          categories: POI_CATEGORIES,         icon: '📍' };
+      case 'infra':       return { type: 'infra',       name: lang === 'th' ? 'โครงข่ายถนน/คมนาคม' : 'Roads & Infrastructure', data: infraData,        categories: INFRA_CATEGORIES,       icon: '🛣️' };
+      case 'water':       return { type: 'water',       name: lang === 'th' ? 'แหล่งน้ำ (Polygon)' : 'Water Bodies',           data: waterData,        categories: WATER_CATEGORIES,       icon: '💧' };
+      case 'service':     return { type: 'service',     name: lang === 'th' ? 'บริการสาธารณะ' : 'Public Services',            data: serviceData,      categories: SERVICE_CATEGORIES,     icon: '🏥' };
+      case 'solar':       return { type: 'solar',       name: lang === 'th' ? 'ผืนหลังคาโซลาร์' : 'Solar Rooftops',           data: geoDataFacets,    categories: ROOF_CLASSES,           icon: '☀️' };
+      case 'streetlight': return { type: 'streetlight', name: lang === 'th' ? 'เสาไฟฟ้า/ไฟส่องสว่าง' : 'Street Lights',       data: streetlightData,  categories: STREETLIGHT_CATEGORIES, icon: '💡' };
+      case 'watermeter':  return { type: 'watermeter',  name: lang === 'th' ? 'มิเตอร์น้ำ' : 'Water Meters',                  data: watermeterData,   categories: WATERMETER_CATEGORIES,  icon: '💧' };
+      case 'transformer': return { type: 'transformer', name: lang === 'th' ? 'หม้อแปลงไฟฟ้า' : 'Transformers',               data: transformerData,  categories: TRANSFORMER_CATEGORIES, icon: '⚡' };
+      case 'trashbin':    return { type: 'trashbin',    name: lang === 'th' ? 'ถังขยะ' : 'Trash Bins',                        data: trashbinData,     categories: TRASHBIN_CATEGORIES,    icon: '🗑️' };
+      case 'hydrant':     return { type: 'hydrant',     name: lang === 'th' ? 'หัวจ่ายน้ำดับเพลิง' : 'Fire Hydrants',          data: hydrantData,      categories: HYDRANT_CATEGORIES,     icon: '🚒' };
+      case 'drain':       return { type: 'drain',       name: lang === 'th' ? 'แนวทางระบายน้ำ' : 'Drainage',                   data: drainData,        categories: DRAIN_CATEGORIES,       icon: '🌊' };
+      case 'building_sc': return { type: 'building_sc', name: lang === 'th' ? 'ชั้นอาคาร' : 'Buildings',                      data: buildingScData,   categories: BUILDING_CATEGORIES,    icon: '🏢' };
+      default:            return { type: 'poi',         name: 'POI',                                                           data: poiData,          categories: POI_CATEGORIES,         icon: '📍' };
     }
-  }, [activeLayer, poiData, infraData, serviceData, waterData, geoDataFacets, lang]);
+  }, [activeLayer, poiData, infraData, serviceData, waterData, geoDataFacets,
+      streetlightData, watermeterData, transformerData, trashbinData,
+      hydrantData, drainData, buildingScData, lang]);
 
   // Filtered items
   const items = useMemo(() => {
@@ -628,45 +637,37 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
 
           {/* Web Digitizing Action Box */}
           <div style={{
-            background: '#ffffff', border: '1px solid #bfdbfe',
-            borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10,
-            boxShadow: '0 2px 8px rgba(37,99,235,0.06)'
+            background: '#f8fafc', border: '1px solid #e2e8f0',
+            borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, fontSize: '0.8rem', color: '#1e293b' }}>
-                <PenTool size={15} color="#2563eb" />
-                <span>{lang === 'th' ? 'เครื่องมือวาดบนแผนที่ (Digitizing)' : 'Web Digitizing Tools'}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontWeight: 700, fontSize: '0.8rem', color: '#1e293b' }}>
+                <i className="ti ti-pencil-plus" style={{ fontSize: 16, color: '#2563eb' }} aria-hidden="true" />
+                <span>{lang === 'th' ? 'เครื่องมือจัดการข้อมูล' : 'Data Tools'}</span>
               </div>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600 }}>
+              <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, background: '#f1f5f9', padding: '2px 8px', borderRadius: 99 }}>
                 {currentDataset.data?.features?.length || 0} {lang === 'th' ? 'รายการ' : 'items'}
               </span>
             </div>
 
-            {/* GPS + Template buttons */}
+            {/* GPS + Template */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-              <button
-                type="button"
-                style={{ padding: '7px 8px', borderRadius: 8, border: '1px solid #10b981', background: 'rgba(16,185,129,0.08)', color: '#059669', fontSize: '0.74rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+              <button type="button" style={{ padding: '8px 6px', borderRadius: 8, border: '1px solid rgba(16,185,129,0.4)', background: 'rgba(16,185,129,0.06)', color: '#059669', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'all 0.15s' }}
                 onClick={() => {
                   if (!navigator.geolocation) { alert('Browser ไม่รองรับ GPS'); return; }
                   navigator.geolocation.getCurrentPosition(
-                    pos => {
-                      const { latitude, longitude } = pos.coords;
-                      alert(`📍 ตำแหน่งของคุณ:\nLat: ${latitude.toFixed(6)}\nLng: ${longitude.toFixed(6)}\n\nคัดลอกพิกัดนี้ใส่ใน CSV หรือกด "+ เพิ่มจุด" แล้วแผนที่จะ zoom มาหาคุณ`);
-                    },
+                    pos => { const { latitude, longitude } = pos.coords; alert(`ตำแหน่งของคุณ:\nLat: ${latitude.toFixed(6)}\nLng: ${longitude.toFixed(6)}`); },
                     err => alert('ไม่สามารถดึง GPS ได้: ' + err.message),
                     { enableHighAccuracy: true }
                   );
-                }}
-              >
-                📍 GPS ตำแหน่งฉัน
+                }}>
+                <i className="ti ti-current-location" style={{ fontSize: 14 }} aria-hidden="true" />
+                GPS ตำแหน่งฉัน
               </button>
-              <button
-                type="button"
-                style={{ padding: '7px 8px', borderRadius: 8, border: '1px solid #6366f1', background: 'rgba(99,102,241,0.08)', color: '#4f46e5', fontSize: '0.74rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
-                onClick={() => downloadCSVTemplate(activeLayer)}
-              >
-                📋 Template CSV
+              <button type="button" style={{ padding: '8px 6px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.4)', background: 'rgba(99,102,241,0.06)', color: '#4f46e5', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'all 0.15s' }}
+                onClick={() => downloadCSVTemplate(activeLayer)}>
+                <i className="ti ti-template" style={{ fontSize: 14 }} aria-hidden="true" />
+                Template CSV
               </button>
             </div>
 
@@ -743,36 +744,36 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
                 }}
                 onClick={() => handleOpenAdd(activeLayer)}
               >
-                {activeLayer === 'service' ? t.addServiceBtn : t.addPoiBtn}
+                📍 + {
+                  activeLayer === 'service'     ? (lang === 'th' ? 'เพิ่มบริการสาธารณะ' : 'Add Service') :
+                  activeLayer === 'streetlight' ? (lang === 'th' ? 'เพิ่มเสาไฟฟ้า' : 'Add Streetlight') :
+                  activeLayer === 'watermeter'  ? (lang === 'th' ? 'เพิ่มมิเตอร์น้ำ' : 'Add Water Meter') :
+                  activeLayer === 'transformer' ? (lang === 'th' ? 'เพิ่มหม้อแปลงไฟฟ้า' : 'Add Transformer') :
+                  activeLayer === 'trashbin'    ? (lang === 'th' ? 'เพิ่มถังขยะ' : 'Add Trash Bin') :
+                  activeLayer === 'hydrant'     ? (lang === 'th' ? 'เพิ่มหัวจ่ายน้ำดับเพลิง' : 'Add Hydrant') :
+                  activeLayer === 'drain'       ? (lang === 'th' ? 'เพิ่มแนวระบายน้ำ' : 'Add Drainage') :
+                  activeLayer === 'building_sc' ? (lang === 'th' ? 'เพิ่มอาคาร' : 'Add Building') :
+                  activeLayer === 'water'       ? (lang === 'th' ? 'เพิ่มแหล่งน้ำ' : 'Add Water Body') :
+                  activeLayer === 'infra'       ? (lang === 'th' ? 'เพิ่มสิ่งก่อสร้าง' : 'Add Infrastructure') :
+                  (lang === 'th' ? 'เพิ่มสถานที่ใหม่' : 'Add New Place')
+                }
               </button>
             )}
 
-            {/* Import / Export File Actions */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, borderTop: '1px solid #f1f5f9', paddingTop: 8 }}>
-              <button
-                type="button"
-                className="btn btn-sm"
-                style={{ justifyContent: 'center', fontSize: '0.72rem', padding: '6px 8px' }}
-                onClick={() => fileInputRef.current?.click()}
-                title="Import GeoJSON, Shapefile ZIP, CSV, Excel"
-              >
-                <Upload size={13} /> {lang === 'th' ? 'นำเข้าไฟล์ (CSV/Excel/GeoJSON)' : 'Import File'}
+            {/* Import / Export */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, borderTop: '1px solid #e2e8f0', paddingTop: 8 }}>
+              <button type="button"
+                style={{ padding: '7px 6px', borderRadius: 8, border: '1px solid rgba(99,102,241,0.35)', background: 'rgba(99,102,241,0.06)', color: '#4f46e5', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                onClick={() => fileInputRef.current?.click()} title="Import CSV, Excel, GeoJSON, Shapefile">
+                <i className="ti ti-upload" style={{ fontSize: 14 }} aria-hidden="true" />
+                {lang === 'th' ? 'นำเข้าไฟล์' : 'Import'}
               </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                accept=".geojson,.json,.zip,.csv,.xlsx,.xls"
-                onChange={handleImportFile}
-              />
-              <button
-                type="button"
-                className="btn btn-sm"
-                style={{ justifyContent: 'center', fontSize: '0.72rem', padding: '6px 8px' }}
-                onClick={() => handleExportData(activeLayer)}
-                title="Export Layer GeoJSON"
-              >
-                <Download size={13} /> {lang === 'th' ? 'ส่งออก GeoJSON' : 'Export'}
+              <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept=".geojson,.json,.zip,.csv,.xlsx,.xls" onChange={handleImportFile} />
+              <button type="button"
+                style={{ padding: '7px 6px', borderRadius: 8, border: '1px solid rgba(100,116,139,0.35)', background: 'rgba(100,116,139,0.06)', color: '#475569', fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}
+                onClick={() => handleExportData(activeLayer)}>
+                <i className="ti ti-download" style={{ fontSize: 14 }} aria-hidden="true" />
+                {lang === 'th' ? 'ส่งออก GeoJSON' : 'Export'}
               </button>
             </div>
           </div>
