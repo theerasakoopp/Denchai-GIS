@@ -1837,7 +1837,7 @@ export default function MapViewer({
     const isWater = activeTab === 'water';
     if (map.getLayer('water-fill')) map.setLayoutProperty('water-fill', 'visibility', 'visible');
     if (map.getLayer('water-line')) map.setLayoutProperty('water-line', 'visibility', 'visible');
-    if (map.getLayer('water-label')) map.setLayoutProperty('water-label', 'visibility', isWater || activeTab === 'poi' ? 'visible' : 'none');
+    if (map.getLayer('water-label')) map.setLayoutProperty('water-label', 'visibility', 'none');
 
     // Service layers
     const isService = activeTab === 'service';
