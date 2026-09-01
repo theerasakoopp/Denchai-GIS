@@ -396,6 +396,7 @@ export default function MapViewer({
   const infraDataRef = useRef(infraData);
   const serviceDataRef = useRef(serviceData);
   const waterDataRef = useRef(waterData);
+  const buildingScDataRef = useRef(buildingScData);
   const isPickingLocationRef = useRef(isPickingLocation);
   const onLocationPickedRef = useRef(onLocationPicked);
   const onEditFeatureRef = useRef(onEditFeature);
@@ -412,6 +413,7 @@ export default function MapViewer({
   useEffect(() => { buildingsDataRef.current = buildingsData; }, [buildingsData]);
   useEffect(() => { poiDataRef.current = poiData; }, [poiData]);
   useEffect(() => { infraDataRef.current = infraData; }, [infraData]);
+  useEffect(() => { buildingScDataRef.current = buildingScData; }, [buildingScData]);
   useEffect(() => { serviceDataRef.current = serviceData; }, [serviceData]);
   useEffect(() => { waterDataRef.current = waterData; }, [waterData]);
   useEffect(() => { isPickingLocationRef.current = isPickingLocation; }, [isPickingLocation]);
@@ -885,7 +887,8 @@ export default function MapViewer({
         'infra-circle',
         'infra-line',
         'facets-fill',
-        'bldgs-fill'
+        'bldgs-fill',
+        'building-sc-fill',
       ];
       const ql = allInteractiveLayers.filter(
         id => mapInstance.getLayer(id) && mapInstance.getLayoutProperty(id, 'visibility') !== 'none'
@@ -900,6 +903,87 @@ export default function MapViewer({
       const layerId = feat.layer.id;
       const curT = translations[langRef.current] || translations.th;
       const curLang = langRef.current || 'th';
+
+      // 0.8 Building SC Polygon — click to edit or reshape
+      if (layerId === 'building-sc-fill') {
+        const origFeat = buildingScDataRef.current?.features?.find(
+          f => (f.properties?.id || f.id) === (p.id || feat.id)
+        ) || feat;
+        const name = p.name_th || p.house_no || `อาคาร ${p.id || ''}`;
+        const cat  = BUILDING_CATEGORIES[p.category] || { name_th: 'อาคาร', color: '#64748b' };
+        const area = p.area_sqm ? Number(p.area_sqm).toLocaleString() : '-';
+
+        popupRef.current.setLngLat(e.lngLat).setHTML(`
+          <div style="font-family:'Sarabun','Noto Sans Thai',sans-serif;min-width:200px">
+            <div style="font-size:0.95rem;font-weight:700;color:#f8fafc;border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:6px;margin-bottom:8px;display:flex;align-items:center;gap:8px">
+              <span>🏢</span><span>${name}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;font-size:0.78rem">
+              <div style="display:flex;justify-content:space-between">
+                <span style="color:#94a3b8">ประเภท</span>
+                <span style="color:${cat.color};font-weight:600">${cat.name_th}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between">
+                <span style="color:#94a3b8">พื้นที่</span>
+                <span style="color:#f8fafc">${area} ตร.ม.</span>
+              </div>
+              ${p.floors ? `<div style="display:flex;justify-content:space-between"><span style="color:#94a3b8">ชั้น</span><span style="color:#f8fafc">${p.floors} ชั้น</span></div>` : ''}
+              ${p.owner_name ? `<div style="display:flex;justify-content:space-between"><span style="color:#94a3b8">เจ้าของ</span><span style="color:#f8fafc">${p.owner_name}</span></div>` : ''}
+            </div>
+            <div style="display:flex;gap:6px;margin-top:10px">
+              <button id="bldg-edit-btn" style="flex:1;padding:6px 8px;border-radius:6px;border:none;background:#2563eb;color:#fff;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit">✏️ แก้ไขข้อมูล</button>
+              <button id="bldg-reshape-btn" style="flex:1;padding:6px 8px;border-radius:6px;border:1px solid rgba(16,185,129,0.4);background:rgba(16,185,129,0.1);color:#34d399;font-size:0.75rem;font-weight:600;cursor:pointer;font-family:inherit">⬡ ปรับรูปร่าง</button>
+            </div>
+            <button id="bldg-delete-btn" style="width:100%;margin-top:5px;padding:5px;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#f87171;font-size:0.72rem;cursor:pointer;font-family:inherit">🗑️ ลบอาคาร</button>
+          </div>
+        `).addTo(mapInstance);
+
+        setTimeout(() => {
+          document.getElementById('bldg-edit-btn')?.addEventListener('click', () => {
+            popupRef.current.remove();
+            onEditFeatureRef.current?.(origFeat, 'building_sc');
+          });
+          document.getElementById('bldg-reshape-btn')?.addEventListener('click', () => {
+            popupRef.current.remove();
+            // โหลด polygon เข้า MapboxDraw สำหรับ reshape
+            if (drawRef.current) {
+              drawRef.current.deleteAll();
+              drawRef.current.add(origFeat);
+              const ids = drawRef.current.getAll().features.map(f => f.id);
+              if (ids.length) drawRef.current.changeMode('direct_select', { featureId: ids[0] });
+              setActiveDrawMode('reshape_building');
+              mapInstance.getCanvas().style.cursor = 'crosshair';
+              // เมื่อ draw.update → บันทึก geometry ใหม่
+              const onUpdate = (ev) => {
+                const updated = ev.features?.[0];
+                if (!updated) return;
+                const newFeat = {
+                  ...origFeat,
+                  geometry: updated.geometry,
+                  properties: {
+                    ...origFeat.properties,
+                    area_sqm: Number(turf.area(updated).toFixed(1))
+                  }
+                };
+                onEditFeatureRef.current?.(newFeat, 'building_sc');
+                drawRef.current?.deleteAll();
+                setActiveDrawMode('none');
+                mapInstance.getCanvas().style.cursor = '';
+                mapInstance.off('draw.update', onUpdate);
+              };
+              mapInstance.on('draw.update', onUpdate);
+            }
+          });
+          document.getElementById('bldg-delete-btn')?.addEventListener('click', () => {
+            const nm = p.name_th || p.house_no || 'อาคารนี้';
+            if (window.confirm(`ลบ "${nm}" ออกจากระบบใช่หรือไม่?`)) {
+              popupRef.current.remove();
+              onDeleteFeatureRef.current?.(p.id || feat.id, 'building_sc');
+            }
+          });
+        }, 50);
+        return;
+      }
 
       // 0.9 Water Body Polygon popup
       if (layerId === 'water-fill') {
@@ -1273,8 +1357,10 @@ export default function MapViewer({
       const ql = allInteractiveLayers.filter(
         id => mapInstance.getLayer(id) && mapInstance.getLayoutProperty(id, 'visibility') !== 'none'
       );
-      const feats = ql.length ? mapInstance.queryRenderedFeatures(e.point, { layers: ql }) : [];
-      // ไม่เปลี่ยน cursor ถ้าอยู่ใน draw mode อยู่แล้ว
+      const hovLayers = allInteractiveLayers.filter(
+        id => mapInstance.getLayer(id) && mapInstance.getLayoutProperty(id, 'visibility') !== 'none'
+      );
+      const feats = hovLayers.length ? mapInstance.queryRenderedFeatures(e.point, { layers: hovLayers }) : [];
       const inDrawMode = activeDrawModeRef.current !== 'none';
       if (!inDrawMode) {
         mapInstance.getCanvas().style.cursor = feats.length ? 'pointer' : '';
