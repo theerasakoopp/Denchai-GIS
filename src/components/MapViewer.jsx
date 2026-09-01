@@ -320,53 +320,111 @@ function lngLatToUTM47N(lng, lat) {
   return { E: E.toFixed(1), N: N2.toFixed(1) };
 }
 
-// ── Generate Grid Lines GeoJSON ────────────────────────────────────
 function generateGridGeoJSON(bounds, type = 'wgs84') {
+  if (type === 'utm47n') return generateGridGeoJSONUTM(bounds);
+
+  // WGS84 grid
   const features = [];
-  if (type === 'wgs84') {
-    const { west, east, south, north } = bounds;
-    const span = east - west;
-    const step = span > 0.5 ? 0.1 : span > 0.1 ? 0.05 : span > 0.02 ? 0.01 : 0.005;
-    const round = (v, s) => Math.round(v / s) * s;
-    for (let lng = round(west, step); lng <= east; lng = Math.round((lng + step) * 10000) / 10000) {
-      features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: [[lng, south], [lng, north]] }, properties: { label: `${lng.toFixed(4)}°E`, type: 'vertical' } });
-    }
-    for (let lat = round(south, step); lat <= north; lat = Math.round((lat + step) * 10000) / 10000) {
-      features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: [[west, lat], [east, lat]] }, properties: { label: `${lat.toFixed(4)}°N`, type: 'horizontal' } });
-    }
-  } else {
-    // UTM grid — 1km intervals
-    const { west, east, south, north } = bounds;
-    const sw = lngLatToUTM47N(west, south);
-    const ne = lngLatToUTM47N(east, north);
-    const eMin = Math.floor(parseFloat(sw.E) / 1000) * 1000;
-    const eMax = Math.ceil(parseFloat(ne.E) / 1000) * 1000;
-    const nMin = Math.floor(parseFloat(sw.N) / 1000) * 1000;
-    const nMax = Math.ceil(parseFloat(ne.N) / 1000) * 1000;
-    const step = (eMax - eMin) > 20000 ? 5000 : 1000;
-    for (let e = eMin; e <= eMax; e += step) {
-      const pts = [];
-      for (let n = nMin; n <= nMax; n += 500) {
-        const lat = approxLatFromUTM(e, n); const lng = approxLngFromUTM(e, n);
-        if (lat >= south && lat <= north && lng >= west && lng <= east) pts.push([lng, lat]);
-      }
-      if (pts.length > 1) features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: pts }, properties: { label: `E${e}`, type: 'vertical' } });
-    }
-    for (let n = nMin; n <= nMax; n += step) {
-      const pts = [];
-      for (let e2 = eMin; e2 <= eMax; e2 += 500) {
-        const lat = approxLatFromUTM(e2, n); const lng = approxLngFromUTM(e2, n);
-        if (lat >= south && lat <= north && lng >= west && lng <= east) pts.push([lng, lat]);
-      }
-      if (pts.length > 1) features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: pts }, properties: { label: `N${n}`, type: 'horizontal' } });
-    }
+  const { west, east, south, north } = bounds;
+  const span = east - west;
+  const step = span > 0.5 ? 0.1 : span > 0.1 ? 0.05 : span > 0.02 ? 0.01 : 0.005;
+  const round = (v, s) => Math.round(v / s) * s;
+  const snap = (v) => Math.round(v * 100000) / 100000;
+
+  for (let lng = round(west, step); lng <= east + step/2; lng = snap(lng + step)) {
+    const l = snap(lng);
+    features.push({
+      type: 'Feature',
+      geometry: { type: 'LineString', coordinates: [[l, south], [l, north]] },
+      properties: { label: `${l.toFixed(4)}°E`, type: 'vertical' }
+    });
+  }
+  for (let lat = round(south, step); lat <= north + step/2; lat = snap(lat + step)) {
+    const l = snap(lat);
+    features.push({
+      type: 'Feature',
+      geometry: { type: 'LineString', coordinates: [[west, l], [east, l]] },
+      properties: { label: `${l.toFixed(4)}°N`, type: 'horizontal' }
+    });
   }
   return { type: 'FeatureCollection', features };
 }
 
-// approximate inverse UTM (simplified for zone 47N)
-function approxLatFromUTM(E, N) { return (N - 500000 * 0) / 111320; }
-function approxLngFromUTM(E, N) { return 99 + (E - 500000) / (111320 * Math.cos((N/111320) * Math.PI/180)); }
+// ── Inverse UTM Zone 47N → WGS84 (proper approximation) ─────────
+function utmToLngLat(E, N) {
+  // Zone 47N: central meridian = 99°E
+  const k0 = 0.9996, a = 6378137.0, f = 1/298.257223563;
+  const e2 = 2*f - f*f;
+  const e1 = (1 - Math.sqrt(1-e2)) / (1 + Math.sqrt(1-e2));
+  const x = E - 500000;
+  const y = N; // northern hemisphere N0=0
+  const M = y / k0;
+  const mu = M / (a * (1 - e2/4 - 3*e2**2/64 - 5*e2**3/256));
+  const phi1 = mu
+    + (3*e1/2 - 27*e1**3/32) * Math.sin(2*mu)
+    + (21*e1**2/16 - 55*e1**4/32) * Math.sin(4*mu)
+    + (151*e1**3/96) * Math.sin(6*mu);
+  const N1 = a / Math.sqrt(1 - e2*Math.sin(phi1)**2);
+  const T1 = Math.tan(phi1)**2;
+  const C1 = e2/(1-e2) * Math.cos(phi1)**2;
+  const R1 = a*(1-e2) / Math.pow(1 - e2*Math.sin(phi1)**2, 1.5);
+  const D = x / (N1 * k0);
+  const lat = phi1 - (N1*Math.tan(phi1)/R1)*(D**2/2 - (5+3*T1+10*C1-4*C1**2-9*e2/(1-e2))*D**4/24);
+  const lon0 = 99 * Math.PI / 180; // Zone 47 central meridian
+  const lon = lon0 + (D - (1+2*T1+C1)*D**3/6) / Math.cos(phi1);
+  return { lat: lat * 180/Math.PI, lng: lon * 180/Math.PI };
+}
+
+function generateGridGeoJSONUTM(bounds) {
+  const features = [];
+  const { west, east, south, north } = bounds;
+  const sw = lngLatToUTM47N(west, south);
+  const ne = lngLatToUTM47N(east, north);
+  const eMin = Math.floor(parseFloat(sw.E) / 1000) * 1000;
+  const eMax = Math.ceil(parseFloat(ne.E) / 1000) * 1000;
+  const nMin = Math.floor(parseFloat(sw.N) / 1000) * 1000;
+  const nMax = Math.ceil(parseFloat(ne.N) / 1000) * 1000;
+  const span = eMax - eMin;
+  const step = span > 20000 ? 5000 : span > 5000 ? 2000 : 1000;
+  const innerStep = step / 5;
+
+  // Vertical lines (constant Easting)
+  for (let e = eMin; e <= eMax; e += step) {
+    const pts = [];
+    for (let n = nMin; n <= nMax; n += innerStep) {
+      const { lat, lng } = utmToLngLat(e, n);
+      if (lat >= south-0.01 && lat <= north+0.01 && lng >= west-0.01 && lng <= east+0.01) {
+        pts.push([lng, lat]);
+      }
+    }
+    if (pts.length >= 2) {
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: pts },
+        properties: { label: `E ${e.toLocaleString()}`, type: 'vertical' }
+      });
+    }
+  }
+
+  // Horizontal lines (constant Northing)
+  for (let n = nMin; n <= nMax; n += step) {
+    const pts = [];
+    for (let e = eMin; e <= eMax; e += innerStep) {
+      const { lat, lng } = utmToLngLat(e, n);
+      if (lat >= south-0.01 && lat <= north+0.01 && lng >= west-0.01 && lng <= east+0.01) {
+        pts.push([lng, lat]);
+      }
+    }
+    if (pts.length >= 2) {
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: pts },
+        properties: { label: `N ${n.toLocaleString()}`, type: 'horizontal' }
+      });
+    }
+  }
+  return { type: 'FeatureCollection', features };
+}
 
 // ── Module-level Pin Image Creator (ใช้ซ้ำได้ทุก scope) ────────────
 const PIN_W = 32, PIN_H = 44;
