@@ -162,18 +162,18 @@ const SERVICE_COLOR_MATCH = [
 const INFRA_COLOR_MATCH = [
   'match',
   ['get', 'category'],
-  'highway', '#ea580c',
-  'rural_road', '#0284c7',
-  'main_road', '#f59e0b',
-  'collector_road', '#fb923c',
-  'local_road', '#64748b',
-  'agri_road', '#10b981',
-  'planned_road', '#ec4899',
-  'rail', '#581c87',
-  'bridge', '#dc2626',
-  'water', '#06b6d4',
-  'electric', '#eab308',
-  '#ea580c'
+  'highway',       '#c2410c',
+  'rural_road',    '#0369a1',
+  'main_road',     '#d97706',
+  'collector_road','#ea580c',
+  'local_road',    '#94a3b8',
+  'agri_road',     '#16a34a',
+  'planned_road',  '#db2777',
+  'rail',          '#6d28d9',
+  'bridge',        '#b91c1c',
+  'water',         '#0891b2',
+  'electric',      '#ca8a04',
+  '#d97706'
 ];
 
 export const WATER_COLOR_MATCH = [
@@ -1428,8 +1428,8 @@ export default function MapViewer({
           filter: ['==', ['geometry-type'], 'LineString'],
           paint: {
             'line-color': '#000000',
-            'line-width': 6,
-            'line-opacity': 0.7
+            'line-width': 3.5,
+            'line-opacity': 0.25
           }
         },
         {
@@ -1441,20 +1441,22 @@ export default function MapViewer({
           paint: {
             'line-color': INFRA_COLOR_MATCH,
             'line-width': [
-              'match',
-              ['get', 'category'],
-              'highway', 5.0,
-              'rural_road', 3.8,
-              'main_road', 3.8,
-              'collector_road', 2.8,
-              'local_road', 2.2,
-              'agri_road', 2.0,
-              'planned_road', 2.5,
-              'rail', 3.5,
-              'bridge', 4.0,
-              2.5
+              'match', ['get', 'category'],
+              'highway',       3.5,
+              'rural_road',    2.5,
+              'main_road',     2.5,
+              'collector_road',2.0,
+              'local_road',    1.5,
+              'agri_road',     1.5,
+              'planned_road',  1.8,
+              'rail',          2.5,
+              'bridge',        2.8,
+              1.8
             ],
-            'line-opacity': 0.95
+            'line-opacity': ['match', ['get', 'category'],
+              'planned_road', 0.6,
+              0.85
+            ]
           }
         },
         {
@@ -1465,9 +1467,9 @@ export default function MapViewer({
           filter: ['all', ['==', ['geometry-type'], 'LineString'], ['==', ['get', 'category'], 'rail']],
           paint: {
             'line-color': '#ffffff',
-            'line-width': 2.0,
-            'line-dasharray': [2, 2],
-            'line-opacity': 0.95
+            'line-width': 1.2,
+            'line-dasharray': [3, 3],
+            'line-opacity': 0.7
           }
         },
 
@@ -1534,15 +1536,16 @@ export default function MapViewer({
           id: 'poi-circle',
           type: 'symbol',
           source: 'poi-src',
+          minzoom: 12,
           layout: {
             visibility: 'visible',
             'icon-image': ['coalesce',
               ['image', ['concat', 'poi-pin-', ['get', 'category']]],
               ['image', 'poi-pin-default']
             ],
-            'icon-size': 0.9,
+            'icon-size': ['interpolate', ['linear'], ['zoom'], 12, 0.6, 15, 0.9, 18, 1.1],
             'icon-anchor': 'bottom',
-            'icon-allow-overlap': true,
+            'icon-allow-overlap': false,
             'icon-ignore-placement': false,
           },
           paint: {}
@@ -2094,6 +2097,9 @@ export default function MapViewer({
 
     if (!poiData?.features) return;
 
+    const zoom = map.getZoom();
+    if (zoom < 13) return; // ไม่แสดง label เมื่อ zoom ออกไกล
+
     poiData.features.forEach(f => {
       const coords = f.geometry?.coordinates;
       const name   = f.properties?.name_th;
@@ -2102,7 +2108,6 @@ export default function MapViewer({
       const cat   = f.properties?.category || 'default';
       const color = POI_CATEGORIES[cat]?.color || '#3b82f6';
 
-      // สร้าง HTML element สำหรับ label
       const el = document.createElement('div');
       el.style.cssText = [
         'position:absolute',
@@ -2131,6 +2136,17 @@ export default function MapViewer({
 
       poiLabelMarkersRef.current.push(marker);
     });
+
+    // ซ่อน/แสดงตาม zoom
+    const onZoom = () => {
+      const z = map.getZoom();
+      const visible = z >= 13;
+      poiLabelMarkersRef.current.forEach(m => {
+        m.getElement().style.display = visible ? 'block' : 'none';
+      });
+    };
+    map.on('zoom', onZoom);
+    return () => map.off('zoom', onZoom);
   }, [poiData, mapLoaded]);
   useEffect(() => {
     const map = mapRef.current;
