@@ -337,16 +337,18 @@ export default function FeatureEditModal({
         {/* Error alert */}
         {error && (
           <div style={{
-            margin: '0 20px 12px', padding: '8px 12px', borderRadius: 8,
+            margin: '0 20px 8px', padding: '8px 12px', borderRadius: 8,
             background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c',
-            fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6
+            fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6,
+            flexShrink: 0
           }}>
             <AlertCircle size={15} /> {error}
           </div>
         )}
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Form Body — scrollable */}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '0 20px 8px', display: 'flex', flexDirection: 'column', gap: 14, WebkitOverflowScrolling: 'touch' }}>
           {/* Category selection */}
           {!isSolar && categories && Object.keys(categories).length > 0 && (
             <div>
@@ -1171,10 +1173,12 @@ export default function FeatureEditModal({
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons — sticky footer */}
+          </div>{/* end scrollable body */}
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            marginTop: 8, paddingTop: 14, borderTop: '1px solid var(--border-subtle)'
+            padding: '12px 20px', borderTop: '1px solid #f1f5f9',
+            background: '#fff', flexShrink: 0
           }}>
             {!isNew ? (
               <button
