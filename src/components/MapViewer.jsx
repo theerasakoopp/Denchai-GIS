@@ -298,6 +298,76 @@ const MAPLIBRE_DRAW_THEME = [
 
 const fmt = (n) => new Intl.NumberFormat('en-US').format(Math.round(n || 0));
 
+// ── UTM Zone 47N Conversion (WGS84 → UTM) ─────────────────────────
+function lngLatToUTM47N(lng, lat) {
+  const a = 6378137.0, f = 1/298.257223563;
+  const k0 = 0.9996, E0 = 500000, N0 = lat < 0 ? 10000000 : 0;
+  const lon0 = (47 - 1) * 6 - 180 + 3; // Zone 47 central meridian = 99°E
+  const e2 = 2*f - f*f;
+  const n = f/(2-f);
+  const latR = lat * Math.PI/180;
+  const lonR = lng * Math.PI/180;
+  const lon0R = lon0 * Math.PI/180;
+  const N = a / Math.sqrt(1 - e2 * Math.sin(latR)**2);
+  const T = Math.tan(latR)**2;
+  const C = (e2/(1-e2)) * Math.cos(latR)**2;
+  const A = Math.cos(latR) * (lonR - lon0R);
+  const M = a * ((1 - e2/4 - 3*e2**2/64)*latR
+    - (3*e2/8 + 3*e2**2/32)*Math.sin(2*latR)
+    + (15*e2**2/256)*Math.sin(4*latR));
+  const E = E0 + k0*N*(A + (1-T+C)*A**3/6 + (5-18*T+T**2)*A**5/120);
+  const N2 = N0 + k0*(M + N*Math.tan(latR)*(A**2/2 + (5-T+9*C+4*C**2)*A**4/24));
+  return { E: E.toFixed(1), N: N2.toFixed(1) };
+}
+
+// ── Generate Grid Lines GeoJSON ────────────────────────────────────
+function generateGridGeoJSON(bounds, type = 'wgs84') {
+  const features = [];
+  if (type === 'wgs84') {
+    const { west, east, south, north } = bounds;
+    const span = east - west;
+    const step = span > 0.5 ? 0.1 : span > 0.1 ? 0.05 : span > 0.02 ? 0.01 : 0.005;
+    const round = (v, s) => Math.round(v / s) * s;
+    for (let lng = round(west, step); lng <= east; lng = Math.round((lng + step) * 10000) / 10000) {
+      features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: [[lng, south], [lng, north]] }, properties: { label: `${lng.toFixed(4)}°E`, type: 'vertical' } });
+    }
+    for (let lat = round(south, step); lat <= north; lat = Math.round((lat + step) * 10000) / 10000) {
+      features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: [[west, lat], [east, lat]] }, properties: { label: `${lat.toFixed(4)}°N`, type: 'horizontal' } });
+    }
+  } else {
+    // UTM grid — 1km intervals
+    const { west, east, south, north } = bounds;
+    const sw = lngLatToUTM47N(west, south);
+    const ne = lngLatToUTM47N(east, north);
+    const eMin = Math.floor(parseFloat(sw.E) / 1000) * 1000;
+    const eMax = Math.ceil(parseFloat(ne.E) / 1000) * 1000;
+    const nMin = Math.floor(parseFloat(sw.N) / 1000) * 1000;
+    const nMax = Math.ceil(parseFloat(ne.N) / 1000) * 1000;
+    const step = (eMax - eMin) > 20000 ? 5000 : 1000;
+    for (let e = eMin; e <= eMax; e += step) {
+      const pts = [];
+      for (let n = nMin; n <= nMax; n += 500) {
+        const lat = approxLatFromUTM(e, n); const lng = approxLngFromUTM(e, n);
+        if (lat >= south && lat <= north && lng >= west && lng <= east) pts.push([lng, lat]);
+      }
+      if (pts.length > 1) features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: pts }, properties: { label: `E${e}`, type: 'vertical' } });
+    }
+    for (let n = nMin; n <= nMax; n += step) {
+      const pts = [];
+      for (let e2 = eMin; e2 <= eMax; e2 += 500) {
+        const lat = approxLatFromUTM(e2, n); const lng = approxLngFromUTM(e2, n);
+        if (lat >= south && lat <= north && lng >= west && lng <= east) pts.push([lng, lat]);
+      }
+      if (pts.length > 1) features.push({ type: 'Feature', geometry: { type: 'LineString', coordinates: pts }, properties: { label: `N${n}`, type: 'horizontal' } });
+    }
+  }
+  return { type: 'FeatureCollection', features };
+}
+
+// approximate inverse UTM (simplified for zone 47N)
+function approxLatFromUTM(E, N) { return (N - 500000 * 0) / 111320; }
+function approxLngFromUTM(E, N) { return 99 + (E - 500000) / (111320 * Math.cos((N/111320) * Math.PI/180)); }
+
 // ── Module-level Pin Image Creator (ใช้ซ้ำได้ทุก scope) ────────────
 const PIN_W = 32, PIN_H = 44;
 function createPinImage(color) {
@@ -431,6 +501,10 @@ export default function MapViewer({
   const [mapLoaded, setMapLoaded] = useState(false);
   const [currentBasemap, setCurrentBasemap] = useState('uav');
   const [activeDrawMode, setActiveDrawMode] = useState('none');
+  const [is3D, setIs3D] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
+  const [coordSystem, setCoordSystem] = useState('wgs84'); // 'wgs84' | 'utm47n'
+  const [cursorCoords, setCursorCoords] = useState(null);
   const [measureInfo, setMeasureInfo] = useState(null);
   const [editingRoadId, setEditingRoadId] = useState(null);
   const [editingRoadName, setEditingRoadName] = useState('');
@@ -1417,7 +1491,8 @@ export default function MapViewer({
         'service-src': { type: 'geojson', data: serviceData || SERVICE_DATA },
         'water-src': { type: 'geojson', data: waterData || WATER_DATA },
         // ── Snap Indicator Source ────────────────────────────
-        'snap-src': { type: 'geojson', data: { type: 'FeatureCollection', features: [] } }
+        'snap-src': { type: 'geojson', data: { type: 'FeatureCollection', features: [] } },
+        'grid-src':  { type: 'geojson', data: { type: 'FeatureCollection', features: [] } }
       },
       layers: [
         // ── 1. Base Satellite (Underneath UAV) ───────────────
@@ -1790,6 +1865,40 @@ export default function MapViewer({
             'line-width': 0,
             'line-opacity': 0,
             'line-dasharray': [8, 4, 1, 4]
+          }
+        },
+
+        // ── 10.5 Grid Lines ──────────────────────────────────
+        {
+          id: 'grid-line',
+          type: 'line',
+          source: 'grid-src',
+          layout: { visibility: 'none' },
+          paint: {
+            'line-color': '#38bdf8',
+            'line-width': 0.5,
+            'line-opacity': 0.4,
+            'line-dasharray': [4, 4]
+          }
+        },
+        {
+          id: 'grid-label',
+          type: 'symbol',
+          source: 'grid-src',
+          minzoom: 12,
+          layout: {
+            visibility: 'none',
+            'text-field': ['get', 'label'],
+            'text-font': ['Arial Unicode MS Regular'],
+            'text-size': 10,
+            'text-anchor': 'center',
+            'symbol-placement': 'line',
+            'text-keep-upright': true,
+          },
+          paint: {
+            'text-color': '#38bdf8',
+            'text-halo-color': '#0a0f1e',
+            'text-halo-width': 2,
           }
         },
 
@@ -2282,6 +2391,59 @@ export default function MapViewer({
     }
   }, [poiData, infraData, serviceData, waterData, mapLoaded]);
 
+  // ── 2D/3D Toggle + Lock in Editor Mode ──────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    if (isEditorMode) {
+      // Editor → always 2D
+      map.easeTo({ pitch: 0, bearing: 0, duration: 400 });
+    } else if (is3D) {
+      map.easeTo({ pitch: 45, duration: 600 });
+    } else {
+      map.easeTo({ pitch: 0, bearing: 0, duration: 400 });
+    }
+  }, [is3D, isEditorMode, mapLoaded]);
+
+  // ── Grid Layer Update ─────────────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    const gridSrc = map.getSource('grid-src');
+    if (!gridSrc) return;
+    const vis = showGrid ? 'visible' : 'none';
+    if (map.getLayer('grid-line'))  map.setLayoutProperty('grid-line',  'visibility', vis);
+    if (map.getLayer('grid-label')) map.setLayoutProperty('grid-label', 'visibility', vis);
+    if (!showGrid) return;
+
+    const updateGrid = () => {
+      const b = map.getBounds();
+      const bounds = { west: b.getWest(), east: b.getEast(), south: b.getSouth(), north: b.getNorth() };
+      gridSrc.setData(generateGridGeoJSON(bounds, coordSystem));
+    };
+    updateGrid();
+    map.on('moveend', updateGrid);
+    return () => map.off('moveend', updateGrid);
+  }, [showGrid, coordSystem, mapLoaded]);
+
+  // ── Cursor Coordinate Display ──────────────────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    const onMove = (e) => {
+      const { lng, lat } = e.lngLat;
+      if (coordSystem === 'utm47n') {
+        const utm = lngLatToUTM47N(lng, lat);
+        setCursorCoords({ E: utm.E, N: utm.N, system: 'utm47n' });
+      } else {
+        setCursorCoords({ lat: lat.toFixed(6), lng: lng.toFixed(6), system: 'wgs84' });
+      }
+    };
+    map.on('mousemove', onMove);
+    map.on('mouseleave', () => setCursorCoords(null));
+    return () => { map.off('mousemove', onMove); };
+  }, [coordSystem, mapLoaded]);
+
   // ── Sync buildingScData → building-sc-src ──────────────────────
   useEffect(() => {
     const map = mapRef.current;
@@ -2519,7 +2681,50 @@ export default function MapViewer({
             <Focus size={14} color="#38bdf8" /> {lang === 'th' ? 'ซูมขอบเขต' : 'Fit'}
           </button>
 
-          {/* Viewer Measurement Tools */}
+          {/* ── View Controls ── */}
+          <div style={{ display:'flex', alignItems:'center', gap:4, borderLeft:'1px solid rgba(255,255,255,0.18)', marginLeft:4, paddingLeft:8 }}>
+            {/* 2D/3D Toggle */}
+            <div style={{ display:'flex', background:'rgba(0,0,0,0.3)', borderRadius:6, padding:2, gap:2 }}>
+              <button type="button"
+                className={`basemap-btn ${!is3D ? 'active' : ''}`}
+                style={{ padding:'4px 9px', fontSize:'0.72rem' }}
+                onClick={() => setIs3D(false)} title="2D — มุมมองจากบน">
+                2D
+              </button>
+              <button type="button"
+                className={`basemap-btn ${is3D ? 'active' : ''}`}
+                style={{ padding:'4px 9px', fontSize:'0.72rem' }}
+                onClick={() => setIs3D(true)} title="3D — มุมเอียง 45°">
+                3D
+              </button>
+            </div>
+
+            {/* Grid Toggle */}
+            <button type="button"
+              className={`basemap-btn ${showGrid ? 'active' : ''}`}
+              style={{ padding:'4px 9px', fontSize:'0.72rem' }}
+              onClick={() => setShowGrid(v => !v)}
+              title={lang === 'th' ? 'เส้นกริดแผนที่' : 'Map Grid'}>
+              <i className="ti ti-grid-dots" style={{ fontSize:13 }} aria-hidden="true" />
+              {lang === 'th' ? 'กริด' : 'Grid'}
+            </button>
+
+            {/* Coordinate System */}
+            <div style={{ display:'flex', background:'rgba(0,0,0,0.3)', borderRadius:6, padding:2, gap:2 }}>
+              <button type="button"
+                className={`basemap-btn ${coordSystem === 'wgs84' ? 'active' : ''}`}
+                style={{ padding:'4px 8px', fontSize:'0.68rem', fontFamily:'monospace' }}
+                onClick={() => setCoordSystem('wgs84')} title="พิกัดภูมิศาสตร์ WGS84 (Lat/Lng)">
+                WGS84
+              </button>
+              <button type="button"
+                className={`basemap-btn ${coordSystem === 'utm47n' ? 'active' : ''}`}
+                style={{ padding:'4px 8px', fontSize:'0.68rem', fontFamily:'monospace' }}
+                onClick={() => setCoordSystem('utm47n')} title="พิกัดกริด UTM Zone 47N (E/N)">
+                UTM47N
+              </button>
+            </div>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, borderLeft: '1px solid rgba(255,255,255,0.2)', marginLeft: 4, paddingLeft: 8 }}>
             <button
               type="button"
@@ -2589,6 +2794,36 @@ export default function MapViewer({
                 {icon} {label}
               </button>
             ))}
+
+            {/* 2D Lock indicator */}
+            <div style={{ display:'flex', alignItems:'center', gap:4, borderLeft:'1px solid rgba(255,255,255,0.15)', marginLeft:4, paddingLeft:8 }}>
+              <div style={{ padding:'4px 9px', borderRadius:6, background:'rgba(59,130,246,0.2)', border:'1px solid rgba(59,130,246,0.4)', color:'#60a5fa', fontSize:'0.72rem', fontWeight:600, display:'flex', alignItems:'center', gap:5 }}>
+                <i className="ti ti-lock" style={{ fontSize:12 }} aria-hidden="true" />
+                2D
+              </div>
+
+              {/* Grid Toggle */}
+              <button type="button"
+                className={`basemap-btn ${showGrid ? 'active' : ''}`}
+                style={{ padding:'4px 9px', fontSize:'0.72rem' }}
+                onClick={() => setShowGrid(v => !v)}
+                title="เส้นกริดแผนที่">
+                <i className="ti ti-grid-dots" style={{ fontSize:13 }} aria-hidden="true" />
+                กริด
+              </button>
+
+              {/* Coordinate System */}
+              <div style={{ display:'flex', background:'rgba(0,0,0,0.3)', borderRadius:6, padding:2, gap:2 }}>
+                <button type="button"
+                  className={`basemap-btn ${coordSystem === 'wgs84' ? 'active' : ''}`}
+                  style={{ padding:'4px 8px', fontSize:'0.68rem', fontFamily:'monospace' }}
+                  onClick={() => setCoordSystem('wgs84')}>WGS84</button>
+                <button type="button"
+                  className={`basemap-btn ${coordSystem === 'utm47n' ? 'active' : ''}`}
+                  style={{ padding:'4px 8px', fontSize:'0.68rem', fontFamily:'monospace' }}
+                  onClick={() => setCoordSystem('utm47n')}>UTM47N</button>
+              </div>
+            </div>
             <button
               type="button"
               className="basemap-btn"
@@ -3097,6 +3332,35 @@ export default function MapViewer({
           </div>
         </div>
       )}
+
+      {/* ── Cursor Coordinate Display ── */}
+      {cursorCoords && (
+        <div style={{
+          position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(10,15,30,0.88)', backdropFilter: 'blur(8px)',
+          border: '1px solid rgba(56,189,248,0.3)', borderRadius: 8,
+          padding: '5px 12px', zIndex: 900, display: 'flex', alignItems: 'center', gap: 10,
+          fontFamily: 'monospace', fontSize: 12, color: '#7dd3fc',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+          pointerEvents: 'none', whiteSpace: 'nowrap'
+        }}>
+          <i className="ti ti-current-location" style={{ fontSize: 13, color: '#38bdf8' }} aria-hidden="true" />
+          {cursorCoords.system === 'utm47n' ? (
+            <span>
+              <span style={{ color: '#94a3b8', fontSize: 10 }}>UTM47N</span>
+              &nbsp; E <strong style={{ color: '#f0f4ff' }}>{cursorCoords.E}</strong>
+              &nbsp; N <strong style={{ color: '#f0f4ff' }}>{cursorCoords.N}</strong>
+            </span>
+          ) : (
+            <span>
+              <span style={{ color: '#94a3b8', fontSize: 10 }}>WGS84</span>
+              &nbsp; <strong style={{ color: '#f0f4ff' }}>{cursorCoords.lat}° N</strong>
+              &nbsp; <strong style={{ color: '#f0f4ff' }}>{cursorCoords.lng}° E</strong>
+            </span>
+          )}
+        </div>
+      )}
+
     </div>
   );
 }
