@@ -1180,7 +1180,7 @@ export default function MapViewer({
 
     const initialStyle = {
       version: 8,
-      glyphs: 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',
+      glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
       sources: {
         // ── Basemap Rasters ──────────────────────────────────
         's-satellite': { type: 'raster', tiles: [TILE_SOURCES.satellite], tileSize: 256, attribution: '© Esri, Maxar' },
@@ -1286,7 +1286,7 @@ export default function MapViewer({
           layout: {
             visibility: 'none',
             'text-field': ['get', 'name_th'],
-            'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
+            'text-font': ['Arial Unicode MS Regular'],
             'text-size': 11.5,
             'text-offset': [0, 0],
             'text-anchor': 'center',
@@ -1408,7 +1408,7 @@ export default function MapViewer({
           layout: {
             visibility: 'visible',
             'text-field': ['get', 'name_th'],
-            'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
+            'text-font': ['Arial Unicode MS Regular'],
             'text-size': 11,
             'text-offset': [0, 1.3],
             'text-anchor': 'top',
@@ -1448,7 +1448,7 @@ export default function MapViewer({
             'icon-allow-overlap': true,
             'icon-ignore-placement': false,
             'text-field': ['get', 'name_th'],
-            'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
+            'text-font': ['Arial Unicode MS Regular'],
             'text-size': ['interpolate', ['linear'], ['zoom'], 13, 11, 16, 13, 19, 15],
             'text-offset': [1.1, -2.2],
             'text-anchor': 'bottom-left',
@@ -1498,7 +1498,7 @@ export default function MapViewer({
           layout: {
             visibility: 'visible',
             'text-field': ['get', 'name_th'],
-            'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
+            'text-font': ['Arial Unicode MS Regular'],
             'text-size': 11,
             'text-offset': [0, 1.3],
             'text-anchor': 'top',
@@ -1669,6 +1669,30 @@ export default function MapViewer({
           map.addImage(imgId, img, { pixelRatio: 1 });
         }
       });
+
+      // ── Custom POI Text Label Image (Canvas → bypass glyphs) ──
+      const createLabelImage = (text, color) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const font = "bold 13px 'Sarabun','Noto Sans Thai',sans-serif";
+        ctx.font = font;
+        const m = ctx.measureText(text);
+        const pad = 5, h = 20;
+        canvas.width  = Math.ceil(m.width) + pad * 2;
+        canvas.height = h;
+        ctx.font = font;
+        ctx.fillStyle = 'rgba(10,15,30,0.75)';
+        ctx.beginPath();
+        ctx.roundRect(0, 0, canvas.width, h, 4);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, pad, h / 2);
+        return {
+          data: ctx.getImageData(0, 0, canvas.width, canvas.height).data,
+          width: canvas.width, height: canvas.height
+        };
+      };
 
       // Default pin (fallback)
       if (!map.hasImage('poi-pin-default')) {
