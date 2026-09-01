@@ -377,6 +377,8 @@ export default function MapViewer({
   onResetTriggerDrawWater = null,
   triggerDrawRoof = false,
   onResetTriggerDrawRoof = null,
+  triggerDrawBuilding = false,
+  onResetTriggerDrawBuilding = null,
   onSplitFeature = null,
   onMergeFeatures = null,
   onDeleteFeature = null,
@@ -497,6 +499,14 @@ export default function MapViewer({
       onResetTriggerDrawRoof?.();
     }
   }, [triggerDrawRoof]);
+
+  useEffect(() => {
+    if (triggerDrawBuilding && drawRef.current) {
+      drawingDatasetTypeRef.current = 'building_sc';
+      setDrawMode('polygon');
+      onResetTriggerDrawBuilding?.();
+    }
+  }, [triggerDrawBuilding]);
 
   useEffect(() => {
     if (!reshapingFeature || !drawRef.current || !mapRef.current) return;
@@ -1882,6 +1892,31 @@ export default function MapViewer({
             drawingDatasetTypeRef.current = null;
             setTimeout(() => {
               onEditFeatureRef.current?.(newDrainFeat, 'drain');
+            }, 100);
+          } else if (activeDs === 'building_sc' && targetFeat.geometry?.type === 'Polygon') {
+            const areaM2 = turf.area(targetFeat);
+            const newBldgFeat = {
+              type: 'Feature',
+              id: `bld-${Date.now()}`,
+              geometry: targetFeat.geometry,
+              properties: {
+                id:          `bld-${Date.now()}`,
+                name_th:     '',
+                category:    'residential',
+                area_sqm:    Number(areaM2.toFixed(1)),
+                area_usable_sqm: Number((areaM2 * 0.8).toFixed(1)),
+                floors:      1,
+                wall_mat:    'คสล.',
+                roof_mat:    'กระเบื้อง',
+                condition:   'ดี',
+                tambon:      'เด่นชัย',
+                amphoe:      'เด่นชัย',
+                changwat:    'แพร่',
+              }
+            };
+            drawingDatasetTypeRef.current = null;
+            setTimeout(() => {
+              onEditFeatureRef.current?.(newBldgFeat, 'building_sc');
             }, 100);
           }
         });

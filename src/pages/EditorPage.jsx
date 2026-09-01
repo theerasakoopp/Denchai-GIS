@@ -237,10 +237,11 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
   const [isPickingLocation, setIsPickingLocation] = useState(false);
   const [pickedCoordinates, setPickedCoordinates] = useState(null);
   const [reshapingFeature, setReshapingFeature] = useState(null);
-  const [triggerDrawRoad,  setTriggerDrawRoad]  = useState(false);
-  const [triggerDrawDrain, setTriggerDrawDrain] = useState(false);
-  const [triggerDrawWater, setTriggerDrawWater] = useState(false);
-  const [triggerDrawRoof, setTriggerDrawRoof] = useState(false);
+  const [triggerDrawRoad,     setTriggerDrawRoad]     = useState(false);
+  const [triggerDrawDrain,    setTriggerDrawDrain]    = useState(false);
+  const [triggerDrawWater,    setTriggerDrawWater]    = useState(false);
+  const [triggerDrawRoof,     setTriggerDrawRoof]     = useState(false);
+  const [triggerDrawBuilding, setTriggerDrawBuilding] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState(null);
 
   // ── Load background layers ──
@@ -738,6 +739,21 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
                   📍 {lang === 'th' ? '+ เพิ่มข้อมูลน้ำ' : '+ Add Info'}
                 </button>
               </div>
+            ) : activeLayer === 'building_sc' ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <button type="button" className="btn btn-primary"
+                  style={{ justifyContent: 'center', padding: '9px 8px', fontSize: '0.78rem', fontWeight: 700, gap: 6, background: 'linear-gradient(135deg, #475569, #334155)', border: 'none' }}
+                  onClick={() => setTriggerDrawBuilding(true)}>
+                  <i className="ti ti-building-skyscraper" style={{ fontSize: 15 }} aria-hidden="true" />
+                  {lang === 'th' ? '+ วาดขอบเขตอาคาร' : '+ Draw Building'}
+                </button>
+                <button type="button" className="btn btn-primary"
+                  style={{ justifyContent: 'center', padding: '9px 8px', fontSize: '0.78rem', fontWeight: 600, gap: 6, background: 'linear-gradient(135deg, #64748b, #475569)' }}
+                  onClick={() => handleOpenAdd('building_sc')}>
+                  <i className="ti ti-map-pin" style={{ fontSize: 15 }} aria-hidden="true" />
+                  {lang === 'th' ? '+ ปักจุดอาคาร' : '+ Pin Building'}
+                </button>
+              </div>
             ) : activeLayer === 'solar' ? (
               <button
                 type="button"
@@ -985,6 +1001,8 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
           onResetTriggerDrawWater={() => setTriggerDrawWater(false)}
           triggerDrawRoof={triggerDrawRoof}
           onResetTriggerDrawRoof={() => setTriggerDrawRoof(false)}
+          triggerDrawBuilding={triggerDrawBuilding}
+          onResetTriggerDrawBuilding={() => setTriggerDrawBuilding(false)}
         />
 
         {/* Feature Edit / Add Modal */}
