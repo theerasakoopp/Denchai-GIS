@@ -574,24 +574,36 @@ export default function MapViewer({
     }
   };
 
+  const rectStartRef = useRef(null); // จุดเริ่มต้น Rectangle
+
   const setDrawMode = (mode) => {
     const draw = drawRef.current;
+    const map  = mapRef.current;
     if (!draw) return;
+
+    // รีเซ็ต rectangle state
+    rectStartRef.current = null;
+
     if (mode === 'point') {
       draw.changeMode('draw_point');
       setActiveDrawMode('point');
+      if (map) map.getCanvas().style.cursor = 'crosshair';
     } else if (mode === 'line') {
       draw.changeMode('draw_line_string');
       setActiveDrawMode('line');
+      if (map) map.getCanvas().style.cursor = 'crosshair';
     } else if (mode === 'polygon') {
       draw.changeMode('draw_polygon');
       setActiveDrawMode('polygon');
+      if (map) map.getCanvas().style.cursor = 'crosshair';
     } else if (mode === 'select') {
       draw.changeMode('simple_select');
       setActiveDrawMode('select');
+      if (map) map.getCanvas().style.cursor = '';
     } else {
       draw.changeMode('simple_select');
       setActiveDrawMode('none');
+      if (map) map.getCanvas().style.cursor = '';
     }
   };
 
@@ -727,6 +739,47 @@ export default function MapViewer({
       // 0. If picking location, trigger callback and stop
       if (isPickingLocationRef.current) {
         onLocationPickedRef.current?.([e.lngLat.lng, e.lngLat.lat]);
+        return;
+      }
+
+      // 0.r Rectangle draw mode — คลิกครั้งแรก = จุด start, ครั้งที่สอง = สร้าง polygon
+      if (activeDrawModeRef.current === 'rectangle') {
+        const lngLat = [e.lngLat.lng, e.lngLat.lat];
+        if (!rectStartRef.current) {
+          // จุดแรก — เก็บ start point
+          rectStartRef.current = lngLat;
+          mapInstance.getCanvas().style.cursor = 'crosshair';
+        } else {
+          // จุดที่สอง — สร้าง rectangle polygon
+          const [lng1, lat1] = rectStartRef.current;
+          const [lng2, lat2] = lngLat;
+          const rectCoords = [
+            [lng1, lat1], [lng2, lat1],
+            [lng2, lat2], [lng1, lat2],
+            [lng1, lat1]
+          ];
+          const rectFeature = {
+            type: 'Feature',
+            id: `rect-${Date.now()}`,
+            geometry: { type: 'Polygon', coordinates: [rectCoords] },
+            properties: {
+              id: `rect-${Date.now()}`,
+              name_th: 'สี่เหลี่ยมที่วาด',
+              category: 'other',
+              draw_type: 'rectangle'
+            }
+          };
+          rectStartRef.current = null;
+          setActiveDrawMode('none');
+          mapInstance.getCanvas().style.cursor = '';
+          // เปิด modal เพื่อบันทึกข้อมูล
+          const areaM2 = Math.abs((lng2 - lng1) * (lat2 - lat1)) * 111319 * 111319 * Math.cos((lat1 + lat2) / 2 * Math.PI / 180);
+          const feat = { ...rectFeature, properties: { ...rectFeature.properties, area_sqm: Number(areaM2.toFixed(1)) } };
+          setTimeout(() => {
+            const ds = drawingDatasetTypeRef.current || 'water';
+            onEditFeatureRef.current?.(feat, ds);
+          }, 100);
+        }
         return;
       }
 
@@ -1210,7 +1263,11 @@ export default function MapViewer({
         id => mapInstance.getLayer(id) && mapInstance.getLayoutProperty(id, 'visibility') !== 'none'
       );
       const feats = ql.length ? mapInstance.queryRenderedFeatures(e.point, { layers: ql }) : [];
-      mapInstance.getCanvas().style.cursor = feats.length ? 'pointer' : '';
+      // ไม่เปลี่ยน cursor ถ้าอยู่ใน draw mode อยู่แล้ว
+      const inDrawMode = activeDrawModeRef.current !== 'none';
+      if (!inDrawMode) {
+        mapInstance.getCanvas().style.cursor = feats.length ? 'pointer' : '';
+      }
     });
   };
 
@@ -2365,10 +2422,30 @@ export default function MapViewer({
                 setDrawMode(activeDrawMode === 'polygon' ? 'none' : 'polygon');
                 setTopologyMode('none');
               }}
-              title={lang === 'th' ? 'วาดพื้นที่ / วัดขนาดแปลง (Polygon)' : 'Draw Polygon'}
+              title={lang === 'th' ? 'วาดพื้นที่แบบอิสระ (Polygon)' : 'Draw Polygon (freeform)'}
               style={{ padding: '6px 9px', fontSize: '0.72rem' }}
             >
               <Square size={13} color={activeDrawMode === 'polygon' ? '#fff' : '#10b981'} /> {lang === 'th' ? 'พื้นที่' : 'Polygon'}
+            </button>
+
+            {/* ── Rectangle Polygon ── */}
+            <button
+              type="button"
+              className={`basemap-btn ${activeDrawMode === 'rectangle' ? 'active' : ''}`}
+              onClick={() => {
+                if (activeDrawMode === 'rectangle') {
+                  setDrawMode('none');
+                } else {
+                  setActiveDrawMode('rectangle');
+                  setTopologyMode('none');
+                  const map = mapRef.current;
+                  if (map) map.getCanvas().style.cursor = 'crosshair';
+                }
+              }}
+              title={lang === 'th' ? 'วาดสี่เหลี่ยม (Rectangle) — คลิกจุดแรก ลากไปจุดที่สอง' : 'Draw Rectangle'}
+              style={{ padding: '6px 9px', fontSize: '0.72rem' }}
+            >
+              <i className="ti ti-rectangle" style={{ fontSize:13, color: activeDrawMode === 'rectangle' ? '#fff' : '#a78bfa' }} aria-hidden="true" /> {lang === 'th' ? 'สี่เหลี่ยม' : 'Rect'}
             </button>
 
             <button
