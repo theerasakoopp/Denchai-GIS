@@ -1858,34 +1858,28 @@ export default function MapViewer({
     if (map.getLayer('poi-circle')) map.setLayoutProperty('poi-circle', 'visibility', isPoi ? 'visible' : 'none');
     if (map.getLayer('poi-label')) map.setLayoutProperty('poi-label', 'visibility', isPoi ? 'visible' : 'none');
 
-    // Infra layers (Road lines always visible on all tabs so users can see full road network!)
-    const isInfra = activeTab === 'infra';
-    if (map.getLayer('infra-line-glow')) map.setLayoutProperty('infra-line-glow', 'visibility', 'visible');
-    if (map.getLayer('infra-line')) map.setLayoutProperty('infra-line', 'visibility', 'visible');
-    if (map.getLayer('infra-circle-glow')) map.setLayoutProperty('infra-circle-glow', 'visibility', isInfra ? 'visible' : 'none');
-    if (map.getLayer('infra-circle')) map.setLayoutProperty('infra-circle', 'visibility', isInfra ? 'visible' : 'none');
-    if (map.getLayer('infra-label')) map.setLayoutProperty('infra-label', 'visibility', isInfra || activeTab === 'poi' ? 'visible' : 'none');
+    // Infra layers — แสดงตลอด ไม่ขึ้นกับ Tab
+    if (map.getLayer('infra-line-glow'))   map.setLayoutProperty('infra-line-glow',   'visibility', 'visible');
+    if (map.getLayer('infra-line'))        map.setLayoutProperty('infra-line',         'visibility', 'visible');
+    if (map.getLayer('infra-circle-glow')) map.setLayoutProperty('infra-circle-glow', 'visibility', 'visible');
+    if (map.getLayer('infra-circle'))      map.setLayoutProperty('infra-circle',       'visibility', 'visible');
+    if (map.getLayer('infra-label'))       map.setLayoutProperty('infra-label',        'visibility', 'visible');
 
-    // Water layers (Water bodies always visible to enrich map visual and context)
-    const isWater = activeTab === 'water';
-    if (map.getLayer('water-fill')) map.setLayoutProperty('water-fill', 'visibility', 'visible');
-    if (map.getLayer('water-line')) map.setLayoutProperty('water-line', 'visibility', 'visible');
+    // Water layers — แสดงตลอด
+    if (map.getLayer('water-fill'))  map.setLayoutProperty('water-fill',  'visibility', 'visible');
+    if (map.getLayer('water-line'))  map.setLayoutProperty('water-line',  'visibility', 'visible');
     if (map.getLayer('water-label')) map.setLayoutProperty('water-label', 'visibility', 'none');
 
-    // Service layers
-    const isService = activeTab === 'service';
-    if (map.getLayer('service-glow')) map.setLayoutProperty('service-glow', 'visibility', isService ? 'visible' : 'none');
-    if (map.getLayer('service-circle')) map.setLayoutProperty('service-circle', 'visibility', isService ? 'visible' : 'none');
-    if (map.getLayer('service-label')) map.setLayoutProperty('service-label', 'visibility', isService ? 'visible' : 'none');
+    // Service layers — แสดงตลอด
+    if (map.getLayer('service-glow'))   map.setLayoutProperty('service-glow',   'visibility', 'visible');
+    if (map.getLayer('service-circle')) map.setLayoutProperty('service-circle', 'visibility', 'visible');
+    if (map.getLayer('service-label'))  map.setLayoutProperty('service-label',  'visibility', 'visible');
 
-    // Municipal boundary is ALWAYS visible on all tabs!
-    if (map.getLayer('bound-fill')) map.setLayoutProperty('bound-fill', 'visibility', 'visible');
-    if (map.getLayer('bound-glow')) map.setLayoutProperty('bound-glow', 'visibility', 'visible');
-    if (map.getLayer('bound-line')) map.setLayoutProperty('bound-line', 'visibility', 'visible');
+    // Municipal boundary — แสดงตลอด
+    if (map.getLayer('bound-fill'))       map.setLayoutProperty('bound-fill',       'visibility', 'visible');
+    if (map.getLayer('bound-glow'))       map.setLayoutProperty('bound-glow',       'visibility', 'visible');
+    if (map.getLayer('bound-line'))       map.setLayoutProperty('bound-line',       'visibility', 'visible');
     if (map.getLayer('bound-line-inner')) map.setLayoutProperty('bound-line-inner', 'visibility', 'visible');
-
-    // Always frame Municipal Boundary on tab switch!
-    zoomTo(map, MUNICIPAL_BOUNDARY);
 
     map.triggerRepaint();
   }, [viewMode, activeTab, mapLoaded]);
