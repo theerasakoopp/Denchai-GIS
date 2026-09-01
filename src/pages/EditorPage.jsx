@@ -972,6 +972,7 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
           infraData={infraData}
           serviceData={serviceData}
           waterData={waterData}
+          buildingScData={buildingScData}
           poiVisible={Object.fromEntries(Object.keys(POI_CATEGORIES).map(k => [k, true]))}
           infraVisible={Object.fromEntries(Object.keys(INFRA_CATEGORIES).map(k => [k, true]))}
           serviceVisible={Object.fromEntries(Object.keys(SERVICE_CATEGORIES).map(k => [k, true]))}

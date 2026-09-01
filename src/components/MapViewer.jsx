@@ -359,6 +359,7 @@ export default function MapViewer({
   infraVisible = {},
   serviceVisible = {},
   waterVisible = {},
+  buildingScData = null,
   selectedFeature = null,
   isEditorMode = false,
   // Editor props
@@ -1318,6 +1319,12 @@ export default function MapViewer({
           buffer: 64,
           tolerance: 0.5
         },
+        'building-sc-src': {
+          type: 'geojson',
+          data: { type: 'FeatureCollection', features: [] },
+          buffer: 64,
+          tolerance: 0.5
+        },
         // ── Smart City Layers (In-memory ready) ──────────────
         'poi-src': { type: 'geojson', data: poiData || POI_DATA },
         'infra-src': { type: 'geojson', data: infraData || INFRA_DATA },
@@ -1361,6 +1368,64 @@ export default function MapViewer({
             'line-color': '#ffffff',
             'line-width': 1.0,
             'line-opacity': 0.6
+          }
+        },
+
+        // ── 4b. Building SC (Tax Map Polygons) ───────────────
+        {
+          id: 'building-sc-fill',
+          type: 'fill',
+          source: 'building-sc-src',
+          layout: { visibility: 'visible' },
+          paint: {
+            'fill-color': [
+              'match', ['get', 'category'],
+              'residential',  '#64748b',
+              'commercial',   '#f97316',
+              'mixed',        '#eab308',
+              'government',   '#3b82f6',
+              'education',    '#8b5cf6',
+              'religious',    '#a78bfa',
+              'health',       '#ef4444',
+              'industrial',   '#475569',
+              'warehouse',    '#78716c',
+              'agricultural', '#22c55e',
+              'vacant',       '#dc2626',
+              'under_const',  '#fb923c',
+              '#94a3b8'
+            ],
+            'fill-opacity': 0.55
+          }
+        },
+        {
+          id: 'building-sc-outline',
+          type: 'line',
+          source: 'building-sc-src',
+          layout: { visibility: 'visible' },
+          paint: {
+            'line-color': '#ffffff',
+            'line-width': 1.5,
+            'line-opacity': 0.85
+          }
+        },
+        {
+          id: 'building-sc-label',
+          type: 'symbol',
+          source: 'building-sc-src',
+          minzoom: 15,
+          layout: {
+            visibility: 'visible',
+            'text-field': ['coalesce', ['get', 'house_no'], ['get', 'name_th'], ''],
+            'text-font': ['Arial Unicode MS Regular'],
+            'text-size': 11,
+            'text-anchor': 'center',
+            'text-allow-overlap': false,
+            'text-optional': true,
+          },
+          paint: {
+            'text-color': '#ffffff',
+            'text-halo-color': '#0a0f1e',
+            'text-halo-width': 2,
           }
         },
 
@@ -2120,6 +2185,15 @@ export default function MapViewer({
       map.once('load', pushData);
     }
   }, [poiData, infraData, serviceData, waterData, mapLoaded]);
+
+  // ── Sync buildingScData → building-sc-src ──────────────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+    const src = map.getSource('building-sc-src');
+    if (!src) return;
+    src.setData(buildingScData || { type: 'FeatureCollection', features: [] });
+  }, [buildingScData, mapLoaded]);
 
   // ── POI HTML Label Markers (รองรับภาษาไทยสมบูรณ์) ──────────────
   useEffect(() => {

@@ -119,6 +119,15 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
     }
   });
 
+  const [buildingScData, setBuildingScData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('denchai_building_sc_data');
+      return saved ? JSON.parse(saved) : BUILDING_DATA;
+    } catch {
+      return BUILDING_DATA;
+    }
+  });
+
   // ── Editor & Modal State ──
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingFeature, setEditingFeature] = useState(null);
@@ -547,6 +556,7 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         infraData={infraData}
         serviceData={serviceData}
         waterData={waterData}
+        buildingScData={buildingScData}
         poiVisible={poiVisible}
         infraVisible={infraVisible}
         serviceVisible={serviceVisible}
