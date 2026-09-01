@@ -1433,36 +1433,33 @@ export default function MapViewer({
         },
         {
           id: 'poi-circle',
-          type: 'circle',
-          source: 'poi-src',
-          layout: { visibility: 'visible' },
-          paint: {
-            'circle-radius': 8.5,
-            'circle-color': POI_COLOR_MATCH,
-            'circle-stroke-width': 2.5,
-            'circle-stroke-color': '#ffffff',
-            'circle-opacity': 0.95
-          }
-        },
-        {
-          id: 'poi-label',
           type: 'symbol',
           source: 'poi-src',
           layout: {
             visibility: 'visible',
+            'icon-image': ['coalesce',
+              ['image', ['concat', 'poi-pin-', ['get', 'category']]],
+              ['image', 'poi-pin-default']
+            ],
+            'icon-size': 0.7,
+            'icon-anchor': 'bottom',
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': false,
             'text-field': ['get', 'name_th'],
-            'text-size': 11,
-            'text-offset': [0, 1.3],
+            'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+            'text-size': 12,
+            'text-offset': [0, 0.2],
             'text-anchor': 'top',
-            'text-allow-overlap': false
+            'text-allow-overlap': false,
+            'text-optional': true,
+            'text-max-width': 8,
           },
           paint: {
-            'text-color': '#ffffff',
-            'text-halo-color': '#090d16',
-            'text-halo-width': 2.5
+            'text-color': '#f0f4ff',
+            'text-halo-color': '#0f172a',
+            'text-halo-width': 2,
           }
         },
-
         // ── 9. Service Circles & Labels ──────────────────────
         {
           id: 'service-glow',
@@ -1610,7 +1607,60 @@ export default function MapViewer({
         map.addControl(new ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-left');
       } catch (_) {}
 
-      // ── Initialize MapboxDraw ──────────────────────────────
+      // ── Custom POI Pin Icons (Canvas → MapLibre image) ────────
+      const PIN_SIZE = 48;
+      const createPinImage = (color, emoji) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = PIN_SIZE;
+        canvas.height = PIN_SIZE + 8;
+        const ctx = canvas.getContext('2d');
+
+        // Teardrop pin shape
+        ctx.beginPath();
+        const cx = PIN_SIZE / 2, cy = PIN_SIZE * 0.42, r = PIN_SIZE * 0.38;
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.moveTo(cx - r * 0.35, cy + r * 0.8);
+        ctx.quadraticCurveTo(cx, PIN_SIZE + 4, cx, PIN_SIZE + 6);
+        ctx.quadraticCurveTo(cx + r * 0.35, cy + r * 0.8, cx + r * 0.35, cy + r * 0.8);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        // White border
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Shadow
+        ctx.beginPath();
+        ctx.ellipse(cx, PIN_SIZE + 7, 7, 3, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.fill();
+
+        // Emoji icon
+        ctx.font = `${Math.round(PIN_SIZE * 0.38)}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(emoji, cx, cy + 1);
+
+        return { data: ctx.getImageData(0, 0, canvas.width, canvas.height).data, width: canvas.width, height: canvas.height };
+      };
+
+      // Register pin image for each POI category
+      Object.entries(POI_CATEGORIES).forEach(([key, cat]) => {
+        const imgId = `poi-pin-${key}`;
+        if (!map.hasImage(imgId)) {
+          const img = createPinImage(cat.color, cat.icon);
+          map.addImage(imgId, img, { pixelRatio: 1 });
+        }
+      });
+
+      // Default pin (fallback)
+      if (!map.hasImage('poi-pin-default')) {
+        const img = createPinImage('#3b82f6', '📍');
+        map.addImage('poi-pin-default', img, { pixelRatio: 1 });
+      }
       try {
         const drawInstance = new MapboxDraw({
           displayControlsDefault: false,
@@ -1852,11 +1902,9 @@ export default function MapViewer({
     if (map.getLayer('bldgs-fill')) map.setLayoutProperty('bldgs-fill', 'visibility', isSolar && !isFacets ? 'visible' : 'none');
     if (map.getLayer('bldgs-outline')) map.setLayoutProperty('bldgs-outline', 'visibility', isSolar && !isFacets ? 'visible' : 'none');
 
-    // POI layers
-    const isPoi = activeTab === 'poi';
-    if (map.getLayer('poi-glow')) map.setLayoutProperty('poi-glow', 'visibility', isPoi ? 'visible' : 'none');
-    if (map.getLayer('poi-circle')) map.setLayoutProperty('poi-circle', 'visibility', isPoi ? 'visible' : 'none');
-    if (map.getLayer('poi-label')) map.setLayoutProperty('poi-label', 'visibility', isPoi ? 'visible' : 'none');
+    // POI layers — แสดงตลอด
+    if (map.getLayer('poi-glow'))   map.setLayoutProperty('poi-glow',   'visibility', 'visible');
+    if (map.getLayer('poi-circle')) map.setLayoutProperty('poi-circle', 'visibility', 'visible');
 
     // Infra layers — แสดงตลอด ไม่ขึ้นกับ Tab
     if (map.getLayer('infra-line-glow'))   map.setLayoutProperty('infra-line-glow',   'visibility', 'visible');
@@ -1955,7 +2003,7 @@ export default function MapViewer({
       const poiFilter = visibleCats.length === 0
         ? ['==', ['get', 'category'], '__none__']
         : ['in', ['get', 'category'], ['literal', visibleCats]];
-      ['poi-glow', 'poi-circle', 'poi-label'].forEach(id => {
+      ['poi-glow', 'poi-circle'].forEach(id => {
         if (map.getLayer(id)) map.setFilter(id, poiFilter);
       });
     }
