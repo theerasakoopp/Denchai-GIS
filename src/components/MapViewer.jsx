@@ -298,6 +298,45 @@ const MAPLIBRE_DRAW_THEME = [
 
 const fmt = (n) => new Intl.NumberFormat('en-US').format(Math.round(n || 0));
 
+// ── Module-level Pin Image Creator (ใช้ซ้ำได้ทุก scope) ────────────
+const PIN_W = 32, PIN_H = 44;
+function createPinImage(color) {
+  const canvas = document.createElement('canvas');
+  canvas.width  = PIN_W;
+  canvas.height = PIN_H;
+  const ctx = canvas.getContext('2d');
+  const cx = PIN_W / 2, cr = PIN_W * 0.44, cy = cr + 2;
+
+  ctx.shadowColor = 'rgba(0,0,0,0.35)';
+  ctx.shadowBlur = 4;
+  ctx.shadowOffsetY = 2;
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, cr, Math.PI, 0);
+  ctx.lineTo(cx + cr * 0.25, cy + cr * 1.1);
+  ctx.quadraticCurveTo(cx, PIN_H - 2, cx - cr * 0.25, cy + cr * 1.1);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, cr * 0.45, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  return {
+    data: ctx.getImageData(0, 0, canvas.width, canvas.height).data,
+    width: canvas.width, height: canvas.height
+  };
+}
+
 export default function MapViewer({
   facetsData,
   buildingsData,
@@ -1600,52 +1639,6 @@ export default function MapViewer({
       } catch (_) {}
 
       // ── Custom POI Pin Icons (Canvas → MapLibre image) ────────
-      const PIN_W = 32, PIN_H = 44;
-      const createPinImage = (color) => {
-        const canvas = document.createElement('canvas');
-        canvas.width = PIN_W;
-        canvas.height = PIN_H;
-        const ctx = canvas.getContext('2d');
-
-        const cx = PIN_W / 2, cr = PIN_W * 0.44;
-        const cy = cr + 2;
-
-        // Drop shadow
-        ctx.shadowColor = 'rgba(0,0,0,0.35)';
-        ctx.shadowBlur = 4;
-        ctx.shadowOffsetY = 2;
-
-        // Pin body — teardrop path
-        ctx.beginPath();
-        ctx.arc(cx, cy, cr, Math.PI, 0);
-        ctx.lineTo(cx + cr * 0.25, cy + cr * 1.1);
-        ctx.quadraticCurveTo(cx, PIN_H - 2, cx - cr * 0.25, cy + cr * 1.1);
-        ctx.closePath();
-        ctx.fillStyle = color;
-        ctx.fill();
-
-        ctx.shadowColor = 'transparent';
-
-        // White inner circle
-        ctx.beginPath();
-        ctx.arc(cx, cy, cr * 0.45, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.fill();
-
-        // White border ring
-        ctx.beginPath();
-        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
-
-        return {
-          data: ctx.getImageData(0, 0, canvas.width, canvas.height).data,
-          width: canvas.width,
-          height: canvas.height
-        };
-      };
-
       // Register pin image for each POI category
       Object.entries(POI_CATEGORIES).forEach(([key, cat]) => {
         const imgId = `poi-pin-${key}`;
@@ -1679,11 +1672,29 @@ export default function MapViewer({
         };
       };
 
-      // Default pin (fallback)
-      if (!map.hasImage('poi-pin-default')) {
-        const img = createPinImage('#3b82f6');
-        map.addImage('poi-pin-default', img, { pixelRatio: 1 });
-      }
+      // ── helper เรียกได้ซ้ำ ──────────────────────────────────────
+      const ensurePinImages = (m) => {
+        Object.entries(POI_CATEGORIES).forEach(([key, cat]) => {
+          const imgId = `poi-pin-${key}`;
+          if (!m.hasImage(imgId)) {
+            m.addImage(imgId, createPinImage(cat.color), { pixelRatio: 1 });
+          }
+        });
+        if (!m.hasImage('poi-pin-default')) {
+          m.addImage('poi-pin-default', createPinImage('#3b82f6'), { pixelRatio: 1 });
+        }
+      };
+      ensurePinImages(map);
+      // re-register ทุกครั้งที่ style reload
+      map.on('styleimagemissing', (e) => {
+        if (e.id?.startsWith('poi-pin-')) {
+          const key = e.id.replace('poi-pin-', '');
+          const color = POI_CATEGORIES[key]?.color || '#3b82f6';
+          if (!map.hasImage(e.id)) {
+            map.addImage(e.id, createPinImage(color), { pixelRatio: 1 });
+          }
+        }
+      });
       try {
         const drawInstance = new MapboxDraw({
           displayControlsDefault: false,
