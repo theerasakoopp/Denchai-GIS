@@ -1620,8 +1620,8 @@ export default function MapViewer({
             ],
             'icon-size': ['interpolate', ['linear'], ['zoom'], 12, 0.6, 15, 0.9, 18, 1.1],
             'icon-anchor': 'bottom',
-            'icon-allow-overlap': false,
-            'icon-ignore-placement': false,
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
           },
           paint: {}
         },
@@ -2164,6 +2164,16 @@ export default function MapViewer({
       try {
         if (poiData && map.getSource('poi-src')) {
           map.getSource('poi-src').setData(poiData);
+          // Re-register pin images ทุกครั้ง ป้องกัน missing image
+          Object.entries(POI_CATEGORIES).forEach(([key, cat]) => {
+            const imgId = `poi-pin-${key}`;
+            if (!map.hasImage(imgId)) {
+              map.addImage(imgId, createPinImage(cat.color), { pixelRatio: 1 });
+            }
+          });
+          if (!map.hasImage('poi-pin-default')) {
+            map.addImage('poi-pin-default', createPinImage('#3b82f6'), { pixelRatio: 1 });
+          }
         }
         if (infraData && map.getSource('infra-src')) {
           map.getSource('infra-src').setData(infraData);
