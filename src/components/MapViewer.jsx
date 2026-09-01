@@ -1974,30 +1974,42 @@ export default function MapViewer({
       }
     });
 
-    // Water filter
-    if (map.getLayer('water-fill') && waterVisible) {
-      const visWater = Object.entries(waterVisible).filter(([,v]) => v).map(([k]) => k);
-      const waterFilter = visWater.length === 0
-        ? ['==', ['get', 'category'], '__none__']
-        : ['in', ['get', 'category'], ['literal', visWater]];
-      ['water-fill', 'water-line', 'water-label'].forEach(id => {
-        if (map.getLayer(id)) map.setFilter(id, waterFilter);
-      });
+    // Water filter — ถ้าไม่มีค่าใดใน waterVisible ให้แสดงทั้งหมด
+    if (map.getLayer('water-fill')) {
+      if (!waterVisible || Object.keys(waterVisible).length === 0) {
+        ['water-fill', 'water-line', 'water-label'].forEach(id => {
+          if (map.getLayer(id)) map.setFilter(id, null);
+        });
+      } else {
+        const visWater = Object.entries(waterVisible).filter(([,v]) => v).map(([k]) => k);
+        const waterFilter = visWater.length === 0
+          ? ['==', ['get', 'category'], '__none__']
+          : ['in', ['get', 'category'], ['literal', visWater]];
+        ['water-fill', 'water-line', 'water-label'].forEach(id => {
+          if (map.getLayer(id)) map.setFilter(id, waterFilter);
+        });
+      }
     }
 
-    // Service filter
-    if (map.getLayer('service-circle') && serviceVisible) {
-      const visCats = Object.entries(serviceVisible).filter(([,v]) => v).map(([k]) => k);
-      const svcFilter = visCats.length === 0
-        ? ['==', ['get', 'category'], '__none__']
-        : ['in', ['get', 'category'], ['literal', visCats]];
-      ['service-glow', 'service-circle', 'service-label'].forEach(id => {
-        if (map.getLayer(id)) map.setFilter(id, svcFilter);
-      });
+    // Service filter — ถ้าไม่มีค่าใดให้แสดงทั้งหมด
+    if (map.getLayer('service-circle')) {
+      if (!serviceVisible || Object.keys(serviceVisible).length === 0) {
+        ['service-glow', 'service-circle', 'service-label'].forEach(id => {
+          if (map.getLayer(id)) map.setFilter(id, null);
+        });
+      } else {
+        const visCats = Object.entries(serviceVisible).filter(([,v]) => v).map(([k]) => k);
+        const svcFilter = visCats.length === 0
+          ? ['==', ['get', 'category'], '__none__']
+          : ['in', ['get', 'category'], ['literal', visCats]];
+        ['service-glow', 'service-circle', 'service-label'].forEach(id => {
+          if (map.getLayer(id)) map.setFilter(id, svcFilter);
+        });
+      }
     }
 
     map.triggerRepaint();
-  }, [poiVisible, infraVisible, serviceVisible, mapLoaded]);
+  }, [poiVisible, infraVisible, serviceVisible, waterVisible, mapLoaded]);
 
   // ── Fly to Selected Feature when clicked in Sidebar ──────────
   useEffect(() => {
