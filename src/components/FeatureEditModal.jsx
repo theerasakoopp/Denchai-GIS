@@ -56,16 +56,27 @@ export default function FeatureEditModal({
     moo: '',
     road: '',
     tambon: 'เด่นชัย',
+    amphoe: 'เด่นชัย',
+    changwat: 'แพร่',
+    house_id_11: '',
     floors: 1,
     height_m: '',
     length_m: '',
     wall_mat: 'คสล.',
     roof_mat: 'กระเบื้อง',
     year_built: '',
+    area_usable_sqm: '',
+    depreciation_pct: '',
+    land_use_code: '',
+    ltax_id: '',
     land_deed_no: '',
+    land_no: '',
+    survey_page: '',
     parcel_id: '',
     owner_name: '',
     owner_id: '',
+    tax_assessment_value: '',
+    tax_rate: '',
     tax_value: '',
     tax_year: '',
     permit_no: '',
@@ -224,28 +235,39 @@ export default function FeatureEditModal({
           purpose: formData.purpose
         } : {}),
         ...(datasetType === 'building_sc' ? {
-          house_no:     formData.house_no     || '',
-          moo:          formData.moo          || '',
-          road:         formData.road         || '',
-          tambon:       formData.tambon       || '',
-          floors:       Number(formData.floors)    || 1,
-          area_sqm:     Number(formData.area_sqm)  || 0,
-          height_m:     Number(formData.height_m)  || 0,
-          width_m:      Number(formData.width_m)   || 0,
-          length_m:     Number(formData.length_m)  || 0,
-          wall_mat:     formData.wall_mat     || '',
-          roof_mat:     formData.roof_mat     || '',
-          year_built:   formData.year_built   || '',
-          condition:    formData.condition    || 'ดี',
-          land_deed_no: formData.land_deed_no || '',
-          parcel_id:    formData.parcel_id    || '',
-          owner_name:   formData.owner_name   || '',
-          owner_id:     formData.owner_id     || '',
-          tax_value:    Number(formData.tax_value) || 0,
-          tax_year:     formData.tax_year     || '',
-          permit_no:    formData.permit_no    || '',
-          survey_date:  formData.survey_date  || '',
-          surveyor:     formData.surveyor     || '',
+          house_no:             formData.house_no             || '',
+          moo:                  formData.moo                  || '',
+          road:                 formData.road                 || '',
+          tambon:               formData.tambon               || '',
+          amphoe:               formData.amphoe               || 'เด่นชัย',
+          changwat:             formData.changwat             || 'แพร่',
+          house_id_11:          formData.house_id_11          || '',
+          floors:               Number(formData.floors)       || 1,
+          area_sqm:             Number(formData.area_sqm)     || 0,
+          area_usable_sqm:      Number(formData.area_usable_sqm) || 0,
+          height_m:             Number(formData.height_m)     || 0,
+          width_m:              Number(formData.width_m)      || 0,
+          length_m:             Number(formData.length_m)     || 0,
+          wall_mat:             formData.wall_mat             || '',
+          roof_mat:             formData.roof_mat             || '',
+          year_built:           formData.year_built           || '',
+          depreciation_pct:     Number(formData.depreciation_pct) || 0,
+          land_use_code:        formData.land_use_code        || '',
+          condition:            formData.condition            || 'ดี',
+          ltax_id:              formData.ltax_id              || '',
+          land_deed_no:         formData.land_deed_no         || '',
+          land_no:              formData.land_no              || '',
+          survey_page:          formData.survey_page          || '',
+          parcel_id:            formData.parcel_id            || '',
+          owner_name:           formData.owner_name           || '',
+          owner_id:             formData.owner_id             || '',
+          tax_assessment_value: Number(formData.tax_assessment_value) || 0,
+          tax_value:            Number(formData.tax_value)    || 0,
+          tax_rate:             Number(formData.tax_rate)     || 0,
+          tax_year:             formData.tax_year             || '',
+          permit_no:            formData.permit_no            || '',
+          survey_date:          formData.survey_date          || '',
+          surveyor:             formData.surveyor             || '',
         } : {}),
         ...(isSolar ? {
           class_id: cid,
@@ -743,9 +765,10 @@ export default function FeatureEditModal({
                     <span style={{ fontSize: '0.76rem', fontWeight: 600, color: '#1e293b' }}>ที่ตั้งและระบุตัวตน</span>
                   </div>
                   {[
-                    { key: 'house_no', label: 'เลขที่บ้าน *', placeholder: '123/4' },
-                    { key: 'road',     label: 'ถนน/ซอย',     placeholder: 'ถนนเด่นชัย-งาว' },
-                    { key: 'name_th',  label: 'ชื่ออาคาร (ถ้ามี)', placeholder: 'เช่น ตลาดเทศบาล' },
+                    { key: 'house_no',    label: 'เลขที่บ้าน *',          placeholder: '123/4' },
+                    { key: 'road',        label: 'ถนน/ซอย',               placeholder: 'ถนนเด่นชัย-งาว' },
+                    { key: 'name_th',     label: 'ชื่ออาคาร (ถ้ามี)',      placeholder: 'เช่น ตลาดเทศบาล' },
+                    { key: 'house_id_11', label: 'เลขประจำบ้าน 11 หลัก',  placeholder: '76010100001' },
                   ].map(f => (
                     <div key={f.key}>
                       <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>{f.label}</label>
@@ -754,16 +777,18 @@ export default function FeatureEditModal({
                     </div>
                   ))}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-                    <div>
-                      <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>หมู่ที่</label>
-                      <input type="text" value={formData.moo || ''} onChange={e => setFormData({ ...formData, moo: e.target.value })}
-                        placeholder="5" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>ตำบล</label>
-                      <input type="text" value={formData.tambon || ''} onChange={e => setFormData({ ...formData, tambon: e.target.value })}
-                        placeholder="เด่นชัย" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
-                    </div>
+                    {[
+                      { key:'moo',      label:'หมู่ที่',  placeholder:'5' },
+                      { key:'tambon',   label:'ตำบล',    placeholder:'เด่นชัย' },
+                      { key:'amphoe',   label:'อำเภอ',   placeholder:'เด่นชัย' },
+                      { key:'changwat', label:'จังหวัด', placeholder:'แพร่' },
+                    ].map(f => (
+                      <div key={f.key}>
+                        <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>{f.label}</label>
+                        <input type="text" value={formData[f.key] || ''} onChange={e => setFormData({ ...formData, [f.key]: e.target.value })}
+                          placeholder={f.placeholder} style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
+                      </div>
+                    ))}
                   </div>
                   {/* GPS */}
                   <div style={{ padding: 8, background: '#eff6ff', borderRadius: 8, border: '1px solid #bfdbfe' }}>
@@ -787,8 +812,8 @@ export default function FeatureEditModal({
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                     {[
-                      { key: 'floors',     label: 'จำนวนชั้น',      placeholder: '2',    type: 'number' },
-                      { key: 'year_built', label: 'ปีสร้าง (พ.ศ.)',  placeholder: '2545', type: 'text' },
+                      { key: 'floors',          label: 'จำนวนชั้น',       placeholder: '2',   type: 'number' },
+                      { key: 'year_built',       label: 'ปีสร้าง (พ.ศ.)', placeholder: '2545', type: 'text' },
                     ].map(f => (
                       <div key={f.key}>
                         <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>{f.label}</label>
@@ -797,10 +822,17 @@ export default function FeatureEditModal({
                       </div>
                     ))}
                   </div>
-                  <div>
-                    <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>พื้นที่ก่อสร้าง (ตร.ม.)</label>
-                    <input type="number" value={formData.area_sqm || ''} onChange={e => setFormData({ ...formData, area_sqm: e.target.value })}
-                      placeholder="120" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                    <div>
+                      <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>พื้นที่ก่อสร้าง (ตร.ม.)</label>
+                      <input type="number" value={formData.area_sqm || ''} onChange={e => setFormData({ ...formData, area_sqm: e.target.value })}
+                        placeholder="120" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: '0.8rem', background: '#fff' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.7rem', color: '#64748b', display: 'block', marginBottom: 3 }}>พื้นที่ใช้สอย (ตร.ม.) <span style={{ color:'#f59e0b' }}>LTAX</span></label>
+                      <input type="number" value={formData.area_usable_sqm || ''} onChange={e => setFormData({ ...formData, area_usable_sqm: e.target.value })}
+                        placeholder="100" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #fde68a', fontSize: '0.8rem', background: '#fffbeb' }} />
+                    </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 5 }}>
                     {[
@@ -850,6 +882,23 @@ export default function FeatureEditModal({
                       ))}
                     </div>
                   </div>
+                  {/* ค่าเสื่อมราคา + รหัสการใช้ประโยชน์ LTAX3000 */}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                    <div>
+                      <label style={{ fontSize:'0.7rem', color:'#92400e', display:'block', marginBottom:3 }}>
+                        ค่าเสื่อมราคา (%) <span style={{ fontSize:9, background:'#fef3c7', padding:'1px 5px', borderRadius:4, color:'#b45309' }}>LTAX</span>
+                      </label>
+                      <input type="number" min="0" max="80" value={formData.depreciation_pct||''} onChange={e => setFormData({...formData,depreciation_pct:e.target.value})}
+                        placeholder="เช่น 20" style={{ width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #fde68a', fontSize:'0.8rem', background:'#fffbeb' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize:'0.7rem', color:'#92400e', display:'block', marginBottom:3 }}>
+                        รหัสใช้ประโยชน์ <span style={{ fontSize:9, background:'#fef3c7', padding:'1px 5px', borderRadius:4, color:'#b45309' }}>LTAX</span>
+                      </label>
+                      <input type="text" value={formData.land_use_code||''} onChange={e => setFormData({...formData,land_use_code:e.target.value})}
+                        placeholder="100, 200..." style={{ width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #fde68a', fontSize:'0.8rem', background:'#fffbeb' }} />
+                    </div>
+                  </div>
                 </div>
 
                 {/* ── คอลัมน์ 3: ภาษี ── */}
@@ -859,11 +908,14 @@ export default function FeatureEditModal({
                     <span style={{ fontSize: '0.76rem', fontWeight: 600, color: '#1e293b' }}>ภาษีที่ดินและสิ่งปลูกสร้าง</span>
                   </div>
                   {[
-                    { key: 'land_deed_no', label: 'เลขโฉนด / น.ส.3',        placeholder: 'เช่น 1234' },
-                    { key: 'parcel_id',    label: 'รหัสแปลงที่ดิน',          placeholder: '76010101001' },
-                    { key: 'owner_name',   label: 'ชื่อเจ้าของ',              placeholder: 'นายสมชาย ใจดี' },
+                    { key: 'ltax_id',      label: 'รหัสอาคาร LTAX3000',       placeholder: '76010100001' },
+                    { key: 'land_deed_no', label: 'เลขโฉนด / น.ส.3',          placeholder: '1234' },
+                    { key: 'land_no',      label: 'เลขที่ดินในโฉนด',           placeholder: '45' },
+                    { key: 'survey_page',  label: 'เลขหน้าสำรวจ (น.ส.ล.)',    placeholder: '12' },
+                    { key: 'parcel_id',    label: 'รหัสแปลงที่ดิน 12 หลัก',   placeholder: '760101001001' },
+                    { key: 'owner_name',   label: 'ชื่อเจ้าของ',               placeholder: 'นายสมชาย ใจดี' },
                     { key: 'owner_id',     label: 'เลขบัตรประชาชน (13 หลัก)', placeholder: '1234567890123' },
-                    { key: 'permit_no',    label: 'เลขที่ใบอนุญาตก่อสร้าง',   placeholder: 'อ.1/2545' },
+                    { key: 'permit_no',    label: 'เลขที่ใบอนุญาตก่อสร้าง',  placeholder: 'อ.1/2545' },
                   ].map(f => (
                     <div key={f.key}>
                       <label style={{ fontSize: '0.7rem', color: '#92400e', display: 'block', marginBottom: 3 }}>{f.label}</label>
@@ -874,9 +926,19 @@ export default function FeatureEditModal({
                   ))}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                     <div>
+                      <label style={{ fontSize: '0.7rem', color: '#92400e', display: 'block', marginBottom: 3 }}>ราคาประเมินกรมธนารักษ์</label>
+                      <input type="number" value={formData.tax_assessment_value||''} onChange={e => setFormData({...formData,tax_assessment_value:e.target.value})}
+                        placeholder="450000" style={{ width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #fde68a', fontSize:'0.8rem', background:'#fffbeb' }} />
+                    </div>
+                    <div>
                       <label style={{ fontSize: '0.7rem', color: '#92400e', display: 'block', marginBottom: 3 }}>มูลค่าอาคาร (บาท)</label>
                       <input type="number" value={formData.tax_value || ''} onChange={e => setFormData({ ...formData, tax_value: e.target.value })}
                         placeholder="500000" style={{ width: '100%', padding: '6px 8px', borderRadius: 6, border: '1px solid #fde68a', fontSize: '0.8rem', background: '#fffbeb' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.7rem', color: '#92400e', display: 'block', marginBottom: 3 }}>อัตราภาษี (%)</label>
+                      <input type="number" step="0.01" value={formData.tax_rate||''} onChange={e => setFormData({...formData,tax_rate:e.target.value})}
+                        placeholder="0.02" style={{ width:'100%', padding:'6px 8px', borderRadius:6, border:'1px solid #fde68a', fontSize:'0.8rem', background:'#fffbeb' }} />
                     </div>
                     <div>
                       <label style={{ fontSize: '0.7rem', color: '#92400e', display: 'block', marginBottom: 3 }}>ปีภาษี (พ.ศ.)</label>
