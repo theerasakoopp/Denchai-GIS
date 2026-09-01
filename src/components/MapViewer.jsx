@@ -1180,7 +1180,7 @@ export default function MapViewer({
 
     const initialStyle = {
       version: 8,
-      glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+      glyphs: 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',
       sources: {
         // ── Basemap Rasters ──────────────────────────────────
         's-satellite': { type: 'raster', tiles: [TILE_SOURCES.satellite], tileSize: 256, attribution: '© Esri, Maxar' },
@@ -1286,6 +1286,7 @@ export default function MapViewer({
           layout: {
             visibility: 'none',
             'text-field': ['get', 'name_th'],
+            'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
             'text-size': 11.5,
             'text-offset': [0, 0],
             'text-anchor': 'center',
@@ -1407,6 +1408,7 @@ export default function MapViewer({
           layout: {
             visibility: 'visible',
             'text-field': ['get', 'name_th'],
+            'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
             'text-size': 11,
             'text-offset': [0, 1.3],
             'text-anchor': 'top',
@@ -1446,19 +1448,22 @@ export default function MapViewer({
             'icon-allow-overlap': true,
             'icon-ignore-placement': false,
             'text-field': ['get', 'name_th'],
-            'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
-            'text-size': 12,
-            'text-offset': [1.2, -2.4],
+            'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 13, 11, 16, 13, 19, 15],
+            'text-offset': [1.1, -2.2],
             'text-anchor': 'bottom-left',
             'text-allow-overlap': false,
             'text-optional': true,
             'text-max-width': 10,
             'text-justify': 'left',
+            'text-letter-spacing': 0.02,
+            'text-line-height': 1.3,
           },
           paint: {
-            'text-color': '#f0f4ff',
+            'text-color': '#ffffff',
             'text-halo-color': '#0a0f1e',
-            'text-halo-width': 2,
+            'text-halo-width': 2.5,
+            'text-halo-blur': 0.5,
           }
         },
         // ── 9. Service Circles & Labels ──────────────────────
@@ -1493,6 +1498,7 @@ export default function MapViewer({
           layout: {
             visibility: 'visible',
             'text-field': ['get', 'name_th'],
+            'text-font': ['Noto Sans Regular', 'Arial Unicode MS Regular'],
             'text-size': 11,
             'text-offset': [0, 1.3],
             'text-anchor': 'top',
