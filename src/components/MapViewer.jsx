@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Map, NavigationControl, ScaleControl, Popup, setWorkerUrl, addProtocol } from 'maplibre-gl';
+import { Map, NavigationControl, ScaleControl, Popup, Marker, setWorkerUrl, addProtocol } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
@@ -383,6 +383,7 @@ export default function MapViewer({
   const mapRef = useRef(null);
   const popupRef = useRef(null);
   const drawRef = useRef(null);
+  const poiLabelMarkersRef = useRef([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [currentBasemap, setCurrentBasemap] = useState('uav');
   const [activeDrawMode, setActiveDrawMode] = useState('none');
@@ -1447,24 +1448,8 @@ export default function MapViewer({
             'icon-anchor': 'bottom',
             'icon-allow-overlap': true,
             'icon-ignore-placement': false,
-            'text-field': ['get', 'name_th'],
-            'text-font': ['Arial Unicode MS Regular'],
-            'text-size': ['interpolate', ['linear'], ['zoom'], 13, 11, 16, 13, 19, 15],
-            'text-offset': [1.1, -2.2],
-            'text-anchor': 'bottom-left',
-            'text-allow-overlap': false,
-            'text-optional': true,
-            'text-max-width': 10,
-            'text-justify': 'left',
-            'text-letter-spacing': 0.02,
-            'text-line-height': 1.3,
           },
-          paint: {
-            'text-color': '#ffffff',
-            'text-halo-color': '#0a0f1e',
-            'text-halo-width': 2.5,
-            'text-halo-blur': 0.5,
-          }
+          paint: {}
         },
         // ── 9. Service Circles & Labels ──────────────────────
         {
@@ -2030,7 +2015,55 @@ export default function MapViewer({
     }
   }, [poiData, infraData, serviceData, waterData, mapLoaded]);
 
-  // ── Filter POI/Infra/Service/Water by category visibility ──────────
+  // ── POI HTML Label Markers (รองรับภาษาไทยสมบูรณ์) ──────────────
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    // ลบ label เดิมทั้งหมด
+    poiLabelMarkersRef.current.forEach(m => m.remove());
+    poiLabelMarkersRef.current = [];
+
+    if (!poiData?.features) return;
+
+    poiData.features.forEach(f => {
+      const coords = f.geometry?.coordinates;
+      const name   = f.properties?.name_th;
+      if (!coords || !name) return;
+
+      const cat   = f.properties?.category || 'default';
+      const color = POI_CATEGORIES[cat]?.color || '#3b82f6';
+
+      // สร้าง HTML element สำหรับ label
+      const el = document.createElement('div');
+      el.style.cssText = [
+        'position:absolute',
+        'pointer-events:none',
+        'white-space:nowrap',
+        `font-family:'Sarabun','Noto Sans Thai','Tahoma',sans-serif`,
+        'font-size:12px',
+        'font-weight:600',
+        'color:#ffffff',
+        'background:rgba(10,15,30,0.72)',
+        'padding:2px 6px',
+        'border-radius:4px',
+        `border-left:3px solid ${color}`,
+        'backdrop-filter:blur(2px)',
+        'line-height:1.4',
+        'transform:translate(14px,-28px)',
+        'max-width:160px',
+        'overflow:hidden',
+        'text-overflow:ellipsis',
+      ].join(';');
+      el.textContent = name;
+
+      const marker = new Marker({ element: el, anchor: 'left' })
+        .setLngLat([coords[0], coords[1]])
+        .addTo(map);
+
+      poiLabelMarkersRef.current.push(marker);
+    });
+  }, [poiData, mapLoaded]);
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
