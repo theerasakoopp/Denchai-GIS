@@ -1,89 +1,78 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, LineChart, Line } from 'recharts';
 
-// ── LPA Data ─────────────────────────────────────────────
-const LPA_ASPECTS = [
-  { id:1, icon:'ti-building-community', th:'การบริหารจัดการ',     score:84, indicators:[
-    { th:'แผนพัฒนาท้องถิ่น', score:85, mapLayer:'poi' },
-    { th:'แผนการดำเนินงาน',  score:78, mapLayer:'infra' },
-    { th:'การบริหารงานบุคคล', score:90, mapLayer:null },
-  ]},
-  { id:2, icon:'ti-coins', th:'การบริหารงานการเงิน',  score:82, indicators:[
-    { th:'การจัดทำงบประมาณ', score:82, mapLayer:null },
-    { th:'การจัดซื้อจัดจ้าง', score:75, mapLayer:null },
-    { th:'รายงานการเงิน',    score:88, mapLayer:null },
-  ]},
-  { id:3, icon:'ti-users', th:'การบริหารงานชุมชนฯ',   score:73, indicators:[
-    { th:'บริการประชาชน',   score:72, mapLayer:'service' },
-    { th:'สวัสดิการสังคม',  score:68, mapLayer:'poi' },
-    { th:'การมีส่วนร่วม',   score:80, mapLayer:null },
-  ]},
-  { id:4, icon:'ti-road', th:'การบริการสาธารณะ',     score:63, indicators:[
-    { th:'ถนนและการจราจร',      score:65, mapLayer:'infra' },
-    { th:'ระบบน้ำประปา',        score:70, mapLayer:'water' },
-    { th:'ไฟฟ้าสาธารณะ',        score:60, mapLayer:'streetlight' },
-    { th:'การจัดการขยะ',        score:55, mapLayer:'trashbin' },
-  ]},
-  { id:5, icon:'ti-scale', th:'ธรรมาภิบาล',            score:87, indicators:[
-    { th:'ความโปร่งใส', score:88, mapLayer:null },
-    { th:'การตรวจสอบ',  score:82, mapLayer:null },
-    { th:'จริยธรรม',    score:91, mapLayer:null },
-  ]},
+// ── LPA Data ──────────────────────────────────────────────
+const LPA = [
+  { id:1, icon:'ti-building-community', th:'การบริหารจัดการ', score:84, color:'#00c8b4' },
+  { id:2, icon:'ti-coins',              th:'การบริหารการเงิน', score:82, color:'#3b82f6' },
+  { id:3, icon:'ti-users',              th:'ชุมชนและสังคม',    score:73, color:'#f59e0b' },
+  { id:4, icon:'ti-road',               th:'บริการสาธารณะ',   score:63, color:'#ef4444' },
+  { id:5, icon:'ti-scale',              th:'ธรรมาภิบาล',      score:87, color:'#a78bfa' },
 ];
-
-// ── Styles ────────────────────────────────────────────────
-const S = {
-  page:   { minHeight:'100vh', background:'#080c14', color:'#f0f4ff',
-            fontFamily:"'Sarabun','IBM Plex Sans Thai',sans-serif", display:'flex', flexDirection:'column' },
-  hdr:    { background:'#0d1420', borderBottom:'1px solid rgba(255,255,255,0.07)',
-            padding:'12px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' },
-  tabs:   { display:'flex', gap:4, background:'rgba(0,0,0,0.2)', padding:'10px 24px',
-            borderBottom:'1px solid rgba(255,255,255,0.06)', flexWrap:'wrap' },
-  tab:    { padding:'7px 16px', borderRadius:8, fontSize:13, fontWeight:500, cursor:'pointer',
-            border:'none', background:'transparent', color:'#8899bb', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 },
-  tabA:   { background:'rgba(59,130,246,0.15)', color:'#60a5fa', borderBottom:'2px solid #3b82f6' },
-  body:   { flex:1, padding:'20px 24px', overflowY:'auto' },
-  card:   { background:'#141c2e', border:'1px solid rgba(255,255,255,0.07)', borderRadius:12, padding:'14px 16px' },
-  g4:     { display:'grid', gridTemplateColumns:'repeat(4,minmax(0,1fr))', gap:12, marginBottom:16 },
-  g2:     { display:'grid', gridTemplateColumns:'minmax(0,1.4fr) minmax(0,1fr)', gap:12, marginBottom:16 },
-  g3:     { display:'grid', gridTemplateColumns:'repeat(3,minmax(0,1fr))', gap:12, marginBottom:16 },
-  lbl:    { fontSize:11, fontWeight:600, color:'#64748b', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:8 },
-  kval:   { fontSize:28, fontWeight:600, color:'#f0f4ff', lineHeight:1.1 },
-  ksub:   { fontSize:12, marginTop:4 },
-  btnBk:  { padding:'7px 14px', borderRadius:8, border:'1px solid rgba(255,255,255,0.1)',
-            background:'transparent', color:'#8899bb', fontSize:13, fontWeight:500, cursor:'pointer', fontFamily:'inherit' },
-  btnE:   { padding:'7px 12px', borderRadius:8, border:'1px solid rgba(56,189,248,0.3)',
-            background:'rgba(56,189,248,0.08)', color:'#38bdf8', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit' },
-  btnPDF: { padding:'7px 12px', borderRadius:8, border:'1px solid rgba(16,185,129,0.3)',
-            background:'rgba(16,185,129,0.08)', color:'#34d399', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'inherit' },
-  tbl:    { width:'100%', borderCollapse:'collapse', fontSize:13 },
-  th:     { padding:'8px 12px', textAlign:'left', fontSize:11, fontWeight:600, color:'#64748b',
-            textTransform:'uppercase', letterSpacing:'.04em', borderBottom:'1px solid rgba(255,255,255,0.07)' },
-  td:     { padding:'9px 12px', borderBottom:'1px solid rgba(255,255,255,0.04)', color:'#c8d3e8', verticalAlign:'middle' },
-  sec:    { fontSize:12, fontWeight:600, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.05em', marginBottom:10, display:'flex', alignItems:'center', gap:6 },
-};
-
-const scoreColor = s => s >= 80 ? '#34d399' : s >= 65 ? '#f59e0b' : '#ef4444';
-const levelBg    = l => l === 'danger' ? 'rgba(239,68,68,0.12)' : l === 'warning' ? 'rgba(245,158,11,0.12)' : 'rgba(59,130,246,0.12)';
-const levelColor = l => l === 'danger' ? '#ef4444' : l === 'warning' ? '#f59e0b' : '#3b82f6';
-const levelLabel = l => l === 'danger' ? 'เร่งด่วน' : l === 'warning' ? 'ปานกลาง' : 'ปกติ';
 
 const ALERTS = [
-  { id:1, th:'เสาไฟฟ้าชำรุด ซ.3 หมู่ 2',    layer:'streetlight', level:'danger' },
-  { id:2, th:'ถนนทรุดตัว หมู่ 5',            layer:'infra',       level:'danger' },
-  { id:3, th:'ท่อระบายน้ำอุดตัน ซ.7',        layer:'drain',       level:'warning' },
-  { id:4, th:'ถังขยะเต็ม หมู่ 2',            layer:'trashbin',    level:'warning' },
-  { id:5, th:'มิเตอร์น้ำผิดปกติ 12 จุด',    layer:'watermeter',  level:'info' },
-  { id:6, th:'หัวจ่ายน้ำดับเพลิง ชำรุด',    layer:'hydrant',     level:'danger' },
+  { id:1, txt:'เสาไฟฟ้าชำรุด ซ.3 หมู่ 2',     level:'danger',  time:'2 ชม.' },
+  { id:2, txt:'หัวจ่ายน้ำดับเพลิงชำรุด',       level:'danger',  time:'5 ชม.' },
+  { id:3, txt:'ท่อระบายน้ำอุดตัน ซ.7',         level:'warning', time:'1 วัน' },
+  { id:4, txt:'ถังขยะเต็ม หมู่ 2',             level:'warning', time:'1 วัน' },
+  { id:5, txt:'มิเตอร์น้ำผิดปกติ 12 จุด',      level:'info',    time:'2 วัน' },
 ];
+
+const INFRA_CHART = [
+  { name:'ทางหลวง', value:32, fill:'#ea580c' },
+  { name:'ถนนรพช.', value:18, fill:'#f97316' },
+  { name:'สายหลัก', value:45, fill:'#f59e0b' },
+  { name:'สายรอง',  value:6,  fill:'#0284c7' },
+  { name:'ซอย',     value:101,fill:'#64748b' },
+  { name:'เกษตร',   value:6,  fill:'#22c55e' },
+];
+
+const scoreColor = s => s >= 80 ? '#00c8b4' : s >= 65 ? '#f59e0b' : '#ef4444';
+const levelColor = l => l==='danger' ? '#ef4444' : l==='warning' ? '#f59e0b' : '#3b82f6';
+const levelBg    = l => l==='danger' ? 'rgba(239,68,68,0.1)' : l==='warning' ? 'rgba(245,158,11,0.08)' : 'rgba(59,130,246,0.08)';
+
+// ── Styles ────────────────────────────────────────────────
+const C = {
+  page: {
+    minHeight:'100vh', background:'#060d1a',
+    fontFamily:"'Sarabun','IBM Plex Sans Thai',sans-serif",
+    display:'flex', flexDirection:'column', color:'#f0f4ff'
+  },
+  card: {
+    background:'#0a1628', border:'1px solid rgba(0,200,180,0.15)',
+    borderRadius:8, padding:'10px 12px', display:'flex', flexDirection:'column', gap:6
+  },
+  cardTitle: {
+    fontSize:10, fontWeight:600, color:'rgba(0,200,180,0.85)',
+    textTransform:'uppercase', letterSpacing:'.06em',
+    display:'flex', alignItems:'center', gap:5
+  },
+  row: {
+    display:'flex', alignItems:'center', gap:7,
+    padding:'5px 0', borderBottom:'1px solid rgba(255,255,255,0.04)'
+  },
+};
+
+function CardTitle({ children }) {
+  return (
+    <div style={C.cardTitle}>
+      <span style={{ width:3, height:10, background:'#00c8b4', borderRadius:2, flexShrink:0 }} />
+      {children}
+    </div>
+  );
+}
 
 export default function DashboardPage({ lang = 'th' }) {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
-  const [expandLpa, setExpandLpa] = useState(null);
+  const [now, setNow] = useState(new Date());
 
-  // โหลดข้อมูลจาก localStorage
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(t);
+  }, []);
+
   const data = useMemo(() => {
     const load = key => { try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : null; } catch { return null; } };
     return {
@@ -95,484 +84,444 @@ export default function DashboardPage({ lang = 'th' }) {
   }, []);
 
   const counts = useMemo(() => ({
-    poi:     data.poi?.features?.length     || 53,
+    poi:     data.poi?.features?.length     || 54,
     infra:   data.infra?.features?.length   || 142,
     water:   data.water?.features?.length   || 287,
     service: data.service?.features?.length || 46,
   }), [data]);
 
-  const lpaAvg = Math.round(LPA_ASPECTS.reduce((s,a) => s + a.score, 0) / LPA_ASPECTS.length);
+  const lpaAvg = Math.round(LPA.reduce((s,a) => s + a.score, 0) / LPA.length);
 
-  function goMap(layer) { navigate(`/?layer=${layer}`); }
-
-  const TABS = [
-    { key:'overview',  icon:'ti-layout-dashboard', label:'ภาพรวม' },
-    { key:'poi',       icon:'ti-map-pin',           label:'สถานที่สำคัญ' },
-    { key:'infra',     icon:'ti-road',              label:'โครงสร้างพื้นฐาน' },
-    { key:'water',     icon:'ti-droplet',           label:'ทรัพยากรน้ำ' },
-    { key:'building',  icon:'ti-building',          label:'อาคาร/ภาษี' },
-    { key:'lpa',       icon:'ti-chart-radar',       label:'การประเมิน LPA' },
-  ];
-
-  // group POI by category
+  // Group poi by category
   const poiGroups = useMemo(() => {
     if (!data.poi?.features) return [];
     const g = {};
     data.poi.features.forEach(f => {
-      const cat = f.properties?.category || 'other';
-      if (!g[cat]) g[cat] = [];
-      g[cat].push(f);
+      const c = f.properties?.category || 'other';
+      g[c] = (g[c] || 0) + 1;
     });
-    return Object.entries(g).map(([cat, items]) => ({ cat, items, count: items.length }))
-      .sort((a,b) => b.count - a.count);
+    return Object.entries(g).sort((a,b) => b[1]-a[1]).slice(0,6);
   }, [data.poi]);
 
-  // group infra by category
-  const infraGroups = useMemo(() => {
-    if (!data.infra?.features) return [];
-    const g = {};
-    data.infra.features.forEach(f => {
-      const cat = f.properties?.category || 'other';
-      if (!g[cat]) g[cat] = [];
-      g[cat].push(f);
-    });
-    return Object.entries(g).map(([cat, items]) => ({ cat, items, count: items.length }))
-      .sort((a,b) => b.count - a.count);
-  }, [data.infra]);
-
-  // group water by category
   const waterGroups = useMemo(() => {
     if (!data.water?.features) return [];
     const g = {};
     data.water.features.forEach(f => {
-      const cat = f.properties?.category || 'other';
-      if (!g[cat]) g[cat] = [];
-      g[cat].push(f);
+      const c = f.properties?.category || 'other';
+      g[c] = (g[c] || 0) + 1;
     });
-    return Object.entries(g).map(([cat, items]) => ({ cat, items, count: items.length }))
-      .sort((a,b) => b.count - a.count);
+    return Object.entries(g).sort((a,b) => b[1]-a[1]);
   }, [data.water]);
 
-  const barData = [
-    { name:'สถานที่', value: counts.poi,     fill:'#378ADD' },
-    { name:'โครงสร้าง', value: counts.infra, fill:'#1D9E75' },
-    { name:'แหล่งน้ำ', value: counts.water,  fill:'#D85A30' },
-    { name:'บริการ',  value: counts.service,  fill:'#7F77DD' },
+  const radarData = LPA.map(a => ({ aspect: a.th.slice(0,4), score: a.score }));
+
+  const dateStr = now.toLocaleDateString('th-TH', { year:'numeric', month:'long', day:'numeric' });
+
+  const TABS = [
+    { key:'overview', label:'ภาพรวม',         icon:'ti-layout-dashboard' },
+    { key:'poi',      label:'สถานที่สำคัญ',    icon:'ti-map-pin' },
+    { key:'infra',    label:'โครงสร้างพื้นฐาน', icon:'ti-road' },
+    { key:'water',    label:'ทรัพยากรน้ำ',     icon:'ti-droplet' },
+    { key:'lpa',      label:'LPA',             icon:'ti-chart-radar' },
   ];
 
-  const radarData = LPA_ASPECTS.map(a => ({
-    aspect: a.th.slice(0,5), score: a.score,
-  }));
+  const DOTS = { poi:'#00c8b4', infra:'#f59e0b', water:'#3b82f6', service:'#8b5cf6' };
 
   return (
-    <div style={S.page}>
+    <div style={C.page}>
 
-      {/* Header */}
-      <div style={S.hdr}>
-        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <button style={S.btnBk} onClick={() => navigate('/')}>
-            <i className="ti ti-arrow-left" style={{ fontSize:14, marginRight:4 }} /> กลับแผนที่
+      {/* ── Header ── */}
+      <div style={{
+        background:'linear-gradient(90deg,#060d1a,#0f1f3d,#060d1a)',
+        borderBottom:'1px solid rgba(0,200,180,0.2)',
+        padding:'10px 20px', display:'flex', alignItems:'center',
+        justifyContent:'space-between', flexShrink:0, gap:12
+      }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <button onClick={() => navigate('/')} style={{
+            padding:'5px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.1)',
+            background:'transparent', color:'#94a3b8', fontSize:12, cursor:'pointer',
+            display:'flex', alignItems:'center', gap:5, fontFamily:'inherit'
+          }}>
+            <i className="ti ti-arrow-left" style={{ fontSize:13 }} /> กลับแผนที่
           </button>
-          <div>
-            <div style={{ fontSize:15, fontWeight:600 }}>
-              <i className="ti ti-building-community" style={{ fontSize:16, color:'#60a5fa', marginRight:8 }} />
-              ศูนย์บริหารจัดการเทศบาลตำบลเด่นชัย
+          <div style={{ width:1, height:28, background:'rgba(255,255,255,0.08)' }} />
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <span style={{ width:8, height:8, borderRadius:'50%', background:'#00c8b4',
+              boxShadow:'0 0 0 3px rgba(0,200,180,0.2)', flexShrink:0 }} />
+            <div>
+              <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>
+                ศูนย์บริหารจัดการเทศบาลตำบลเด่นชัย — Smart City
+              </div>
+              <div style={{ fontSize:10, color:'rgba(0,200,180,0.7)', marginTop:1 }}>
+                ข้อมูล ณ {dateStr} · อัปเดตอัตโนมัติ
+              </div>
             </div>
-            <div style={{ fontSize:11, color:'#64748b' }}>ข้อมูล ณ วันที่ 31 สิงหาคม 2569</div>
           </div>
         </div>
-        <div style={{ display:'flex', gap:8 }}>
-          <button style={S.btnE} onClick={() => navigate('/editor')}>
-            <i className="ti ti-pencil" style={{ fontSize:13 }} /> จัดการข้อมูล
-          </button>
-          <button style={S.btnPDF}>
-            <i className="ti ti-file-export" style={{ fontSize:13 }} /> Export PDF
+
+        {/* KPI summary */}
+        <div style={{ display:'flex', alignItems:'center', gap:0 }}>
+          {[
+            { num: counts.poi,     lbl:'สถานที่',     color:'#00c8b4' },
+            { num: counts.infra,   lbl:'โครงสร้าง',   color:'#f59e0b' },
+            { num: counts.water,   lbl:'แหล่งน้ำ',    color:'#3b82f6' },
+            { num: counts.service, lbl:'บริการ',      color:'#8b5cf6' },
+            { num: lpaAvg+'%',     lbl:'LPA',         color:'#a78bfa' },
+          ].map((k,i) => (
+            <div key={i} style={{ textAlign:'center', padding:'0 16px',
+              borderLeft: i>0 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
+              <div style={{ fontSize:20, fontWeight:700, color:k.color, lineHeight:1 }}>{k.num}</div>
+              <div style={{ fontSize:9, color:'rgba(255,255,255,0.4)', marginTop:2 }}>{k.lbl}</div>
+            </div>
+          ))}
+          <div style={{ width:1, height:28, background:'rgba(255,255,255,0.08)', margin:'0 8px' }} />
+          <button onClick={() => navigate('/editor')} style={{
+            padding:'6px 12px', borderRadius:6, border:'1px solid rgba(56,189,248,0.35)',
+            background:'rgba(56,189,248,0.08)', color:'#38bdf8',
+            fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit',
+            display:'flex', alignItems:'center', gap:5
+          }}>
+            <i className="ti ti-pencil" style={{ fontSize:12 }} /> จัดการข้อมูล
           </button>
         </div>
       </div>
 
-      {/* Tab nav */}
-      <div style={S.tabs}>
+      {/* ── Tab Nav ── */}
+      <div style={{
+        display:'flex', gap:2, padding:'6px 16px',
+        background:'#080f1e', borderBottom:'1px solid rgba(0,200,180,0.1)',
+        flexShrink:0
+      }}>
         {TABS.map(t => (
-          <button key={t.key} style={{ ...S.tab, ...(activeTab === t.key ? S.tabA : {}) }}
-            onClick={() => setActiveTab(t.key)}>
-            <i className={`ti ${t.icon}`} style={{ fontSize:14 }} />
+          <button key={t.key} onClick={() => setActiveTab(t.key)} style={{
+            padding:'6px 14px', borderRadius:6, border:'none', cursor:'pointer',
+            fontFamily:'inherit', fontSize:12, fontWeight:500,
+            display:'flex', alignItems:'center', gap:6, transition:'all .15s',
+            background: activeTab===t.key ? 'rgba(0,200,180,0.15)' : 'transparent',
+            color: activeTab===t.key ? '#00c8b4' : '#64748b',
+            borderBottom: activeTab===t.key ? '2px solid #00c8b4' : '2px solid transparent',
+          }}>
+            <i className={`ti ${t.icon}`} style={{ fontSize:13 }} />
             {t.label}
           </button>
         ))}
       </div>
 
-      <div style={S.body}>
+      {/* ── Body ── */}
+      <div style={{ flex:1, overflowY:'auto', padding:'12px 16px' }}>
 
-        {/* ══ TAB: OVERVIEW ══ */}
-        {activeTab === 'overview' && (<>
-          <div style={S.g4}>
-            {[
-              { label:'สถานที่สำคัญ', val: counts.poi,     sub:'24 หมวดหมู่ · คลิกดูแผนที่',     subColor:'#60a5fa', icon:'ti-map-pin',           layer:'poi' },
-              { label:'โครงสร้างพื้นฐาน', val: counts.infra,  sub:'รอซ่อม 8 จุด · คลิกดูแผนที่',   subColor:'#f59e0b', icon:'ti-road',              layer:'infra' },
-              { label:'แหล่งน้ำ',    val: counts.water,  sub:'ครอบคลุม 100% · คลิกดูแผนที่',   subColor:'#34d399', icon:'ti-droplet',           layer:'water' },
-              { label:'คะแนน LPA เฉลี่ย', val: lpaAvg+'%',sub:'5 ด้านการประเมิน',              subColor:'#60a5fa', icon:'ti-chart-radar',       layer:null },
-            ].map((k,i) => (
-              <div key={i} style={{ ...S.card, cursor: k.layer ? 'pointer' : 'default' }}
-                onClick={() => k.layer && goMap(k.layer)}>
-                <div style={{ ...S.lbl, display:'flex', alignItems:'center', gap:6 }}>
-                  <i className={`ti ${k.icon}`} style={{ fontSize:13 }} />{k.label}
-                </div>
-                <div style={S.kval}>{k.val}</div>
-                <div style={{ ...S.ksub, color: k.subColor }}>{k.sub}</div>
+        {/* ══ OVERVIEW ══ */}
+        {activeTab === 'overview' && (
+          <div style={{ display:'grid', gridTemplateColumns:'200px 1fr 200px', gridTemplateRows:'1fr auto', gap:10, height:'calc(100vh - 160px)' }}>
+
+            {/* Left */}
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+
+              <div style={C.card}>
+                <CardTitle>ชั้นข้อมูล</CardTitle>
+                {[
+                  { dot:'#00c8b4', name:'สถานที่สำคัญ',     num: counts.poi,     key:'poi' },
+                  { dot:'#f59e0b', name:'โครงสร้างพื้นฐาน', num: counts.infra,   key:'infra' },
+                  { dot:'#3b82f6', name:'ทรัพยากรน้ำ',      num: counts.water,   key:'water' },
+                  { dot:'#8b5cf6', name:'บริการสาธารณะ',    num: counts.service, key:'service' },
+                ].map((l,i) => (
+                  <div key={i} style={{ ...C.row, cursor:'pointer' }} onClick={() => navigate(`/?layer=${l.key}`)}>
+                    <span style={{ width:8, height:8, borderRadius:2, background:l.dot, flexShrink:0 }} />
+                    <span style={{ fontSize:11, color:'#94a3b8', flex:1 }}>{l.name}</span>
+                    <span style={{ fontSize:12, fontWeight:700, color:l.dot }}>{l.num}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div style={S.g2}>
-            <div style={S.card}>
-              <div style={S.lbl}>สัดส่วนข้อมูลแต่ละหมวด</div>
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={barData} margin={{ top:0, right:10, left:-20, bottom:0 }}>
-                  <XAxis dataKey="name" tick={{ fill:'#64748b', fontSize:11 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill:'#64748b', fontSize:10 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, color:'#f0f4ff', fontSize:12 }} />
-                  <Bar dataKey="value" radius={[4,4,0,0]}>
-                    {barData.map((e,i) => <rect key={i} fill={e.fill} />)}
+              <div style={C.card}>
+                <CardTitle>LPA คะแนนรายด้าน</CardTitle>
+                {LPA.map(a => (
+                  <div key={a.id} style={{ display:'flex', alignItems:'center', gap:6, padding:'3px 0' }}>
+                    <span style={{ fontSize:10, color:'#64748b', width:50, flexShrink:0,
+                      overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.th}</span>
+                    <div style={{ flex:1, height:5, background:'rgba(255,255,255,0.06)', borderRadius:3, overflow:'hidden' }}>
+                      <div style={{ height:'100%', width:a.score+'%', background:a.color, borderRadius:3 }} />
+                    </div>
+                    <span style={{ fontSize:10, fontWeight:700, color:a.color, minWidth:22, textAlign:'right' }}>{a.score}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ ...C.card, flex:1 }}>
+                <CardTitle>รายการเร่งด่วน</CardTitle>
+                {ALERTS.filter(a=>a.level==='danger').map(a => (
+                  <div key={a.id} style={{
+                    display:'flex', alignItems:'center', gap:7, padding:'6px 8px',
+                    borderRadius:6, background:levelBg(a.level), cursor:'pointer'
+                  }} onClick={() => navigate('/')}>
+                    <span style={{ width:6, height:6, borderRadius:'50%', background:levelColor(a.level), flexShrink:0 }} />
+                    <span style={{ fontSize:11, color:'#c8d3e8', flex:1, lineHeight:1.3 }}>{a.txt}</span>
+                    <span style={{ fontSize:9, color:'#475569', whiteSpace:'nowrap' }}>{a.time}</span>
+                  </div>
+                ))}
+                {ALERTS.filter(a=>a.level==='warning').map(a => (
+                  <div key={a.id} style={{
+                    display:'flex', alignItems:'center', gap:7, padding:'6px 8px',
+                    borderRadius:6, background:levelBg(a.level), cursor:'pointer'
+                  }}>
+                    <span style={{ width:6, height:6, borderRadius:'50%', background:levelColor(a.level), flexShrink:0 }} />
+                    <span style={{ fontSize:11, color:'#c8d3e8', flex:1, lineHeight:1.3 }}>{a.txt}</span>
+                    <span style={{ fontSize:9, color:'#475569', whiteSpace:'nowrap' }}>{a.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Center — Map */}
+            <div style={{
+              background:'linear-gradient(135deg,#060d1a,#0d2137)',
+              border:'1px solid rgba(0,200,180,0.15)', borderRadius:10,
+              position:'relative', overflow:'hidden', display:'flex',
+              alignItems:'center', justifyContent:'center', cursor:'pointer'
+            }} onClick={() => navigate('/')}>
+              <div style={{
+                position:'absolute', inset:0,
+                backgroundImage:'linear-gradient(rgba(0,200,180,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,180,0.05) 1px,transparent 1px)',
+                backgroundSize:'30px 30px'
+              }} />
+              <div style={{ position:'relative', textAlign:'center' }}>
+                <i className="ti ti-map-2" style={{ fontSize:48, color:'rgba(0,200,180,0.15)', display:'block', marginBottom:10 }} />
+                <div style={{ fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.3)' }}>แผนที่ GIS เด่นชัย</div>
+                <div style={{ fontSize:11, color:'rgba(0,200,180,0.4)', marginTop:4 }}>คลิกเพื่อเปิดแผนที่</div>
+              </div>
+              {/* Fake pins */}
+              {[
+                { t:'28%', l:'38%', c:'#ef4444', n:'รพ.เด่นชัย' },
+                { t:'42%', l:'55%', c:'#f59e0b', n:'วัดเด่นชัย' },
+                { t:'58%', l:'44%', c:'#8b5cf6', n:'โรงเรียน' },
+                { t:'35%', l:'65%', c:'#0ea5e9', n:'ตลาด' },
+              ].map((p,i) => (
+                <div key={i} style={{ position:'absolute', top:p.t, left:p.l, display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
+                  <div style={{ width:10, height:14, background:p.c, border:'1.5px solid #fff', borderRadius:'50% 50% 50% 50%/60% 60% 40% 40%' }} />
+                  <div style={{ fontSize:8, color:'#fff', background:`${p.c}cc`, padding:'1px 4px', borderRadius:3, whiteSpace:'nowrap' }}>{p.n}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Right */}
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+
+              <div style={C.card}>
+                <CardTitle>สถิติสถานที่</CardTitle>
+                {(poiGroups.length > 0 ? poiGroups : [
+                  ['โรงพยาบาล',2],['วัด/ศาสน์',11],['โรงเรียน',6],
+                  ['ตลาด',7],['คมนาคม',8],['ราชการ',3]
+                ]).slice(0,6).map(([k,v],i) => (
+                  <div key={i} style={{ ...C.row, cursor:'pointer' }} onClick={() => navigate('/')}>
+                    <span style={{ width:6, height:6, borderRadius:'50%', background:['#ef4444','#f59e0b','#8b5cf6','#f97316','#0ea5e9','#3b82f6'][i], flexShrink:0 }} />
+                    <span style={{ fontSize:11, color:'#94a3b8', flex:1 }}>{k}</span>
+                    <span style={{ fontSize:12, fontWeight:700, color:'#00c8b4' }}>{v}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div style={C.card}>
+                <CardTitle>โครงสร้างพื้นฐาน</CardTitle>
+                <div style={{ display:'flex', gap:2, alignItems:'flex-end', height:50 }}>
+                  {INFRA_CHART.map((b,i) => (
+                    <div key={i} style={{ flex:1, borderRadius:'3px 3px 0 0',
+                      height: Math.max(10, b.value/101*100)+'%', background:b.fill,
+                      minHeight:4, opacity:.85 }} title={`${b.name}: ${b.value}`} />
+                  ))}
+                </div>
+                <div style={{ display:'flex', justifyContent:'space-between', marginTop:2 }}>
+                  <span style={{ fontSize:9, color:'#475569' }}>ทางหลวง</span>
+                  <span style={{ fontSize:9, color:'#475569' }}>ซอย</span>
+                </div>
+              </div>
+
+              <div style={{ ...C.card, flex:1 }}>
+                <CardTitle>ทรัพยากรน้ำ</CardTitle>
+                {(waterGroups.length > 0 ? waterGroups : [
+                  ['แม่น้ำ/ลำห้วย',45],['อ่างเก็บน้ำ',23],['สระ/หนอง',189],['ประปา',30]
+                ]).map(([k,v],i) => (
+                  <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'3px 0',
+                    borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
+                    <span style={{ fontSize:10, color:'#64748b' }}>{k}</span>
+                    <span style={{ fontSize:11, fontWeight:700, color:['#3b82f6','#0ea5e9','#38bdf8','#7dd3fc'][i] }}>{v}</span>
+                  </div>
+                ))}
+                <div style={{ display:'flex', justifyContent:'space-between', paddingTop:4 }}>
+                  <span style={{ fontSize:10, color:'#64748b' }}>รวม</span>
+                  <span style={{ fontSize:13, fontWeight:700, color:'#00c8b4' }}>{counts.water} แห่ง</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom KPI bar */}
+            <div style={{ gridColumn:'1/-1', display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8 }}>
+              {[
+                { icon:'ti-map-pin',           num: counts.poi,     lbl:'สถานที่สำคัญ',     color:'#00c8b4', bg:'rgba(0,200,180,0.1)' },
+                { icon:'ti-road',              num: counts.infra,   lbl:'โครงสร้างพื้นฐาน', color:'#f59e0b', bg:'rgba(245,158,11,0.1)' },
+                { icon:'ti-droplet',           num: counts.water,   lbl:'ทรัพยากรน้ำ',      color:'#3b82f6', bg:'rgba(59,130,246,0.1)' },
+                { icon:'ti-heart-rate-monitor',num: counts.service, lbl:'บริการสาธารณะ',    color:'#8b5cf6', bg:'rgba(139,92,246,0.1)' },
+                { icon:'ti-chart-radar',       num: lpaAvg+'%',     lbl:'คะแนน LPA เฉลี่ย', color:'#a78bfa', bg:'rgba(167,139,250,0.1)' },
+              ].map((k,i) => (
+                <div key={i} style={{ ...C.card, flexDirection:'row', alignItems:'center', gap:10, padding:'10px 14px' }}>
+                  <div style={{ width:36, height:36, borderRadius:8, background:k.bg,
+                    display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <i className={`ti ${k.icon}`} style={{ fontSize:18, color:k.color }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize:22, fontWeight:700, color:'#fff', lineHeight:1 }}>{k.num}</div>
+                    <div style={{ fontSize:10, color:'#475569', marginTop:2 }}>{k.lbl}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ══ LPA TAB ══ */}
+        {activeTab === 'lpa' && (
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <div style={C.card}>
+              <CardTitle>คะแนน LPA Radar</CardTitle>
+              <ResponsiveContainer width="100%" height={220}>
+                <RadarChart data={radarData}>
+                  <PolarGrid stroke="rgba(255,255,255,0.07)" />
+                  <PolarAngleAxis dataKey="aspect" tick={{ fill:'#64748b', fontSize:11 }} />
+                  <Radar dataKey="score" stroke="#00c8b4" fill="#00c8b4" fillOpacity={0.15} strokeWidth={2} />
+                  <Tooltip contentStyle={{ background:'#0a1628', border:'1px solid rgba(0,200,180,0.2)', borderRadius:8, color:'#f0f4ff', fontSize:12 }} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+            <div style={C.card}>
+              <CardTitle>คะแนนแต่ละด้าน</CardTitle>
+              {LPA.map(a => (
+                <div key={a.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0',
+                  borderBottom:'1px solid rgba(255,255,255,0.04)' }}>
+                  <i className={`ti ${a.icon}`} style={{ fontSize:16, color:a.color, flexShrink:0 }} />
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, color:'#f0f4ff', fontWeight:500, marginBottom:4 }}>{a.th}</div>
+                    <div style={{ height:5, background:'rgba(255,255,255,0.07)', borderRadius:3 }}>
+                      <div style={{ height:'100%', width:a.score+'%', background:a.color, borderRadius:3, transition:'width .4s' }} />
+                    </div>
+                  </div>
+                  <span style={{ fontSize:18, fontWeight:700, color:a.color, minWidth:36, textAlign:'right' }}>{a.score}</span>
+                </div>
+              ))}
+              <div style={{ marginTop:8, padding:'8px 12px', background:'rgba(0,200,180,0.08)',
+                borderRadius:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <span style={{ fontSize:13, color:'#94a3b8' }}>คะแนนเฉลี่ยรวม</span>
+                <span style={{ fontSize:24, fontWeight:700, color:scoreColor(lpaAvg) }}>{lpaAvg}%</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══ POI TAB ══ */}
+        {activeTab === 'poi' && (
+          <div style={C.card}>
+            <CardTitle>สถานที่สำคัญทั้งหมด {counts.poi} จุด</CardTitle>
+            <div style={{ overflowX:'auto' }}>
+              <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
+                <thead>
+                  <tr>
+                    {['หมวดหมู่','จำนวน','สัดส่วน',''].map((h,i) => (
+                      <th key={i} style={{ padding:'8px 12px', textAlign: i>0 ? 'right' : 'left',
+                        fontSize:10, fontWeight:600, color:'#475569', textTransform:'uppercase',
+                        letterSpacing:'.04em', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(poiGroups.length > 0 ? poiGroups : [
+                    ['วัด/ศาสนสถาน',11],['คมนาคม/ปั๊ม',8],['ตลาด/ร้านค้า',7],
+                    ['โรงเรียน',6],['โรงงาน',9],['โรงพยาบาล',2],['ราชการ',3],
+                  ]).map(([k,v],i) => (
+                    <tr key={i} style={{ cursor:'pointer' }} onClick={() => navigate('/')}>
+                      <td style={{ padding:'9px 12px', color:'#c8d3e8' }}>{k}</td>
+                      <td style={{ padding:'9px 12px', textAlign:'right', fontWeight:700, color:'#00c8b4' }}>{v}</td>
+                      <td style={{ padding:'9px 12px', textAlign:'right' }}>
+                        <div style={{ display:'flex', alignItems:'center', gap:8, justifyContent:'flex-end' }}>
+                          <div style={{ width:80, height:5, background:'rgba(255,255,255,0.07)', borderRadius:3 }}>
+                            <div style={{ width: Math.round(v/counts.poi*100)+'%', height:'100%', background:'#00c8b4', borderRadius:3 }} />
+                          </div>
+                          <span style={{ fontSize:10, color:'#475569', minWidth:28 }}>{Math.round(v/counts.poi*100)}%</span>
+                        </div>
+                      </td>
+                      <td style={{ padding:'9px 12px', textAlign:'right', fontSize:11, color:'#00c8b4' }}>ดูแผนที่ →</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* ══ INFRA TAB ══ */}
+        {activeTab === 'infra' && (
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+            <div style={C.card}>
+              <CardTitle>โครงสร้างพื้นฐานแยกประเภท</CardTitle>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={INFRA_CHART} margin={{ top:0, right:0, left:-25, bottom:0 }}>
+                  <XAxis dataKey="name" tick={{ fill:'#475569', fontSize:10 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill:'#475569', fontSize:10 }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ background:'#0a1628', border:'1px solid rgba(0,200,180,0.2)', borderRadius:8, color:'#f0f4ff', fontSize:12 }} />
+                  <Bar dataKey="value" radius={[3,3,0,0]}>
+                    {INFRA_CHART.map((e,i) => <rect key={i} fill={e.fill} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div style={S.card}>
-              <div style={S.lbl}>รายการเร่งด่วน</div>
-              {ALERTS.filter(a => a.level === 'danger').map(a => (
-                <div key={a.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
-                  padding:'7px 0', borderBottom:'1px solid rgba(255,255,255,0.04)', cursor:'pointer' }}
-                  onClick={() => goMap(a.layer)}>
-                  <span style={{ fontSize:13, color:'#f0f4ff' }}>{a.th}</span>
-                  <span style={{ fontSize:10, padding:'2px 8px', borderRadius:99, background:levelBg(a.level), color:levelColor(a.level), flexShrink:0, marginLeft:8 }}>
-                    {levelLabel(a.level)}
-                  </span>
+            <div style={C.card}>
+              <CardTitle>รายการแจ้งซ่อม</CardTitle>
+              {ALERTS.map(a => (
+                <div key={a.id} style={{ display:'flex', alignItems:'center', gap:8,
+                  padding:'8px 10px', borderRadius:6, background:levelBg(a.level), marginBottom:4 }}>
+                  <span style={{ width:6, height:6, borderRadius:'50%', background:levelColor(a.level), flexShrink:0 }} />
+                  <span style={{ fontSize:12, color:'#c8d3e8', flex:1 }}>{a.txt}</span>
+                  <span style={{ fontSize:10, color:'#475569' }}>{a.time}</span>
                 </div>
               ))}
-              <div style={{ marginTop:8, fontSize:11, color:'#475569' }}>คลิกเพื่อดูตำแหน่งบนแผนที่</div>
             </div>
           </div>
+        )}
 
-          <div style={S.g3}>
-            {[
-              { label:'บริการสาธารณะ', val: counts.service+' จุด', sub:'โรงพยาบาล, โรงเรียน, ตลาด', icon:'ti-heart-rate-monitor', layer:'service' },
-              { label:'แจ้งซ่อมทั้งหมด', val:'24 เรื่อง',           sub:'ดำเนินการแล้ว 18 เรื่อง',    icon:'ti-tool',              layer:'infra' },
-              { label:'ความพึงพอใจ', val:'4.2 / 5',              sub:'จากการสำรวจประชาชน',          icon:'ti-star',              layer:null },
-            ].map((c,i) => (
-              <div key={i} style={{ ...S.card, cursor: c.layer ? 'pointer' : 'default' }}
-                onClick={() => c.layer && goMap(c.layer)}>
-                <div style={{ ...S.lbl, display:'flex', alignItems:'center', gap:6 }}>
-                  <i className={`ti ${c.icon}`} style={{ fontSize:13 }} />{c.label}
-                </div>
-                <div style={{ fontSize:22, fontWeight:600, color:'#f0f4ff', margin:'4px 0' }}>{c.val}</div>
-                <div style={{ fontSize:12, color:'#64748b' }}>{c.sub}</div>
-              </div>
-            ))}
-          </div>
-        </>)}
-
-        {/* ══ TAB: POI ══ */}
-        {activeTab === 'poi' && (<>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-            <div>
-              <div style={{ fontSize:16, fontWeight:600, color:'#f0f4ff', marginBottom:2 }}>
-                <i className="ti ti-map-pin" style={{ fontSize:16, color:'#60a5fa', marginRight:8 }} />
-                รายงานสถานที่สำคัญ
-              </div>
-              <div style={{ fontSize:12, color:'#64748b' }}>ทั้งหมด {counts.poi} จุด · {poiGroups.length} หมวดหมู่</div>
-            </div>
-            <button style={S.btnE} onClick={() => goMap('poi')}>
-              <i className="ti ti-map-2" style={{ fontSize:13 }} /> ดูบนแผนที่
-            </button>
-          </div>
-          <div style={S.card}>
-            <table style={S.tbl}>
+        {/* ══ WATER TAB ══ */}
+        {activeTab === 'water' && (
+          <div style={C.card}>
+            <CardTitle>ทรัพยากรน้ำทั้งหมด {counts.water} แห่ง</CardTitle>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:13 }}>
               <thead>
                 <tr>
-                  <th style={S.th}>หมวดหมู่</th>
-                  <th style={{ ...S.th, textAlign:'right' }}>จำนวน</th>
-                  <th style={{ ...S.th, textAlign:'right' }}>สัดส่วน</th>
-                  <th style={{ ...S.th, width:120 }}></th>
+                  {['ประเภท','จำนวน','สัดส่วน',''].map((h,i) => (
+                    <th key={i} style={{ padding:'8px 12px', textAlign:i>0?'right':'left',
+                      fontSize:10, fontWeight:600, color:'#475569', textTransform:'uppercase',
+                      letterSpacing:'.04em', borderBottom:'1px solid rgba(255,255,255,0.06)' }}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {poiGroups.length > 0 ? poiGroups.map((g,i) => (
-                  <tr key={i} style={{ cursor:'pointer' }} onClick={() => goMap('poi')}>
-                    <td style={S.td}>{g.cat}</td>
-                    <td style={{ ...S.td, textAlign:'right', fontWeight:600, color:'#60a5fa' }}>{g.count}</td>
-                    <td style={{ ...S.td, textAlign:'right' }}>
+                {(waterGroups.length > 0 ? waterGroups : [
+                  ['แม่น้ำ/ลำห้วย',45],['อ่างเก็บน้ำ',23],['สระน้ำ/หนอง',189],['ระบบประปา',30]
+                ]).map(([k,v],i) => (
+                  <tr key={i} style={{ cursor:'pointer' }} onClick={() => navigate('/')}>
+                    <td style={{ padding:'9px 12px', color:'#c8d3e8' }}>{k}</td>
+                    <td style={{ padding:'9px 12px', textAlign:'right', fontWeight:700, color:'#3b82f6' }}>{v}</td>
+                    <td style={{ padding:'9px 12px', textAlign:'right' }}>
                       <div style={{ display:'flex', alignItems:'center', gap:8, justifyContent:'flex-end' }}>
-                        <div style={{ width:80, height:5, background:'rgba(255,255,255,0.08)', borderRadius:3 }}>
-                          <div style={{ width: Math.round(g.count/counts.poi*100)+'%', height:'100%', background:'#3b82f6', borderRadius:3 }} />
+                        <div style={{ width:80, height:5, background:'rgba(255,255,255,0.07)', borderRadius:3 }}>
+                          <div style={{ width: Math.round(v/counts.water*100)+'%', height:'100%', background:'#3b82f6', borderRadius:3 }} />
                         </div>
-                        <span style={{ fontSize:11, color:'#64748b', minWidth:30 }}>{Math.round(g.count/counts.poi*100)}%</span>
+                        <span style={{ fontSize:10, color:'#475569', minWidth:28 }}>{Math.round(v/counts.water*100)}%</span>
                       </div>
                     </td>
-                    <td style={{ ...S.td, textAlign:'right' }}>
-                      <span style={{ fontSize:11, color:'#3b82f6', cursor:'pointer' }}>ดูแผนที่ →</span>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan={4} style={{ ...S.td, textAlign:'center', color:'#475569', padding:'24px' }}>
-                    ยังไม่มีข้อมูล — <span style={{ color:'#3b82f6', cursor:'pointer' }} onClick={() => navigate('/editor')}>เพิ่มข้อมูลใน Editor Studio</span>
-                  </td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </>)}
-
-        {/* ══ TAB: INFRASTRUCTURE ══ */}
-        {activeTab === 'infra' && (<>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-            <div>
-              <div style={{ fontSize:16, fontWeight:600, color:'#f0f4ff', marginBottom:2 }}>
-                <i className="ti ti-road" style={{ fontSize:16, color:'#1D9E75', marginRight:8 }} />
-                รายงานโครงสร้างพื้นฐาน
-              </div>
-              <div style={{ fontSize:12, color:'#64748b' }}>ทั้งหมด {counts.infra} รายการ</div>
-            </div>
-            <button style={S.btnE} onClick={() => goMap('infra')}>
-              <i className="ti ti-map-2" style={{ fontSize:13 }} /> ดูบนแผนที่
-            </button>
-          </div>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:16 }}>
-            {[
-              { label:'รายการเร่งด่วน', val: ALERTS.filter(a=>a.level==='danger').length, color:'#ef4444', icon:'ti-alert-triangle' },
-              { label:'รอดำเนินการ',   val: ALERTS.filter(a=>a.level==='warning').length, color:'#f59e0b', icon:'ti-clock' },
-            ].map((k,i) => (
-              <div key={i} style={S.card}>
-                <div style={{ ...S.lbl, display:'flex', alignItems:'center', gap:6 }}>
-                  <i className={`ti ${k.icon}`} style={{ fontSize:13, color:k.color }} />{k.label}
-                </div>
-                <div style={{ ...S.kval, color:k.color }}>{k.val}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ ...S.card, marginBottom:16 }}>
-            <div style={S.lbl}>รายการแจ้งซ่อมทั้งหมด</div>
-            <table style={S.tbl}>
-              <thead>
-                <tr>
-                  <th style={S.th}>รายการ</th>
-                  <th style={S.th}>Layer</th>
-                  <th style={S.th}>สถานะ</th>
-                  <th style={{ ...S.th, width:100 }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {ALERTS.map(a => (
-                  <tr key={a.id} style={{ cursor:'pointer' }} onClick={() => goMap(a.layer)}>
-                    <td style={S.td}>{a.th}</td>
-                    <td style={{ ...S.td, color:'#64748b', fontSize:11 }}>{a.layer}</td>
-                    <td style={S.td}>
-                      <span style={{ fontSize:11, padding:'2px 8px', borderRadius:99,
-                        background:levelBg(a.level), color:levelColor(a.level) }}>
-                        {levelLabel(a.level)}
-                      </span>
-                    </td>
-                    <td style={{ ...S.td, textAlign:'right' }}>
-                      <span style={{ fontSize:11, color:'#3b82f6' }}>ดูแผนที่ →</span>
-                    </td>
+                    <td style={{ padding:'9px 12px', textAlign:'right', fontSize:11, color:'#3b82f6' }}>ดูแผนที่ →</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div style={S.card}>
-            <div style={S.lbl}>โครงสร้างพื้นฐานแยกประเภท</div>
-            <table style={S.tbl}>
-              <thead>
-                <tr>
-                  <th style={S.th}>ประเภท</th>
-                  <th style={{ ...S.th, textAlign:'right' }}>จำนวน</th>
-                  <th style={{ ...S.th, textAlign:'right' }}>สัดส่วน</th>
-                  <th style={{ ...S.th, width:100 }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {infraGroups.length > 0 ? infraGroups.map((g,i) => (
-                  <tr key={i} style={{ cursor:'pointer' }} onClick={() => goMap('infra')}>
-                    <td style={S.td}>{g.cat}</td>
-                    <td style={{ ...S.td, textAlign:'right', fontWeight:600, color:'#34d399' }}>{g.count}</td>
-                    <td style={{ ...S.td, textAlign:'right' }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:8, justifyContent:'flex-end' }}>
-                        <div style={{ width:80, height:5, background:'rgba(255,255,255,0.08)', borderRadius:3 }}>
-                          <div style={{ width: Math.round(g.count/counts.infra*100)+'%', height:'100%', background:'#1D9E75', borderRadius:3 }} />
-                        </div>
-                        <span style={{ fontSize:11, color:'#64748b', minWidth:30 }}>{Math.round(g.count/counts.infra*100)}%</span>
-                      </div>
-                    </td>
-                    <td style={{ ...S.td, textAlign:'right' }}>
-                      <span style={{ fontSize:11, color:'#3b82f6' }}>ดูแผนที่ →</span>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan={4} style={{ ...S.td, textAlign:'center', color:'#475569', padding:'24px' }}>
-                    ยังไม่มีข้อมูล — <span style={{ color:'#3b82f6', cursor:'pointer' }} onClick={() => navigate('/editor')}>เพิ่มข้อมูลใน Editor Studio</span>
-                  </td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </>)}
-
-        {/* ══ TAB: WATER ══ */}
-        {activeTab === 'water' && (<>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-            <div>
-              <div style={{ fontSize:16, fontWeight:600, color:'#f0f4ff', marginBottom:2 }}>
-                <i className="ti ti-droplet" style={{ fontSize:16, color:'#0ea5e9', marginRight:8 }} />
-                รายงานทรัพยากรน้ำ
-              </div>
-              <div style={{ fontSize:12, color:'#64748b' }}>ทั้งหมด {counts.water} แหล่งน้ำ</div>
-            </div>
-            <button style={S.btnE} onClick={() => goMap('water')}>
-              <i className="ti ti-map-2" style={{ fontSize:13 }} /> ดูบนแผนที่
-            </button>
-          </div>
-          <div style={S.card}>
-            <div style={S.lbl}>แหล่งน้ำแยกประเภท</div>
-            <table style={S.tbl}>
-              <thead>
-                <tr>
-                  <th style={S.th}>ประเภท</th>
-                  <th style={{ ...S.th, textAlign:'right' }}>จำนวน</th>
-                  <th style={{ ...S.th, textAlign:'right' }}>สัดส่วน</th>
-                  <th style={{ ...S.th, width:100 }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {waterGroups.length > 0 ? waterGroups.map((g,i) => (
-                  <tr key={i} style={{ cursor:'pointer' }} onClick={() => goMap('water')}>
-                    <td style={S.td}>{g.cat}</td>
-                    <td style={{ ...S.td, textAlign:'right', fontWeight:600, color:'#0ea5e9' }}>{g.count}</td>
-                    <td style={{ ...S.td, textAlign:'right' }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:8, justifyContent:'flex-end' }}>
-                        <div style={{ width:80, height:5, background:'rgba(255,255,255,0.08)', borderRadius:3 }}>
-                          <div style={{ width: Math.round(g.count/counts.water*100)+'%', height:'100%', background:'#0ea5e9', borderRadius:3 }} />
-                        </div>
-                        <span style={{ fontSize:11, color:'#64748b', minWidth:30 }}>{Math.round(g.count/counts.water*100)}%</span>
-                      </div>
-                    </td>
-                    <td style={{ ...S.td, textAlign:'right' }}>
-                      <span style={{ fontSize:11, color:'#3b82f6' }}>ดูแผนที่ →</span>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan={4} style={{ ...S.td, textAlign:'center', color:'#475569', padding:'24px' }}>
-                    ยังไม่มีข้อมูล — <span style={{ color:'#3b82f6', cursor:'pointer' }} onClick={() => navigate('/editor')}>เพิ่มข้อมูลใน Editor Studio</span>
-                  </td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </>)}
-
-        {/* ══ TAB: BUILDING ══ */}
-        {activeTab === 'building' && (<>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-            <div>
-              <div style={{ fontSize:16, fontWeight:600, color:'#f0f4ff', marginBottom:2 }}>
-                <i className="ti ti-building" style={{ fontSize:16, color:'#94a3b8', marginRight:8 }} />
-                รายงานอาคารและภาษีที่ดิน
-              </div>
-              <div style={{ fontSize:12, color:'#64748b' }}>เชื่อมข้อมูลภาษีที่ดินและสิ่งปลูกสร้าง พ.ร.บ.2562</div>
-            </div>
-            <button style={S.btnE} onClick={() => goMap('building_sc')}>
-              <i className="ti ti-map-2" style={{ fontSize:13 }} /> ดูบนแผนที่
-            </button>
-          </div>
-          <div style={{ ...S.card, padding:'32px', textAlign:'center' }}>
-            <i className="ti ti-building-skyscraper" style={{ fontSize:40, color:'#334155', marginBottom:12 }} />
-            <div style={{ fontSize:15, fontWeight:500, color:'#64748b', marginBottom:8 }}>ยังไม่มีข้อมูลอาคาร</div>
-            <div style={{ fontSize:12, color:'#475569', marginBottom:16 }}>
-              เพิ่มข้อมูลโดย Digitize จากภาพโดรน หรือ Import CSV จากระบบภาษีเทศบาล
-            </div>
-            <div style={{ display:'flex', gap:8, justifyContent:'center' }}>
-              <button style={S.btnE} onClick={() => navigate('/editor')}>
-                <i className="ti ti-pencil-plus" style={{ fontSize:13 }} /> เพิ่มข้อมูลอาคาร
-              </button>
-              <button style={{ ...S.btnE, borderColor:'rgba(99,102,241,0.3)', color:'#a78bfa' }}
-                onClick={() => navigate('/editor')}>
-                <i className="ti ti-upload" style={{ fontSize:13 }} /> Import CSV ภาษี
-              </button>
-            </div>
-          </div>
-        </>)}
-
-        {/* ══ TAB: LPA ══ */}
-        {activeTab === 'lpa' && (<>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-            <div>
-              <div style={{ fontSize:16, fontWeight:600, color:'#f0f4ff', marginBottom:2 }}>
-                <i className="ti ti-chart-radar" style={{ fontSize:16, color:'#a78bfa', marginRight:8 }} />
-                การประเมินประสิทธิภาพ อปท. (LPA)
-              </div>
-              <div style={{ fontSize:12, color:'#64748b' }}>คะแนนเฉลี่ยรวม: <span style={{ color: scoreColor(lpaAvg), fontWeight:600 }}>{lpaAvg}%</span> · 5 ด้านหลัก</div>
-            </div>
-          </div>
-          <div style={S.g2}>
-            <div style={S.card}>
-              <div style={S.lbl}>คะแนนรายด้าน</div>
-              <ResponsiveContainer width="100%" height={220}>
-                <RadarChart data={radarData}>
-                  <PolarGrid stroke="rgba(255,255,255,0.08)" />
-                  <PolarAngleAxis dataKey="aspect" tick={{ fill:'#8899bb', fontSize:11 }} />
-                  <Radar dataKey="score" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} strokeWidth={2} />
-                  <Tooltip contentStyle={{ background:'#141c2e', border:'1px solid rgba(255,255,255,0.1)', borderRadius:8, color:'#f0f4ff', fontSize:12 }} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-            <div style={S.card}>
-              <div style={S.lbl}>สรุปคะแนนแต่ละด้าน</div>
-              {LPA_ASPECTS.map(a => (
-                <div key={a.id} style={{ display:'flex', alignItems:'center', gap:10, padding:'7px 0',
-                  borderBottom:'1px solid rgba(255,255,255,0.04)', cursor:'pointer' }}
-                  onClick={() => setExpandLpa(expandLpa === a.id ? null : a.id)}>
-                  <i className={`ti ${a.icon}`} style={{ fontSize:15, color:'#64748b', flexShrink:0 }} />
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, color:'#f0f4ff', fontWeight:500 }}>{a.th}</div>
-                    <div style={{ height:4, background:'rgba(255,255,255,0.08)', borderRadius:2, marginTop:4 }}>
-                      <div style={{ height:'100%', width:a.score+'%', background:scoreColor(a.score), borderRadius:2, transition:'width .4s' }} />
-                    </div>
-                  </div>
-                  <span style={{ fontSize:15, fontWeight:600, color:scoreColor(a.score), minWidth:36, textAlign:'right' }}>{a.score}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {expandLpa && (
-            <div style={{ ...S.card, marginBottom:16 }}>
-              {LPA_ASPECTS.filter(a => a.id === expandLpa).map(a => (
-                <div key={a.id}>
-                  <div style={S.lbl}><i className={`ti ${a.icon}`} style={{ fontSize:13 }} /> {a.th} — ตัวชี้วัดย่อย</div>
-                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:10 }}>
-                    {a.indicators.map((ind,i) => (
-                      <div key={i} style={{ background:'#0f1623', borderRadius:8, padding:'10px 12px',
-                        border:'1px solid rgba(255,255,255,0.06)', cursor: ind.mapLayer ? 'pointer' : 'default' }}
-                        onClick={() => ind.mapLayer && goMap(ind.mapLayer)}>
-                        <div style={{ fontSize:12, color:'#64748b', marginBottom:4 }}>{ind.th}</div>
-                        <div style={{ fontSize:22, fontWeight:600, color:scoreColor(ind.score) }}>{ind.score}</div>
-                        <div style={{ height:3, background:'rgba(255,255,255,0.06)', borderRadius:2, marginTop:6 }}>
-                          <div style={{ height:'100%', width:ind.score+'%', background:scoreColor(ind.score), borderRadius:2 }} />
-                        </div>
-                        {ind.mapLayer && <div style={{ fontSize:11, color:'#475569', marginTop:4 }}>คลิกดูบนแผนที่</div>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div style={{ ...S.card, fontSize:12, color:'#93c5fd', background:'rgba(59,130,246,0.06)', border:'1px solid rgba(59,130,246,0.15)' }}>
-            <i className="ti ti-info-circle" style={{ fontSize:14, marginRight:6 }} />
-            กดที่แต่ละด้านเพื่อดูตัวชี้วัดย่อย · กดตัวชี้วัดที่มีไอคอนแผนที่เพื่อดูข้อมูลบนแผนที่
-          </div>
-        </>)}
+        )}
 
       </div>
     </div>
