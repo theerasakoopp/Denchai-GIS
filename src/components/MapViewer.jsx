@@ -1814,18 +1814,7 @@ export default function MapViewer({
           }
         },
 
-        // ── 8. POI Circles & Labels ──────────────────────────
-        {
-          id: 'poi-glow',
-          type: 'circle',
-          source: 'poi-src',
-          layout: { visibility: 'visible' },
-          paint: {
-            'circle-radius': 15,
-            'circle-color': POI_COLOR_MATCH,
-            'circle-opacity': 0.25
-          }
-        },
+        // ── 8. POI Pin Symbol ─────────────────────────────────
         {
           id: 'poi-circle',
           type: 'symbol',
@@ -1897,8 +1886,8 @@ export default function MapViewer({
           layout: { visibility: 'visible' },
           paint: {
             'line-color': '#000000',
-            'line-width': 8.0,
-            'line-opacity': 0.95
+            'line-width': 3.0,
+            'line-opacity': 0.35
           }
         },
         {
@@ -1907,9 +1896,9 @@ export default function MapViewer({
           source: 'bound-src',
           layout: { visibility: 'visible', 'line-cap': 'round', 'line-join': 'round' },
           paint: {
-            'line-color': '#444444',
-            'line-width': 0.8,
-            'line-opacity': 0.5,
+            'line-color': '#ffffff',
+            'line-width': 1.0,
+            'line-opacity': 0.6,
             'line-dasharray': [6, 3, 1, 3]
           }
         },
@@ -2350,7 +2339,6 @@ export default function MapViewer({
     if (map.getLayer('bldgs-outline')) map.setLayoutProperty('bldgs-outline', 'visibility', isSolar && !isFacets ? 'visible' : 'none');
 
     // POI layers — แสดงตลอด
-    if (map.getLayer('poi-glow'))   map.setLayoutProperty('poi-glow',   'visibility', 'visible');
     if (map.getLayer('poi-circle')) map.setLayoutProperty('poi-circle', 'visibility', 'visible');
 
     // Infra layers — แสดงตลอด ไม่ขึ้นกับ Tab
@@ -2583,7 +2571,7 @@ export default function MapViewer({
       const poiFilter = visibleCats.length === 0
         ? ['==', ['get', 'category'], '__none__']
         : ['in', ['get', 'category'], ['literal', visibleCats]];
-      ['poi-glow', 'poi-circle'].forEach(id => {
+      ['poi-circle'].forEach(id => {
         if (map.getLayer(id)) map.setFilter(id, poiFilter);
       });
     }

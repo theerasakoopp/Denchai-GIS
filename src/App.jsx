@@ -459,40 +459,30 @@ function DefaultDashboard({ lang, setLang, tariff, setTariff, systemCostPerKwp, 
         </div>
       )}
 
-      {/* Top-Right Navigation Buttons */}
+      {/* Top-Right Navigation Buttons — compact */}
       <div style={{
         position: 'absolute', top: 14, right: 16, zIndex: 2000,
-        display: 'flex', gap: 8, alignItems: 'center'
+        display: 'flex', gap: 6, alignItems: 'center'
       }}>
-        <Link
-          to="/dashboard"
-          style={{
-            padding: '8px 14px', background: 'linear-gradient(135deg, #0f2a1e, #0a1f2e)',
-            border: '1px solid #34d399', borderRadius: 10,
-            color: '#ffffff', textDecoration: 'none', fontSize: '0.78rem',
-            fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6,
-            fontFamily: 'Prompt, Inter, sans-serif'
-          }}
-          title={lang === 'th' ? 'Dashboard ผู้บริหาร' : 'Executive Dashboard'}
-        >
-          <span>📊</span>
-          <span>{lang === 'th' ? 'Dashboard ผู้บริหาร' : 'Dashboard'}</span>
+        <Link to="/dashboard" style={{
+          padding: '7px 12px', background: 'rgba(13,20,36,0.9)',
+          border: '1px solid rgba(52,211,153,0.5)', borderRadius: 8,
+          color: '#34d399', textDecoration: 'none', fontSize: '0.76rem',
+          fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+          backdropFilter: 'blur(8px)'
+        }} title="Dashboard ผู้บริหาร">
+          <i className="ti ti-layout-dashboard" style={{ fontSize: 14 }} aria-hidden="true" />
+          <span>Dashboard</span>
         </Link>
-        <Link
-          to="/editor"
-          style={{
-            padding: '8px 16px', background: 'linear-gradient(135deg, #1e293b, #0f172a)',
-            border: '1px solid #38bdf8', borderRadius: 10,
-            color: '#ffffff', textDecoration: 'none', fontSize: '0.8rem',
-            fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8,
-            boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
-            fontFamily: 'Prompt, Inter, sans-serif'
-          }}
-          title={lang === 'th' ? 'เข้าสู่ระบบจัดการและแก้ไขข้อมูลเชิงพื้นที่' : 'Go to GIS Editor Studio'}
-        >
-          <span>🛠️</span>
-          <span>{lang === 'th' ? 'เข้าสู่ระบบจัดการข้อมูล (Editor Studio)' : 'GIS Editor Studio'}</span>
-          <span style={{ color: '#38bdf8' }}>➔</span>
+        <Link to="/editor" style={{
+          padding: '7px 12px', background: 'rgba(13,20,36,0.9)',
+          border: '1px solid rgba(56,189,248,0.5)', borderRadius: 8,
+          color: '#38bdf8', textDecoration: 'none', fontSize: '0.76rem',
+          fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+          backdropFilter: 'blur(8px)'
+        }} title="จัดการข้อมูล Editor Studio">
+          <i className="ti ti-pencil" style={{ fontSize: 14 }} aria-hidden="true" />
+          <span>จัดการข้อมูล</span>
         </Link>
       </div>
 

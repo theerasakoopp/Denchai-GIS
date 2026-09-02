@@ -342,14 +342,8 @@ function CategoryListPanel({
         })}
       </div>
 
-      {/* Quick Action — ลิงก์ไป Editor Studio เท่านั้น */}
+      {/* Quick Action — Export/Import only */}
       <div style={{ background:'#f8fafc', border:'1px solid #e2e8f0', borderRadius:10, padding:'10px 12px', display:'flex', flexDirection:'column', gap:8, marginTop:4, flexShrink:0 }}>
-        <a href="#/editor" style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:7, padding:'9px 12px', background:'#0f172a', border:'1px solid rgba(56,189,248,0.4)', borderRadius:9, color:'#38bdf8', fontSize:'0.8rem', fontWeight:600, textDecoration:'none' }}>
-          <i className="ti ti-pencil-plus" style={{ fontSize:15 }} aria-hidden="true" />
-          {lang === 'th' ? 'เพิ่ม / แก้ไขข้อมูล → Editor Studio' : 'Add / Edit → Editor Studio'}
-          <i className="ti ti-arrow-right" style={{ fontSize:13, marginLeft:'auto', opacity:.6 }} aria-hidden="true" />
-        </a>
-
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
           {onExportData && (
             <button
@@ -531,20 +525,6 @@ export default function Sidebar({
 
       {/* Main Scrollable Area */}
       <div className="sidebar-scroll">
-
-        {/* ── ปุ่มนำทางหลัก ── */}
-        <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:4 }}>
-          <a href="#/editor" style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', background:'rgba(30,41,59,0.8)', border:'1px solid rgba(56,189,248,0.4)', borderRadius:9, color:'#38bdf8', fontSize:'0.78rem', fontWeight:700, textDecoration:'none', transition:'all 0.15s' }}>
-            <i className="ti ti-pencil-plus" style={{ fontSize:15 }} aria-hidden="true" />
-            {lang === 'th' ? 'เพิ่ม / แก้ไขข้อมูล' : 'Add / Edit Data'}
-            <i className="ti ti-arrow-right" style={{ fontSize:13, marginLeft:'auto' }} aria-hidden="true" />
-          </a>
-          <a href="#/dashboard" style={{ display:'flex', alignItems:'center', gap:8, padding:'9px 14px', background:'rgba(16,185,129,0.08)', border:'1px solid rgba(16,185,129,0.3)', borderRadius:9, color:'#34d399', fontSize:'0.78rem', fontWeight:700, textDecoration:'none', transition:'all 0.15s' }}>
-            <i className="ti ti-layout-dashboard" style={{ fontSize:15 }} aria-hidden="true" />
-            {lang === 'th' ? 'Dashboard ผู้บริหาร' : 'Executive Dashboard'}
-            <i className="ti ti-arrow-right" style={{ fontSize:13, marginLeft:'auto' }} aria-hidden="true" />
-          </a>
-        </div>
 
         {/* ═══════════ TAB: POI ═══════════ */}
         {activeTab === 'poi' && poiData && poiCategories && (
