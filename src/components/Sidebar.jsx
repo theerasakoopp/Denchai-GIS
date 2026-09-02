@@ -207,31 +207,6 @@ function CategoryListPanel({
         )}
       </div>
 
-      {/* Category Filter Chips Bar */}
-      <div className="category-chips-bar" style={{ flexShrink: 0 }}>
-        <button
-          className={`cat-chip ${selectedCatFilter === 'all' ? 'active' : ''}`}
-          onClick={() => setSelectedCatFilter('all')}
-        >
-          {lang === 'th' ? 'ทั้งหมด' : 'All'} ({totalCount})
-        </button>
-        {Object.entries(categories).map(([k, meta]) => {
-          const count = (grouped[k] || []).length;
-          if (count === 0 && selectedCatFilter !== k) return null;
-          return (
-            <button
-              key={k}
-              className={`cat-chip ${selectedCatFilter === k ? 'active' : ''}`}
-              onClick={() => setSelectedCatFilter(selectedCatFilter === k ? 'all' : k)}
-            >
-              <span>{meta.icon}</span>
-              <span>{lang === 'th' ? meta.name_th : meta.name_en}</span>
-              <span className="chip-count">({count})</span>
-            </button>
-          );
-        })}
-      </div>
-
       {/* Layer Control Toolbar */}
       <div className="layer-control-toolbar" style={{ flexShrink: 0 }}>
         <span className="toolbar-label">
