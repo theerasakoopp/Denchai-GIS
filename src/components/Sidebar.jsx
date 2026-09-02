@@ -458,56 +458,91 @@ export default function Sidebar({
     }
   };
 
+  // นับจำนวนแต่ละ Tab
+  const tabCounts = {
+    poi:     poiData?.features?.length     || 0,
+    infra:   infraData?.features?.length   || 0,
+    water:   waterData?.features?.length   || 0,
+    service: serviceData?.features?.length || 0,
+  };
+
   const TABS = [
-    { key: 'poi',     icon: 'ti-map-pin',            label: lang === 'th' ? 'สถานที่' : 'Places' },
-    { key: 'infra',   icon: 'ti-road',               label: lang === 'th' ? 'โครงสร้าง' : 'Infra' },
-    { key: 'water',   icon: 'ti-droplet',            label: lang === 'th' ? 'น้ำ' : 'Water' },
-    { key: 'service', icon: 'ti-heart-rate-monitor', label: lang === 'th' ? 'บริการ' : 'Service' },
+    { key:'poi',     dot:'#00c8b4', label: lang==='th' ? 'สถานที่สำคัญ' : 'Places' },
+    { key:'infra',   dot:'#f59e0b', label: lang==='th' ? 'โครงสร้างพื้นฐาน' : 'Infrastructure' },
+    { key:'water',   dot:'#3b82f6', label: lang==='th' ? 'ทรัพยากรน้ำ' : 'Water' },
+    { key:'service', dot:'#8b5cf6', label: lang==='th' ? 'บริการสาธารณะ' : 'Public Service' },
   ];
 
   return (
     <aside className="sidebar">
-      {/* ── Header ── */}
-      <div className="sidebar-header">
-        <div className="brand-badge-container">
-          <div className="brand-badge">
-            <span className="brand-pulse" />
-            <span>{lang === 'th' ? 'เมืองอัจฉริยะ' : 'Smart City'}</span>
+      {/* ── Header Navy + Teal ── */}
+      <div style={{
+        background: 'linear-gradient(160deg,#0f1f3d 0%,#1a3358 60%,#1e3d6b 100%)',
+        padding: '12px 14px 10px',
+        flexShrink: 0,
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Teal glow */}
+        <div style={{ position:'absolute', top:0, right:0, width:120, height:120,
+          background:'radial-gradient(ellipse at 100% 0%,rgba(0,200,180,0.18) 0%,transparent 70%)',
+          pointerEvents:'none' }} />
+        <div style={{ position:'absolute', bottom:0, left:0, right:0, height:1,
+          background:'linear-gradient(90deg,transparent,rgba(0,200,180,0.4),transparent)',
+          pointerEvents:'none' }} />
+
+        {/* Brand row */}
+        <div style={{ display:'flex', alignItems:'center', gap:9, marginBottom:8, position:'relative' }}>
+          <div style={{ width:34, height:34, borderRadius:8, background:'rgba(0,200,180,0.15)',
+            border:'1.5px solid rgba(0,200,180,0.35)', display:'flex', alignItems:'center',
+            justifyContent:'center', flexShrink:0 }}>
+            <i className="ti ti-building-community" style={{ fontSize:17, color:'#00c8b4' }} aria-hidden="true" />
           </div>
-          <div className="lang-switch">
-            <button className={`lang-btn ${lang === 'th' ? 'active' : ''}`} onClick={() => setLang('th')}>TH</button>
-            <button className={`lang-btn ${lang === 'en' ? 'active' : ''}`} onClick={() => setLang('en')}>EN</button>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:13.5, fontWeight:700, color:'#fff', letterSpacing:'0.01em', lineHeight:1.2 }}>
+              Denchai Smart City
+            </div>
+            <div style={{ fontSize:9.5, color:'rgba(255,255,255,0.55)', marginTop:2 }}>
+              {t.appSubtitle}
+            </div>
+          </div>
+          <div style={{ display:'flex', background:'rgba(255,255,255,0.08)', borderRadius:5,
+            padding:2, gap:1, flexShrink:0 }}>
+            <button onClick={() => setLang('th')} style={{
+              padding:'3px 8px', borderRadius:4, fontSize:10, fontWeight:700, border:'none',
+              cursor:'pointer', background: lang==='th' ? 'rgba(0,200,180,0.3)' : 'transparent',
+              color: lang==='th' ? '#00c8b4' : 'rgba(255,255,255,0.45)', fontFamily:'inherit' }}>TH</button>
+            <button onClick={() => setLang('en')} style={{
+              padding:'3px 8px', borderRadius:4, fontSize:10, fontWeight:700, border:'none',
+              cursor:'pointer', background: lang==='en' ? 'rgba(0,200,180,0.3)' : 'transparent',
+              color: lang==='en' ? '#00c8b4' : 'rgba(255,255,255,0.45)', fontFamily:'inherit' }}>EN</button>
           </div>
         </div>
-        <h1 style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <i className="ti ti-building-community" style={{ fontSize:18, color:'#60a5fa' }} aria-hidden="true" />
-          {t.appTitle}
-        </h1>
-        <p style={{ fontSize:'0.72rem', color:'#475569', marginTop:2 }}>{t.appSubtitle}</p>
 
-        {/* ── Navigation buttons ── */}
-        <div style={{ display:'flex', gap:6, marginTop:10 }}>
+        {/* Nav buttons */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:4, position:'relative' }}>
           {[
-            { href:'#/', icon:'ti-map', label: lang === 'th' ? 'แผนที่' : 'Map', active: true },
-            { href:'#/dashboard', icon:'ti-layout-dashboard', label: lang === 'th' ? 'Dashboard' : 'Dashboard', active: false },
-            { href:'#/editor', icon:'ti-pencil', label: lang === 'th' ? 'จัดการข้อมูล' : 'Editor', active: false },
-          ].map((b, i) => (
+            { href:'#/',          icon:'ti-map',              label: lang==='th' ? 'แผนที่' : 'Map',       active:true },
+            { href:'#/dashboard', icon:'ti-layout-dashboard', label:'Dashboard',                            active:false },
+            { href:'#/editor',    icon:'ti-pencil',           label: lang==='th' ? 'จัดการ' : 'Editor',    active:false },
+          ].map((b,i) => (
             <a key={i} href={b.href} style={{
-              flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-              padding:'7px 6px', borderRadius:8, fontSize:11, fontWeight:700, textDecoration:'none',
-              border: b.active ? '1px solid rgba(59,130,246,0.4)' : '1px solid rgba(255,255,255,0.08)',
-              background: b.active ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.04)',
-              color: b.active ? '#60a5fa' : '#64748b',
+              display:'flex', alignItems:'center', justifyContent:'center', gap:4,
+              padding:'6px 4px', borderRadius:7, fontSize:10.5, fontWeight:500,
+              textDecoration:'none', fontFamily:'inherit',
+              border: b.active ? '1px solid rgba(0,200,180,0.45)' : '1px solid rgba(255,255,255,0.1)',
+              background: b.active ? 'rgba(0,200,180,0.18)' : 'rgba(255,255,255,0.05)',
+              color: b.active ? '#00c8b4' : 'rgba(255,255,255,0.55)',
               transition:'all 0.15s'
             }}>
-              <i className={`ti ${b.icon}`} style={{ fontSize:13 }} aria-hidden="true" />
+              <i className={`ti ${b.icon}`} style={{ fontSize:12 }} aria-hidden="true" />
               {b.label}
             </a>
           ))}
         </div>
       </div>
 
-      {/* ── Tab Nav ── */}
+      {/* ── Tab Nav — Horizontal Scroll ── */}
       {setActiveTab && (
         <nav className="tab-nav">
           {TABS.map(tab => (
@@ -516,8 +551,11 @@ export default function Sidebar({
               className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`}
               onClick={() => setActiveTab(tab.key)}
             >
-              <i className={`ti ${tab.icon} tab-icon`} aria-hidden="true" />
+              <span className="tab-dot" style={{ background: tab.dot }} />
               <span>{tab.label}</span>
+              {tabCounts[tab.key] > 0 && (
+                <span className="tab-badge">{tabCounts[tab.key]}</span>
+              )}
             </button>
           ))}
         </nav>
