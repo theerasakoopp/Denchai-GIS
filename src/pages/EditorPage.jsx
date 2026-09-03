@@ -422,195 +422,193 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
 
           {/* Scrollable Content */}
           <div style={{ flex:1, overflowY:'auto', padding:'10px 10px',
-            display:'flex', flexDirection:'column', gap:10, background:'#0d0204' }}>
+            display:'flex', flexDirection:'column', gap:0, background:'#0d0204' }}>
 
-          {/* ── Action Box — เครื่องมือแก้ไข/ปรับปรุงข้อมูล ── */}
-          <div style={{ background:'rgba(248,113,113,0.06)', border:'1px solid rgba(248,113,113,0.18)',
-            borderRadius:10, padding:'10px 12px', display:'flex', flexDirection:'column', gap:8 }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:6, fontWeight:700, fontSize:'0.78rem', color:'#f87171' }}>
-                <i className="ti ti-pencil-plus" style={{ fontSize:14 }} aria-hidden="true" />
-                {lang === 'th' ? 'เครื่องมือแก้ไข/ปรับปรุงข้อมูล' : 'Data Edit & Update Tools'}
+          {/* ── ชั้นข้อมูลที่เลือก (Active Layer Banner) ── */}
+          <div style={{ padding:'8px 10px', borderBottom:'1px solid rgba(248,113,113,0.12)', flexShrink:0,
+            background:'rgba(248,113,113,0.06)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:7 }}>
+              <span style={{ fontSize:16 }}>{
+                activeLayer==='poi'?'📍':activeLayer==='infra'?'🏗️':activeLayer==='water'?'💧':
+                activeLayer==='service'?'⚡':activeLayer==='building_sc'?'🏢':'💡'
+              }</span>
+              <div>
+                <div style={{ fontSize:12, fontWeight:700, color:'#f87171' }}>
+                  {activeLayer==='poi'?'สถานที่สำคัญ':activeLayer==='infra'?'โครงสร้างพื้นฐาน':
+                   activeLayer==='water'?'แหล่งน้ำ':activeLayer==='service'?'บริการสาธารณะ':
+                   activeLayer==='building_sc'?'อาคารและที่ดิน':'Smart City'}
+                </div>
+                <div style={{ fontSize:9, color:'rgba(255,255,255,0.35)' }}>
+                  {lang==='th' ? 'ชั้นข้อมูลที่กำลังแก้ไข' : 'Active editing layer'}
+                </div>
               </div>
-              <span style={{ fontSize:10, fontWeight:700, color:'rgba(248,113,113,0.7)',
-                background:'rgba(248,113,113,0.1)', padding:'2px 8px', borderRadius:99 }}>
-                {currentDataset.data?.features?.length || 0} {lang === 'th' ? 'รายการ' : 'items'}
-              </span>
+            </div>
+            <span style={{ fontSize:10, fontWeight:700, color:'#f87171',
+              background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.3)',
+              padding:'3px 10px', borderRadius:99 }}>
+              {currentDataset.data?.features?.length || 0} รายการ
+            </span>
+          </div>
+
+          {/* ── เครื่องมือแก้ไข/ปรับปรุง (Dynamic per layer) ── */}
+          <div style={{ padding:'8px 10px', borderBottom:'1px solid rgba(255,255,255,0.05)', flexShrink:0 }}>
+            <div style={{ fontSize:9, fontWeight:700, color:'rgba(248,113,113,0.6)',
+              textTransform:'uppercase', letterSpacing:'.06em', marginBottom:6,
+              display:'flex', alignItems:'center', gap:5 }}>
+              <i className="ti ti-tools" style={{ fontSize:11 }} />
+              {lang==='th' ? 'เครื่องมือแก้ไข/ปรับปรุงข้อมูล' : 'Edit & Update Tools'}
             </div>
 
-            {/* Dynamic Buttons */}
+            {/* GPS + Template Row */}
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:5, marginBottom:6 }}>
+              <button type="button" onClick={() => {
+                if (!navigator.geolocation) { alert('Browser ไม่รองรับ GPS'); return; }
+                navigator.geolocation.getCurrentPosition(
+                  pos => { const { latitude, longitude } = pos.coords; alert(`ตำแหน่งของคุณ:\nLat: ${latitude.toFixed(6)}\nLng: ${longitude.toFixed(6)}`); },
+                  err => alert('ไม่สามารถดึง GPS ได้: ' + err.message),
+                  { enableHighAccuracy: true }
+                );
+              }} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                padding:'6px 6px', borderRadius:7, fontSize:'0.7rem', fontWeight:600, cursor:'pointer',
+                border:'1px solid rgba(16,185,129,0.4)', background:'rgba(16,185,129,0.08)', color:'#34d399', fontFamily:'inherit' }}>
+                <i className="ti ti-current-location" style={{ fontSize:13 }} /> GPS ตำแหน่งฉัน
+              </button>
+              <button type="button" onClick={() => downloadCSVTemplate(activeLayer)}
+                style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                  padding:'6px 6px', borderRadius:7, fontSize:'0.7rem', fontWeight:600, cursor:'pointer',
+                  border:'1px solid rgba(139,92,246,0.4)', background:'rgba(139,92,246,0.08)', color:'#a78bfa', fontFamily:'inherit' }}>
+                <i className="ti ti-table" style={{ fontSize:13 }} /> Template CSV
+              </button>
+            </div>
+
+            {/* Primary Action — dynamic per layer */}
             {activeLayer === 'infra' ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  style={{
-                    justifyContent: 'center', padding: '9px 8px', fontSize: '0.78rem', fontWeight: 700, gap: 6,
-                    background: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none'
-                  }}
-                  onClick={() => setTriggerDrawRoad(true)}
-                >
-                  🛣️ {lang === 'th' ? '+ วาดแนวถนน' : '+ Draw Road'}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                <button type="button" onClick={() => setTriggerDrawRoad(true)}
+                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
+                    border:'1px solid rgba(245,158,11,0.5)', background:'rgba(245,158,11,0.15)', color:'#f59e0b', fontFamily:'inherit' }}>
+                  <i className="ti ti-line" style={{ fontSize:14 }} /> + วาดแนวถนน
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  style={{
-                    justifyContent: 'center', padding: '9px 8px', fontSize: '0.78rem', fontWeight: 600, gap: 6,
-                    background: 'linear-gradient(135deg, #2563eb, #1d4ed8)'
-                  }}
-                  onClick={() => handleOpenAdd('infra')}
-                >
-                  📍 {lang === 'th' ? '+ เพิ่มจุดสิ่งปลูกสร้าง' : '+ Add Node'}
+                <button type="button" onClick={() => handleOpenAdd('infra')}
+                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
+                    border:'1px solid rgba(248,113,113,0.5)', background:'rgba(248,113,113,0.15)', color:'#f87171', fontFamily:'inherit' }}>
+                  <i className="ti ti-map-pin-plus" style={{ fontSize:14 }} /> + เพิ่มจุด
+                </button>
+              </div>
+            ) : activeLayer === 'drain' ? (
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                <button type="button" onClick={() => setTriggerDrawDrain(true)}
+                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
+                    border:'1px solid rgba(6,182,212,0.5)', background:'rgba(6,182,212,0.1)', color:'#22d3ee', fontFamily:'inherit' }}>
+                  <i className="ti ti-wave-sine" style={{ fontSize:14 }} /> + วาดระบายน้ำ
+                </button>
+                <button type="button" onClick={() => handleOpenAdd('drain')}
+                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
+                    border:'1px solid rgba(248,113,113,0.5)', background:'rgba(248,113,113,0.15)', color:'#f87171', fontFamily:'inherit' }}>
+                  <i className="ti ti-map-pin-plus" style={{ fontSize:14 }} /> + เพิ่มจุดบ่อพัก
                 </button>
               </div>
             ) : activeLayer === 'water' ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  style={{
-                    justifyContent: 'center', padding: '9px 8px', fontSize: '0.78rem', fontWeight: 700, gap: 6,
-                    background: 'linear-gradient(135deg, #0284c7, #0369a1)', border: 'none'
-                  }}
-                  onClick={() => setTriggerDrawWater(true)}
-                >
-                  💧 {lang === 'th' ? '+ วาดแปลงแหล่งน้ำ' : '+ Draw Water'}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                <button type="button" onClick={() => setTriggerDrawWater(true)}
+                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
+                    border:'1px solid rgba(59,130,246,0.5)', background:'rgba(59,130,246,0.1)', color:'#60a5fa', fontFamily:'inherit' }}>
+                  <i className="ti ti-polygon" style={{ fontSize:14 }} /> + วาดแหล่งน้ำ
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  style={{
-                    justifyContent: 'center', padding: '9px 8px', fontSize: '0.78rem', fontWeight: 600, gap: 6,
-                    background: 'linear-gradient(135deg, #06b6d4, #0891b2)'
-                  }}
-                  onClick={() => handleOpenAdd('water')}
-                >
-                  📍 {lang === 'th' ? '+ เพิ่มข้อมูลน้ำ' : '+ Add Info'}
+                <button type="button" onClick={() => handleOpenAdd('water')}
+                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
+                    border:'1px solid rgba(248,113,113,0.5)', background:'rgba(248,113,113,0.15)', color:'#f87171', fontFamily:'inherit' }}>
+                  <i className="ti ti-map-pin-plus" style={{ fontSize:14 }} /> + เพิ่มจุดน้ำ
                 </button>
               </div>
-            ) : activeLayer === 'solar' ? (
-              <button
-                type="button"
-                className="btn btn-primary"
-                style={{
-                  width: '100%', justifyContent: 'center', padding: '9px 10px', fontSize: '0.8rem', fontWeight: 700, gap: 6,
-                  background: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'none'
-                }}
-                onClick={() => setTriggerDrawRoof(true)}
-              >
-                ☀️ {lang === 'th' ? '+ วาดหลังคาโซลาร์ใหม่ (Polygon)' : '+ Draw Solar Roof'}
-              </button>
+            ) : activeLayer === 'building_sc' ? (
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
+                <button type="button" onClick={() => setTriggerDrawBuilding?.(true)}
+                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
+                    border:'1px solid rgba(217,119,6,0.5)', background:'rgba(217,119,6,0.1)', color:'#fbbf24', fontFamily:'inherit' }}>
+                  <i className="ti ti-building-skyscraper" style={{ fontSize:14 }} /> + วาดขอบเขตอาคาร
+                </button>
+                <button type="button" onClick={() => handleOpenAdd('building_sc')}
+                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
+                    border:'1px solid rgba(248,113,113,0.5)', background:'rgba(248,113,113,0.15)', color:'#f87171', fontFamily:'inherit' }}>
+                  <i className="ti ti-map-pin-plus" style={{ fontSize:14 }} /> + ปักจุดอาคาร
+                </button>
+              </div>
             ) : (
-              <button
-                type="button"
-                className="btn btn-primary"
-                style={{
-                  width: '100%', justifyContent: 'center', padding: '9px 12px', fontSize: '0.82rem', fontWeight: 700, gap: 6,
-                  background: 'linear-gradient(135deg, #2563eb, #1d4ed8)'
-                }}
-                onClick={() => handleOpenAdd(activeLayer)}
-              >
-                {activeLayer === 'service' ? t.addServiceBtn : t.addPoiBtn}
+              <button type="button" onClick={() => handleOpenAdd(activeLayer)}
+                style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:6,
+                  padding:'9px', borderRadius:8, fontSize:'0.78rem', fontWeight:700, cursor:'pointer',
+                  border:'1px solid rgba(248,113,113,0.5)', background:'rgba(248,113,113,0.18)', color:'#f87171', fontFamily:'inherit' }}>
+                <i className="ti ti-map-pin-plus" style={{ fontSize:15 }} />
+                + {activeLayer==='service' ? t.addServiceBtn : t.addPoiBtn}
               </button>
             )}
 
-            {/* Import / Export File Actions */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, borderTop: '1px solid #f1f5f9', paddingTop: 8 }}>
-              <button
-                type="button"
-                className="btn btn-sm"
-                style={{ justifyContent: 'center', fontSize: '0.72rem', padding: '6px 8px' }}
-                onClick={() => fileInputRef.current?.click()}
-                title="Import GeoJSON or Shapefile ZIP"
-              >
-                <Upload size={13} /> {lang === 'th' ? 'นำเข้าไฟล์ (SHP/JSON)' : 'Import File'}
+            {/* Import row */}
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:5, marginTop:6 }}>
+              <button type="button" onClick={() => fileInputRef.current?.click()}
+                style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                  padding:'6px', borderRadius:7, fontSize:'0.7rem', fontWeight:600, cursor:'pointer',
+                  border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.5)', fontFamily:'inherit' }}>
+                <Upload size={13} /> {lang==='th' ? 'นำเข้าไฟล์' : 'Import'}
               </button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                accept=".geojson,.json,.zip"
-                onChange={handleImportFile}
-              />
-              <button
-                type="button"
-                className="btn btn-sm"
-                style={{ justifyContent: 'center', fontSize: '0.72rem', padding: '6px 8px' }}
-                onClick={() => handleExportData(activeLayer)}
-                title="Export Layer GeoJSON"
-              >
-                <Download size={13} /> {lang === 'th' ? 'ส่งออก GeoJSON' : 'Export'}
+              <input type="file" ref={fileInputRef} style={{ display:'none' }}
+                accept=".geojson,.json,.zip" onChange={handleImportFile} />
+              <button type="button" onClick={() => handleExportData(activeLayer)}
+                style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+                  padding:'6px', borderRadius:7, fontSize:'0.7rem', fontWeight:600, cursor:'pointer',
+                  border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.5)', fontFamily:'inherit' }}>
+                <Download size={13} /> {lang==='th' ? 'ส่งออก GeoJSON' : 'Export'}
               </button>
             </div>
           </div>
 
-          {/* GIS Templates Center Action Banner */}
-          <div style={{
-            background: 'linear-gradient(135deg, #eff6ff, #f0fdf4)', border: '1px solid #bfdbfe',
-            borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontWeight: 700, fontSize: '0.8rem', color: '#1e40af' }}>
-              <FolderDown size={16} color="#2563eb" />
-              <span>{lang === 'th' ? 'ศูนย์ดาวน์โหลด Template ชั้นข้อมูล GIS (16 หมวด)' : 'GIS Layer Template Center (16 Datasets)'}</span>
-            </div>
-            <p style={{ fontSize: '0.72rem', color: '#475569', lineHeight: 1.4 }}>
-              {lang === 'th'
-                ? 'ดาวน์โหลดไฟล์ GeoJSON สำหรับนำไปวาดใน QGIS และพจนานุกรมข้อมูล (CSV Data Dictionary) สำหรับนำเสนอเทศบาล'
-                : 'Download standard GeoJSON templates for QGIS and CSV Data Dictionary for municipality presentation.'}
-            </p>
-            <button
-              type="button"
-              className="btn btn-sm"
-              style={{
-                width: '100%', justifyContent: 'center', background: '#2563eb', color: '#ffffff',
-                fontWeight: 700, fontSize: '0.75rem', padding: '8px 10px', gap: 6, border: 'none'
-              }}
-              onClick={() => setShowTemplatesModal(true)}
-            >
-              📥 {t.downloadTemplates || 'เปิดศูนย์ดาวน์โหลด Template & CSV'}
-            </button>
-          </div>
+          {/* ── Search + Feature List ── */}
+          <div style={{ flex:1, display:'flex', flexDirection:'column', minHeight:0, padding:'8px 10px', gap:6 }}>
 
-          {/* Search within Current Layer */}
-          <div className="search-bar">
-            <Search size={14} className="search-icon" />
-            <input
-              type="text"
-              placeholder={lang === 'th' ? `ค้นหาใน ${currentDataset.name}...` : `Search in ${currentDataset.name}...`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            {searchTerm && (
-              <button className="search-clear" onClick={() => setSearchTerm('')}>
+            {/* Search */}
+            <div style={{ display:'flex', alignItems:'center', gap:6,
+              background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)',
+              borderRadius:8, padding:'6px 9px', flexShrink:0 }}>
+              <Search size={13} color="rgba(248,113,113,0.6)" />
+              <input type="text"
+                placeholder={lang==='th' ? `ค้นหาใน ${currentDataset.name}...` : `Search in ${currentDataset.name}...`}
+                value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+                style={{ background:'transparent', border:'none', outline:'none',
+                  fontSize:12, color:'#e2e8f0', flex:1, fontFamily:'inherit' }} />
+              {searchTerm && <button onClick={() => setSearchTerm('')}
+                style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.3)', display:'flex' }}>
                 <X size={13} />
-              </button>
-            )}
-          </div>
+              </button>}
+            </div>
 
-          {/* Feature List Table / Items */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase' }}>
-                📋 {lang === 'th' ? `รายการข้อมูล (${items.length})` : `Feature List (${items.length})`}
+            {/* List header */}
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+              <span style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.4)',
+                textTransform:'uppercase', letterSpacing:'.05em' }}>
+                รายการข้อมูล ({items.length})
               </span>
-              <button
-                type="button"
-                className="btn-text"
-                style={{ fontSize: '0.68rem', color: '#ef4444' }}
-                onClick={() => handleResetData(activeLayer)}
-              >
-                🔄 {lang === 'th' ? 'คืนค่าเริ่มต้น' : 'Reset Layer'}
+              <button type="button" onClick={() => handleResetData(activeLayer)}
+                style={{ fontSize:10, color:'rgba(248,113,113,0.6)', background:'none',
+                  border:'none', cursor:'pointer', fontFamily:'inherit' }}>
+                🔄 คืนค่าเริ่มต้น
               </button>
             </div>
 
-            <div style={{
-              maxHeight: 380, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6,
-              background: '#f8fafc', padding: 6, borderRadius: 10, border: '1px solid #e2e8f0'
-            }}>
+            {/* Feature items — scrollable */}
+            <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:4,
+              scrollbarWidth:'thin', scrollbarColor:'rgba(248,113,113,0.2) transparent' }}>
               {items.length === 0 ? (
-                <div style={{ padding: '24px 12px', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem' }}>
-                  {lang === 'th' ? 'ไม่พบข้อมูลในเงื่อนไขการค้นหา' : 'No items match search'}
+                <div style={{ padding:'32px 12px', textAlign:'center', color:'rgba(255,255,255,0.25)', fontSize:'0.75rem' }}>
+                  {lang==='th' ? '📭 ยังไม่มีข้อมูล — กดปุ่มเพิ่มด้านบน' : 'No items — use Add button above'}
                 </div>
               ) : (
                 items.map((feature, idx) => {
@@ -620,60 +618,44 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
                   const isGeometryLineOrPoly = feature.geometry?.type === 'LineString' || feature.geometry?.type === 'Polygon';
 
                   return (
-                    <div
-                      key={p.id || idx}
-                      style={{
-                        background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8,
-                        padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        gap: 8, transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <div
-                        style={{ flex: 1, minWidth: 0, cursor: 'pointer' }}
-                        onClick={() => setSelectedFeature(feature)}
-                        title={lang === 'th' ? 'คลิกเพื่อซูมดูบนแผนที่' : 'Click to view on map'}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                          <span style={{ fontSize: '0.8rem' }}>{catMeta.icon || currentDataset.icon}</span>
-                          <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {name}
-                          </span>
+                    <div key={p.id || idx} style={{
+                      background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)',
+                      borderRadius:8, padding:'8px 10px',
+                      display:'flex', alignItems:'center', justifyContent:'space-between',
+                      gap:8, transition:'all 0.12s', cursor:'pointer'
+                    }} onMouseEnter={e => e.currentTarget.style.background='rgba(248,113,113,0.06)'}
+                       onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.04)'}>
+                      <div style={{ flex:1, minWidth:0 }} onClick={() => setSelectedFeature(feature)}>
+                        <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
+                          <span style={{ fontSize:14 }}>{catMeta.icon || currentDataset.icon}</span>
+                          <span style={{ fontSize:'0.76rem', fontWeight:600, color:'#f0f4ff',
+                            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
                         </div>
-                        <div style={{ fontSize: '0.68rem', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {p.id ? `ID: ${p.id}` : ''} {p.description_th ? `• ${p.description_th}` : ''}
+                        <div style={{ fontSize:'0.66rem', color:'rgba(255,255,255,0.3)',
+                          overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                          {p.id ? `ID: ${p.id}` : ''} {p.description_th ? `• ${p.description_th.slice(0,40)}` : ''}
                         </div>
                       </div>
-
-                      {/* Actions: Edit, Reshape, Delete */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                      <div style={{ display:'flex', alignItems:'center', gap:3, flexShrink:0 }}>
                         {isGeometryLineOrPoly && (
-                          <button
-                            type="button"
-                            className="btn btn-sm"
-                            style={{ padding: '4px 6px', fontSize: '0.68rem', color: '#0284c7', background: '#f0f9ff', border: '1px solid #bae6fd' }}
-                            onClick={() => setReshapingFeature(feature)}
-                            title={lang === 'th' ? 'ปรับรูปแปลง/พิกัดบนแผนที่' : 'Reshape geometry'}
-                          >
-                            🔄
+                          <button type="button" onClick={() => setReshapingFeature(feature)}
+                            style={{ padding:'4px 6px', borderRadius:5, fontSize:'0.65rem',
+                              color:'#60a5fa', background:'rgba(59,130,246,0.1)',
+                              border:'1px solid rgba(59,130,246,0.25)', cursor:'pointer' }}>
+                            ⬡
                           </button>
                         )}
-                        <button
-                          type="button"
-                          className="btn btn-sm"
-                          style={{ padding: '4px 8px', fontSize: '0.68rem', color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe' }}
-                          onClick={() => handleOpenEdit(feature, activeLayer)}
-                          title={lang === 'th' ? 'แก้ไขข้อมูล' : 'Edit attributes'}
-                        >
-                          ✏️ {lang === 'th' ? 'แก้' : 'Edit'}
+                        <button type="button" onClick={() => handleOpenEdit(feature, activeLayer)}
+                          style={{ padding:'4px 8px', borderRadius:5, fontSize:'0.7rem', fontWeight:600,
+                            color:'#f87171', background:'rgba(248,113,113,0.1)',
+                            border:'1px solid rgba(248,113,113,0.25)', cursor:'pointer', fontFamily:'inherit' }}>
+                          ✏️ แก้
                         </button>
-                        <button
-                          type="button"
-                          className="btn btn-sm"
-                          style={{ padding: '4px 6px', fontSize: '0.68rem', color: '#ef4444', background: '#fef2f2', border: '1px solid #fecaca' }}
-                          onClick={() => handleDeleteFeature(feature, activeLayer)}
-                          title={lang === 'th' ? 'ลบข้อมูล' : 'Delete'}
-                        >
-                          <Trash2 size={12} />
+                        <button type="button" onClick={() => handleDeleteFeature(feature, activeLayer)}
+                          style={{ padding:'4px 6px', borderRadius:5, fontSize:'0.65rem',
+                            color:'#ef4444', background:'rgba(239,68,68,0.08)',
+                            border:'1px solid rgba(239,68,68,0.2)', cursor:'pointer' }}>
+                          <Trash2 size={11} />
                         </button>
                       </div>
                     </div>
@@ -681,6 +663,23 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
                 })
               )}
             </div>
+          </div>
+
+          {/* ── GitHub Auto-Save ── */}
+          <div style={{ padding:'8px 10px', borderTop:'1px solid rgba(255,255,255,0.05)', flexShrink:0 }}>
+            <GitHubAutoSave lang={lang} />
+          </div>
+
+          {/* ── Download Template — ล่างสุด ── */}
+          <div style={{ padding:'8px 10px', borderTop:'1px solid rgba(255,255,255,0.05)', flexShrink:0 }}>
+            <button type="button" onClick={() => setShowTemplatesModal(true)}
+              style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:6,
+                padding:'8px', borderRadius:8, fontSize:'0.72rem', fontWeight:600, cursor:'pointer',
+                border:'1px solid rgba(139,92,246,0.3)', background:'rgba(139,92,246,0.06)',
+                color:'rgba(139,92,246,0.8)', fontFamily:'inherit' }}>
+              <i className="ti ti-download" style={{ fontSize:13 }} />
+              {lang==='th' ? 'ดาวน์โหลด Template & CSV' : 'Download Templates'}
+            </button>
           </div>
 
           </div>{/* end scrollable content */}
