@@ -1814,7 +1814,7 @@ export default function MapViewer({
           }
         },
 
-        // ── 8. POI Pin Symbol ─────────────────────────────────
+        // ── 8. POI Pin Symbol (View) + Circle (Editor) ───────
         {
           id: 'poi-circle',
           type: 'symbol',
@@ -1832,6 +1832,29 @@ export default function MapViewer({
             'icon-ignore-placement': true,
           },
           paint: {}
+        },
+        // POI Editor circle (แสดงแทน pin ใน Editor mode)
+        {
+          id: 'poi-editor-stroke',
+          type: 'circle',
+          source: 'poi-src',
+          layout: { visibility: 'none' },
+          paint: {
+            'circle-radius': 9,
+            'circle-color': '#ffffff',
+            'circle-opacity': 0.9,
+          }
+        },
+        {
+          id: 'poi-editor-circle',
+          type: 'circle',
+          source: 'poi-src',
+          layout: { visibility: 'none' },
+          paint: {
+            'circle-radius': 7,
+            'circle-color': POI_COLOR_MATCH,
+            'circle-opacity': 0.95,
+          }
         },
         // ── 9. Service Circles & Labels ──────────────────────
         {
@@ -2450,6 +2473,74 @@ export default function MapViewer({
       map.easeTo({ pitch: 0, bearing: 0, duration: 400 });
     }
   }, [is3D, isEditorMode, mapLoaded]);
+
+  // ── Switch layer style: View mode = symbols/pins, Editor mode = simple circles ──
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded) return;
+
+    if (isEditorMode) {
+      // ── Editor mode: simple circle + crosshair precision ──
+      // POI → circle แทน symbol pin
+      if (map.getLayer('poi-circle')) {
+        map.setLayoutProperty('poi-circle', 'icon-image', '');
+        map.setPaintProperty('poi-circle', 'icon-opacity', 0);
+      }
+      // ซ่อน pin แล้วแสดง editor-circle แทน
+      ['poi-editor-circle','poi-editor-stroke'].forEach(id => {
+        if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible');
+      });
+      // ทำให้ infra line หนาขึ้นเล็กน้อยเพื่อเห็นชัดตอนแก้
+      if (map.getLayer('infra-line')) {
+        map.setPaintProperty('infra-line', 'line-width', [
+          'match', ['get', 'category'],
+          'highway', 4.5, 'main_road', 3.5, 'rural_road', 3.0, 3.0
+        ]);
+        map.setPaintProperty('infra-line', 'line-opacity', 1.0);
+      }
+      // polygon fill จาง ขอบเด่น
+      if (map.getLayer('water-fill')) {
+        map.setPaintProperty('water-fill', 'fill-opacity', 0.25);
+        map.setPaintProperty('water-fill', 'fill-color', '#38bdf8');
+      }
+      if (map.getLayer('building-sc-fill')) {
+        map.setPaintProperty('building-sc-fill', 'fill-opacity', 0.2);
+      }
+      if (map.getLayer('building-sc-outline')) {
+        map.setPaintProperty('building-sc-outline', 'line-width', 2.5);
+        map.setPaintProperty('building-sc-outline', 'line-color', '#f87171');
+      }
+    } else {
+      // ── View mode: คืนค่า symbols ──
+      ['poi-editor-circle','poi-editor-stroke'].forEach(id => {
+        if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
+      });
+      if (map.getLayer('poi-circle')) {
+        map.setLayoutProperty('poi-circle', 'icon-image', ['coalesce',
+          ['image', ['concat', 'poi-pin-', ['get', 'category']]],
+          ['image', 'poi-pin-default']
+        ]);
+      }
+      if (map.getLayer('infra-line')) {
+        map.setPaintProperty('infra-line', 'line-width', [
+          'match', ['get', 'category'],
+          'highway', 3.5, 'main_road', 2.5, 'rural_road', 2.5, 1.8
+        ]);
+        map.setPaintProperty('infra-line', 'line-opacity', 0.85);
+      }
+      if (map.getLayer('water-fill')) {
+        map.setPaintProperty('water-fill', 'fill-opacity', 0.65);
+        map.setPaintProperty('water-fill', 'fill-color', WATER_COLOR_MATCH);
+      }
+      if (map.getLayer('building-sc-fill')) {
+        map.setPaintProperty('building-sc-fill', 'fill-opacity', 0.55);
+      }
+      if (map.getLayer('building-sc-outline')) {
+        map.setPaintProperty('building-sc-outline', 'line-width', 1.5);
+        map.setPaintProperty('building-sc-outline', 'line-color', '#ffffff');
+      }
+    }
+  }, [isEditorMode, mapLoaded]);
 
   // ── Grid Layer Update ─────────────────────────────────────────
   useEffect(() => {
