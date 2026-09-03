@@ -187,40 +187,58 @@ function CategoryListPanel({
 
   return (
     <>
-      {/* Search Bar */}
-      <div className="search-bar" style={{ flexShrink: 0 }}>
-        <Search size={15} className="search-icon" />
-        <input
-          type="text"
-          placeholder={
-            datasetType === 'infra' ? (lang === 'th' ? 'ค้นหาชื่อถนน, ทางหลวง, ทางรถไฟ...' : 'Search roads, highways...')
-            : datasetType === 'water' ? (lang === 'th' ? 'ค้นหาชื่อแม่น้ำ, ห้วย, คลอง, สระน้ำ...' : 'Search rivers, canals, ponds...')
-            : (lang === 'th' ? 'ค้นหาชื่อสถานที่, โรงพยาบาล, วัด, ร้านยา...' : 'Search places, hospitals, temples...')
-          }
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        {searchTerm && (
-          <button className="search-clear" onClick={() => setSearchTerm('')}>
-            <X size={13} />
-          </button>
-        )}
+      {/* Search Bar — Dark */}
+      <div style={{ flexShrink:0, padding:'0 0 4px' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:6,
+          background:'rgba(255,255,255,0.06)', border:'1px solid rgba(0,200,180,0.2)',
+          borderRadius:8, padding:'7px 10px' }}>
+          <Search size={13} color="rgba(0,200,180,0.6)" />
+          <input
+            type="text"
+            placeholder={
+              datasetType === 'infra' ? (lang === 'th' ? 'ค้นหาชื่อถนน, ทางหลวง...' : 'Search roads...')
+              : datasetType === 'water' ? (lang === 'th' ? 'ค้นหาแม่น้ำ, ห้วย, คลอง...' : 'Search rivers...')
+              : (lang === 'th' ? 'ค้นหาสถานที่, โรงพยาบาล, วัด...' : 'Search places...')
+            }
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ background:'transparent', border:'none', outline:'none',
+              fontSize:12, color:'#e2e8f0', flex:1, fontFamily:'inherit' }}
+          />
+          {searchTerm && (
+            <button onClick={() => setSearchTerm('')} style={{
+              background:'none', border:'none', cursor:'pointer',
+              color:'rgba(255,255,255,0.3)', display:'flex' }}>
+              <X size={13} />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Layer Control Toolbar */}
-      <div className="layer-control-toolbar" style={{ flexShrink: 0 }}>
-        <span className="toolbar-label">
-          {lang === 'th' ? `ชั้นข้อมูล (${totalCount})` : `Layers (${totalCount})`}
+      {/* Layer Control Toolbar — Dark */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+        flexShrink:0, padding:'2px 0 6px' }}>
+        <span style={{ fontSize:11, fontWeight:600, color:'rgba(255,255,255,0.5)' }}>
+          {lang === 'th' ? `ชั้นข้อมูล` : `Layers`}
+          <span style={{ marginLeft:6, fontSize:10, fontWeight:700, color:'#00c8b4',
+            background:'rgba(0,200,180,0.12)', border:'1px solid rgba(0,200,180,0.25)',
+            padding:'1px 7px', borderRadius:99 }}>{totalCount}</span>
         </span>
-        <div className="toolbar-actions">
-          <button onClick={expandAll} className="btn-text" style={{ background: '#f1f5f9', padding: '3px 7px', borderRadius: 5, color: '#334155', fontWeight: 600 }}>
-            {lang === 'th' ? 'ขยายทั้งหมด' : 'Expand All'}
+        <div style={{ display:'flex', gap:4 }}>
+          <button onClick={expandAll} style={{ fontSize:10, padding:'2px 7px', borderRadius:5,
+            background:'rgba(255,255,255,0.07)', border:'none', cursor:'pointer',
+            color:'rgba(255,255,255,0.5)', fontFamily:'inherit' }}>
+            {lang === 'th' ? 'ขยาย' : 'Expand'}
           </button>
-          <button onClick={showAll} className="btn-text" style={{ background: '#f1f5f9', padding: '3px 7px', borderRadius: 5, color: '#334155', fontWeight: 600 }}>
-            {t.poiShowAll || 'แสดงทั้งหมด'}
+          <button onClick={showAll} style={{ fontSize:10, padding:'2px 7px', borderRadius:5,
+            background:'rgba(0,200,180,0.12)', border:'1px solid rgba(0,200,180,0.2)',
+            cursor:'pointer', color:'#00c8b4', fontFamily:'inherit' }}>
+            {lang === 'th' ? 'แสดง' : 'Show'}
           </button>
-          <button onClick={hideAll} className="btn-text" style={{ background: '#f1f5f9', padding: '3px 7px', borderRadius: 5, color: '#334155', fontWeight: 600 }}>
-            {t.poiHideAll || 'ซ่อนทั้งหมด'}
+          <button onClick={hideAll} style={{ fontSize:10, padding:'2px 7px', borderRadius:5,
+            background:'rgba(255,255,255,0.07)', border:'none', cursor:'pointer',
+            color:'rgba(255,255,255,0.4)', fontFamily:'inherit' }}>
+            {lang === 'th' ? 'ซ่อน' : 'Hide'}
           </button>
         </div>
       </div>
@@ -548,8 +566,8 @@ export default function Sidebar({
 
         {/* Vertical Tabs */}
         <nav style={{
-          width:62, flexShrink:0, background:'#f8fafc',
-          borderRight:'1px solid #e2e8f0',
+          width:62, flexShrink:0, background:'#080f1e',
+          borderRight:'1px solid rgba(0,200,180,0.12)',
           display:'flex', flexDirection:'column',
           overflowY:'auto', scrollbarWidth:'none'
         }}>
@@ -561,14 +579,14 @@ export default function Sidebar({
                 display:'flex', flexDirection:'column', alignItems:'center', gap:2,
                 padding:'10px 4px', cursor:'pointer', fontFamily:'inherit',
                 borderRight: on ? '2.5px solid #00c8b4' : '2.5px solid transparent',
-                borderBottom:'1px solid #f1f5f9', borderTop:'none', borderLeft:'none',
-                background: on ? '#fff' : 'transparent', flexShrink:0,
+                borderBottom:'1px solid rgba(255,255,255,0.05)', borderTop:'none', borderLeft:'none',
+                background: on ? 'rgba(0,200,180,0.08)' : 'transparent', flexShrink:0,
                 transition:'all .12s'
               }}>
                 <span style={{ fontSize:16, lineHeight:1 }}>{tab.emoji}</span>
                 <span style={{
                   fontSize:8.5, fontWeight: on ? 700 : 500,
-                  color: on ? '#0f1f3d' : '#64748b',
+                  color: on ? '#00c8b4' : 'rgba(255,255,255,0.4)',
                   lineHeight:1.25, textAlign:'center',
                   whiteSpace:'pre-line'
                 }}>{lang === 'th' ? tab.nameTh : tab.nameEn}</span>
