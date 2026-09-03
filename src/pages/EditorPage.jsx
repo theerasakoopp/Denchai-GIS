@@ -385,7 +385,7 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
               { key:'infra',       emoji:'🏗️', nameTh:'โครง\nสร้าง',   cnt: infraData?.features?.length || 0 },
               { key:'water',       emoji:'💧', nameTh:'แหล่ง\nน้ำ',    cnt: waterData?.features?.length || 0 },
               { key:'service',     emoji:'⚡', nameTh:'บริการ',         cnt: serviceData?.features?.length || 0 },
-              { key:'streetlight', emoji:'💡', nameTh:'Smart\nCity',    cnt: [streetlightData,watermeterData,transformerData,trashbinData,hydrantData,drainData].reduce((s,d)=>s+(d?.features?.length||0),0) },
+              { key:'streetlight', emoji:'💡', nameTh:'Smart\nCity',    cnt: 0 },
               { key:'building_sc', emoji:'🏢', nameTh:'อาคาร\nที่ดิน', cnt: 0 },
             ].map(tab => {
               const smartKeys = ['solar','streetlight','watermeter','transformer','trashbin','hydrant','drain'];
