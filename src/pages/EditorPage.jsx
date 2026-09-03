@@ -125,9 +125,24 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
   const [isPickingLocation, setIsPickingLocation] = useState(false);
   const [pickedCoordinates, setPickedCoordinates] = useState(null);
   const [reshapingFeature, setReshapingFeature] = useState(null);
-  const [triggerDrawRoad, setTriggerDrawRoad] = useState(false);
-  const [triggerDrawWater, setTriggerDrawWater] = useState(false);
-  const [triggerDrawRoof, setTriggerDrawRoof] = useState(false);
+  const [triggerDrawRoad,     setTriggerDrawRoad]     = useState(false);
+  const [triggerDrawDrain,    setTriggerDrawDrain]    = useState(false);
+  const [triggerDrawBuilding, setTriggerDrawBuilding] = useState(false);
+  const [triggerDrawWater,    setTriggerDrawWater]    = useState(false);
+  const [triggerDrawRoof,     setTriggerDrawRoof]     = useState(false);
+
+  const downloadCSVTemplate = (layerKey) => {
+    const templates = {
+      poi: 'template_poi.csv', infra: 'template_infra.csv',
+      water: 'template_water.csv', service: 'template_service.csv',
+      building_sc: 'template_building_sc.csv', drain: 'template_drain.csv',
+    };
+    const filename = templates[layerKey] || 'template_poi.csv';
+    const link = document.createElement('a');
+    link.href = `${import.meta.env.BASE_URL || '/'}${filename}`;
+    link.download = filename;
+    link.click();
+  };
   const [selectedFeature, setSelectedFeature] = useState(null);
 
   // ── Load background layers ──
@@ -727,6 +742,10 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
           onMergeFeatures={() => {}}
           triggerDrawRoad={triggerDrawRoad}
           onResetTriggerDrawRoad={() => setTriggerDrawRoad(false)}
+          triggerDrawDrain={triggerDrawDrain}
+          onResetTriggerDrawDrain={() => setTriggerDrawDrain(false)}
+          triggerDrawBuilding={triggerDrawBuilding}
+          onResetTriggerDrawBuilding={() => setTriggerDrawBuilding(false)}
           triggerDrawWater={triggerDrawWater}
           onResetTriggerDrawWater={() => setTriggerDrawWater(false)}
           triggerDrawRoof={triggerDrawRoof}
