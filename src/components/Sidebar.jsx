@@ -464,17 +464,19 @@ export default function Sidebar({
     infra:   infraData?.features?.length   || 0,
     water:   waterData?.features?.length   || 0,
     service: serviceData?.features?.length || 0,
+    land:    0,
   };
 
   const TABS = [
-    { key:'poi',     dot:'#00c8b4', label: lang==='th' ? 'สถานที่สำคัญ' : 'Places' },
-    { key:'infra',   dot:'#f59e0b', label: lang==='th' ? 'โครงสร้างพื้นฐาน' : 'Infrastructure' },
-    { key:'water',   dot:'#3b82f6', label: lang==='th' ? 'ทรัพยากรน้ำ' : 'Water' },
-    { key:'service', dot:'#8b5cf6', label: lang==='th' ? 'บริการสาธารณะ' : 'Public Service' },
+    { key:'poi',     emoji:'📍', nameTh:'สถานที่',      nameEn:'Places',        color:'#00c8b4' },
+    { key:'infra',   emoji:'🏗️', nameTh:'โครงสร้าง',   nameEn:'Infra',         color:'#f59e0b' },
+    { key:'water',   emoji:'💧', nameTh:'แหล่งน้ำ',    nameEn:'Water',         color:'#3b82f6' },
+    { key:'service', emoji:'⚡', nameTh:'บริการ',       nameEn:'Service',       color:'#8b5cf6' },
+    { key:'land',    emoji:'🏢', nameTh:'อาคาร\nและที่ดิน', nameEn:'Land',     color:'#d97706' },
   ];
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" style={{ display:'flex', flexDirection:'column', overflow:'hidden' }}>
       {/* ── Header Navy + Teal ── */}
       <div style={{
         background: 'linear-gradient(160deg,#0f1f3d 0%,#1a3358 60%,#1e3d6b 100%)',
@@ -483,7 +485,6 @@ export default function Sidebar({
         position: 'relative',
         overflow: 'hidden'
       }}>
-        {/* Teal glow */}
         <div style={{ position:'absolute', top:0, right:0, width:120, height:120,
           background:'radial-gradient(ellipse at 100% 0%,rgba(0,200,180,0.18) 0%,transparent 70%)',
           pointerEvents:'none' }} />
@@ -522,9 +523,9 @@ export default function Sidebar({
         {/* Nav buttons */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:4, position:'relative' }}>
           {[
-            { href:'#/',          icon:'ti-map',              label: lang==='th' ? 'แผนที่' : 'Map',       active:true },
-            { href:'#/dashboard', icon:'ti-layout-dashboard', label:'Dashboard',                            active:false },
-            { href:'#/editor',    icon:'ti-pencil',           label: lang==='th' ? 'จัดการ' : 'Editor',    active:false },
+            { href:'#/',          icon:'ti-map',              label: lang==='th' ? 'แผนที่' : 'Map',    active:true },
+            { href:'#/dashboard', icon:'ti-layout-dashboard', label:'Dashboard',                          active:false },
+            { href:'#/editor',    icon:'ti-pencil',           label: lang==='th' ? 'จัดการ' : 'Editor', active:false },
           ].map((b,i) => (
             <a key={i} href={b.href} style={{
               display:'flex', alignItems:'center', justifyContent:'center', gap:4,
@@ -542,27 +543,48 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* ── Tab Nav — Horizontal Scroll ── */}
-      {setActiveTab && (
-        <nav className="tab-nav">
-          {TABS.map(tab => (
-            <button
-              key={tab.key}
-              className={`tab-btn ${activeTab === tab.key ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              <span className="tab-dot" style={{ background: tab.dot }} />
-              <span>{tab.label}</span>
-              {tabCounts[tab.key] > 0 && (
-                <span className="tab-badge">{tabCounts[tab.key]}</span>
-              )}
-            </button>
-          ))}
-        </nav>
-      )}
+      {/* ── Body: Vertical Tab + Content ── */}
+      <div style={{ display:'flex', flex:1, minHeight:0, overflow:'hidden' }}>
 
-      {/* Main Scrollable Area */}
-      <div className="sidebar-scroll">
+        {/* Vertical Tabs */}
+        <nav style={{
+          width:62, flexShrink:0, background:'#f8fafc',
+          borderRight:'1px solid #e2e8f0',
+          display:'flex', flexDirection:'column',
+          overflowY:'auto', scrollbarWidth:'none'
+        }}>
+          {TABS.map(tab => {
+            const on = activeTab === tab.key;
+            const cnt = tabCounts[tab.key];
+            return (
+              <button key={tab.key} onClick={() => setActiveTab(tab.key)} style={{
+                display:'flex', flexDirection:'column', alignItems:'center', gap:2,
+                padding:'10px 4px', cursor:'pointer', fontFamily:'inherit',
+                borderRight: on ? '2.5px solid #00c8b4' : '2.5px solid transparent',
+                borderBottom:'1px solid #f1f5f9', borderTop:'none', borderLeft:'none',
+                background: on ? '#fff' : 'transparent', flexShrink:0,
+                transition:'all .12s'
+              }}>
+                <span style={{ fontSize:16, lineHeight:1 }}>{tab.emoji}</span>
+                <span style={{
+                  fontSize:8.5, fontWeight: on ? 700 : 500,
+                  color: on ? '#0f1f3d' : '#64748b',
+                  lineHeight:1.25, textAlign:'center',
+                  whiteSpace:'pre-line'
+                }}>{lang === 'th' ? tab.nameTh : tab.nameEn}</span>
+                <span style={{
+                  fontSize:8, fontWeight:700, padding:'1px 4px',
+                  borderRadius:99, minWidth:16, textAlign:'center',
+                  background: on ? `rgba(${tab.color === '#00c8b4' ? '0,200,180' : tab.color === '#f59e0b' ? '245,158,11' : tab.color === '#3b82f6' ? '59,130,246' : tab.color === '#8b5cf6' ? '139,92,246' : '217,119,6'},0.15)` : '#f1f5f9',
+                  color: on ? tab.color : '#94a3b8'
+                }}>{cnt || '—'}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Main Scrollable Content */}
+        <div className="sidebar-scroll" style={{ flex:1, minWidth:0 }}>
 
         {/* ═══════════ TAB: POI ═══════════ */}
         {activeTab === 'poi' && poiData && poiCategories && (
@@ -1050,7 +1072,73 @@ export default function Sidebar({
           </>
         )}
 
-      </div>
+        {/* ═══════════ TAB: อาคารและที่ดิน ═══════════ */}
+        {activeTab === 'land' && (
+          <div style={{ display:'flex', flexDirection:'column', gap:8, padding:'10px 10px' }}>
+
+            {/* อาคาร / สิ่งปลูกสร้าง */}
+            <div style={{ fontSize:9, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.06em', padding:'2px 2px 4px' }}>
+              อาคารและสิ่งปลูกสร้าง
+            </div>
+            {[
+              { dot:'#64748b', icon:'🏠', name:'อาคาร / สิ่งปลูกสร้าง', sub:'LTAX3000', cnt:0 },
+            ].map((l,i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 10px',
+                borderRadius:8, background:'#f8fafc', border:'1px solid #e2e8f0', cursor:'pointer' }}>
+                <span style={{ width:9, height:9, borderRadius:3, background:l.dot, flexShrink:0 }} />
+                <span style={{ fontSize:14 }}>{l.icon}</span>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:11.5, color:'#1e293b', fontWeight:500 }}>{l.name}</div>
+                  <div style={{ fontSize:9, color:'#94a3b8', marginTop:1 }}>{l.sub}</div>
+                </div>
+                <span style={{ fontSize:10, fontWeight:700, color:'#94a3b8', background:'#f1f5f9', padding:'1px 6px', borderRadius:99 }}>
+                  {l.cnt || '—'}
+                </span>
+              </div>
+            ))}
+
+            {/* ที่ดิน */}
+            <div style={{ fontSize:9, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.06em', padding:'8px 2px 4px' }}>
+              ที่ดิน — เชื่อมข้อมูลกรมที่ดิน
+            </div>
+            {[
+              { dot:'#d97706', icon:'📌', name:'หมุดหลักเขต', sub:'เลขหมุด, พิกัด UTM47N', cnt:0 },
+              { dot:'#f59e0b', icon:'🗺️', name:'แปลงที่ดิน', sub:'โฉนด / น.ส.3 / ส.ป.ก.', cnt:0 },
+            ].map((l,i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 10px',
+                borderRadius:8, background:'#fffbeb', border:'1px solid #fde68a', cursor:'pointer' }}>
+                <span style={{ width:9, height:9, borderRadius:3, background:l.dot, flexShrink:0 }} />
+                <span style={{ fontSize:14 }}>{l.icon}</span>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontSize:11.5, color:'#1e293b', fontWeight:500 }}>{l.name}</div>
+                  <div style={{ fontSize:9, color:'#92400e', marginTop:1 }}>{l.sub}</div>
+                </div>
+                <span style={{ fontSize:10, fontWeight:700, color:'#94a3b8', background:'#fef3c7', padding:'1px 6px', borderRadius:99 }}>—</span>
+              </div>
+            ))}
+
+            {/* hint */}
+            <div style={{ marginTop:4, padding:'10px 12px', background:'#fffbeb',
+              border:'1px solid #fde68a', borderRadius:8, fontSize:11, color:'#92400e', lineHeight:1.5 }}>
+              <i className="ti ti-info-circle" style={{ fontSize:13, marginRight:5 }} aria-hidden="true" />
+              นำเข้าข้อมูลจากกรมที่ดิน หรือวาด Polygon บนแผนที่ผ่าน Editor Studio
+            </div>
+
+            <a href="#/editor" style={{
+              display:'flex', alignItems:'center', justifyContent:'center', gap:7,
+              padding:'9px 12px', background:'#0f172a',
+              border:'1px solid rgba(56,189,248,0.4)', borderRadius:9,
+              color:'#38bdf8', fontSize:12, fontWeight:600, textDecoration:'none',
+              marginTop:4
+            }}>
+              <i className="ti ti-pencil-plus" style={{ fontSize:14 }} aria-hidden="true" />
+              เพิ่ม / แก้ไขข้อมูล → Editor Studio
+            </a>
+          </div>
+        )}
+
+      </div>{/* end sidebar-scroll */}
+      </div>{/* end body flex */}
 
       {/* ── Solar Economic ROI Settings Modal ── */}
       {showRoiModal && (
