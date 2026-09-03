@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, RadarChart, 
 
 // ── LPA Data ──────────────────────────────────────────────
 const LPA = [
-  { id:1, icon:'ti-building-community', th:'การบริหารจัดการ', score:84, color:'#00c8b4' },
+  { id:1, icon:'ti-building-community', th:'การบริหารจัดการ', score:84, color:'#818cf8' },
   { id:2, icon:'ti-coins',              th:'การบริหารการเงิน', score:82, color:'#3b82f6' },
   { id:3, icon:'ti-users',              th:'ชุมชนและสังคม',    score:73, color:'#f59e0b' },
   { id:4, icon:'ti-road',               th:'บริการสาธารณะ',   score:63, color:'#ef4444' },
@@ -28,23 +28,23 @@ const INFRA_CHART = [
   { name:'เกษตร',   value:6,  fill:'#22c55e' },
 ];
 
-const scoreColor = s => s >= 80 ? '#00c8b4' : s >= 65 ? '#f59e0b' : '#ef4444';
+const scoreColor = s => s >= 80 ? '#818cf8' : s >= 65 ? '#f59e0b' : '#ef4444';
 const levelColor = l => l==='danger' ? '#ef4444' : l==='warning' ? '#f59e0b' : '#3b82f6';
 const levelBg    = l => l==='danger' ? 'rgba(239,68,68,0.1)' : l==='warning' ? 'rgba(245,158,11,0.08)' : 'rgba(59,130,246,0.08)';
 
 // ── Styles ────────────────────────────────────────────────
 const C = {
   page: {
-    minHeight:'100vh', background:'#060d1a',
+    minHeight:'100vh', background:'#06060f',
     fontFamily:"'Sarabun','IBM Plex Sans Thai',sans-serif",
     display:'flex', flexDirection:'column', color:'#f0f4ff'
   },
   card: {
-    background:'#0a1628', border:'1px solid rgba(0,200,180,0.15)',
+    background:'#0d0f2e', border:'1px solid rgba(129,140,248,0.15)',
     borderRadius:8, padding:'10px 12px', display:'flex', flexDirection:'column', gap:6
   },
   cardTitle: {
-    fontSize:10, fontWeight:600, color:'rgba(0,200,180,0.85)',
+    fontSize:10, fontWeight:600, color:'rgba(129,140,248,0.85)',
     textTransform:'uppercase', letterSpacing:'.06em',
     display:'flex', alignItems:'center', gap:5
   },
@@ -57,7 +57,7 @@ const C = {
 function CardTitle({ children }) {
   return (
     <div style={C.cardTitle}>
-      <span style={{ width:3, height:10, background:'#00c8b4', borderRadius:2, flexShrink:0 }} />
+      <span style={{ width:3, height:10, background:'#818cf8', borderRadius:2, flexShrink:0 }} />
       {children}
     </div>
   );
@@ -125,36 +125,46 @@ export default function DashboardPage({ lang = 'th' }) {
     { key:'lpa',      label:'LPA',             icon:'ti-chart-radar' },
   ];
 
-  const DOTS = { poi:'#00c8b4', infra:'#f59e0b', water:'#3b82f6', service:'#8b5cf6' };
+  const DOTS = { poi:'#818cf8', infra:'#f59e0b', water:'#3b82f6', service:'#8b5cf6' };
 
   return (
     <div style={C.page}>
 
-      {/* ── Header ── */}
+      {/* ── Header — Indigo ── */}
       <div style={{
-        background:'linear-gradient(90deg,#060d1a,#0f1f3d,#060d1a)',
-        borderBottom:'1px solid rgba(0,200,180,0.2)',
+        background:'linear-gradient(90deg,#060d1a,#0d0f2e,#060d1a)',
+        borderBottom:'1px solid rgba(129,140,248,0.2)',
         padding:'10px 20px', display:'flex', alignItems:'center',
-        justifyContent:'space-between', flexShrink:0, gap:12
+        justifyContent:'space-between', flexShrink:0, gap:12,
+        position:'relative', overflow:'hidden'
       }}>
+        <div style={{ position:'absolute', top:0, right:'30%', width:200, height:60,
+          background:'radial-gradient(ellipse,rgba(129,140,248,0.12) 0%,transparent 70%)',
+          pointerEvents:'none' }} />
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
           <button onClick={() => navigate('/')} style={{
             padding:'5px 10px', borderRadius:6, border:'1px solid rgba(255,255,255,0.1)',
-            background:'transparent', color:'#94a3b8', fontSize:12, cursor:'pointer',
+            background:'transparent', color:'rgba(255,255,255,0.5)', fontSize:12, cursor:'pointer',
             display:'flex', alignItems:'center', gap:5, fontFamily:'inherit'
           }}>
             <i className="ti ti-arrow-left" style={{ fontSize:13 }} /> กลับแผนที่
           </button>
           <div style={{ width:1, height:28, background:'rgba(255,255,255,0.08)' }} />
           <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <span style={{ width:8, height:8, borderRadius:'50%', background:'#00c8b4',
-              boxShadow:'0 0 0 3px rgba(0,200,180,0.2)', flexShrink:0 }} />
+            <div style={{ width:32, height:32, borderRadius:8,
+              background:'rgba(129,140,248,0.15)', border:'1.5px solid rgba(129,140,248,0.4)',
+              display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <i className="ti ti-layout-dashboard" style={{ fontSize:16, color:'#818cf8' }} />
+            </div>
             <div>
               <div style={{ fontSize:14, fontWeight:700, color:'#fff' }}>
-                ศูนย์บริหารจัดการเทศบาลตำบลเด่นชัย — Smart City
+                ศูนย์บริหารจัดการเทศบาลตำบลเด่นชัย
               </div>
-              <div style={{ fontSize:10, color:'rgba(0,200,180,0.7)', marginTop:1 }}>
-                ข้อมูล ณ {dateStr} · อัปเดตอัตโนมัติ
+              <div style={{ fontSize:10, color:'rgba(129,140,248,0.7)', marginTop:1 }}>
+                <span style={{ width:6, height:6, borderRadius:'50%', background:'#818cf8',
+                  boxShadow:'0 0 0 3px rgba(129,140,248,0.2)', display:'inline-block',
+                  marginRight:5, verticalAlign:'middle' }} />
+                Smart City Dashboard · {dateStr}
               </div>
             </div>
           </div>
@@ -163,22 +173,22 @@ export default function DashboardPage({ lang = 'th' }) {
         {/* KPI summary */}
         <div style={{ display:'flex', alignItems:'center', gap:0 }}>
           {[
-            { num: counts.poi,     lbl:'สถานที่',     color:'#00c8b4' },
-            { num: counts.infra,   lbl:'โครงสร้าง',   color:'#f59e0b' },
-            { num: counts.water,   lbl:'แหล่งน้ำ',    color:'#3b82f6' },
-            { num: counts.service, lbl:'บริการ',      color:'#8b5cf6' },
-            { num: lpaAvg+'%',     lbl:'LPA',         color:'#a78bfa' },
+            { num: counts.poi,     lbl:'สถานที่',   color:'#818cf8' },
+            { num: counts.infra,   lbl:'โครงสร้าง', color:'#a5b4fc' },
+            { num: counts.water,   lbl:'แหล่งน้ำ',  color:'#c7d2fe' },
+            { num: counts.service, lbl:'บริการ',    color:'#e0e7ff' },
+            { num: lpaAvg+'%',     lbl:'LPA',       color:'#818cf8' },
           ].map((k,i) => (
             <div key={i} style={{ textAlign:'center', padding:'0 16px',
               borderLeft: i>0 ? '1px solid rgba(255,255,255,0.07)' : 'none' }}>
               <div style={{ fontSize:20, fontWeight:700, color:k.color, lineHeight:1 }}>{k.num}</div>
-              <div style={{ fontSize:9, color:'rgba(255,255,255,0.4)', marginTop:2 }}>{k.lbl}</div>
+              <div style={{ fontSize:9, color:'rgba(255,255,255,0.35)', marginTop:2 }}>{k.lbl}</div>
             </div>
           ))}
           <div style={{ width:1, height:28, background:'rgba(255,255,255,0.08)', margin:'0 8px' }} />
           <button onClick={() => navigate('/editor')} style={{
-            padding:'6px 12px', borderRadius:6, border:'1px solid rgba(56,189,248,0.35)',
-            background:'rgba(56,189,248,0.08)', color:'#38bdf8',
+            padding:'6px 12px', borderRadius:6, border:'1px solid rgba(248,113,113,0.35)',
+            background:'rgba(248,113,113,0.08)', color:'#f87171',
             fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit',
             display:'flex', alignItems:'center', gap:5
           }}>
@@ -187,10 +197,10 @@ export default function DashboardPage({ lang = 'th' }) {
         </div>
       </div>
 
-      {/* ── Tab Nav ── */}
+      {/* ── Tab Nav — Indigo ── */}
       <div style={{
         display:'flex', gap:2, padding:'6px 16px',
-        background:'#080f1e', borderBottom:'1px solid rgba(0,200,180,0.1)',
+        background:'#080a20', borderBottom:'1px solid rgba(129,140,248,0.12)',
         flexShrink:0
       }}>
         {TABS.map(t => (
@@ -198,9 +208,9 @@ export default function DashboardPage({ lang = 'th' }) {
             padding:'6px 14px', borderRadius:6, border:'none', cursor:'pointer',
             fontFamily:'inherit', fontSize:12, fontWeight:500,
             display:'flex', alignItems:'center', gap:6, transition:'all .15s',
-            background: activeTab===t.key ? 'rgba(0,200,180,0.15)' : 'transparent',
-            color: activeTab===t.key ? '#00c8b4' : '#64748b',
-            borderBottom: activeTab===t.key ? '2px solid #00c8b4' : '2px solid transparent',
+            background: activeTab===t.key ? 'rgba(129,140,248,0.15)' : 'transparent',
+            color: activeTab===t.key ? '#818cf8' : '#64748b',
+            borderBottom: activeTab===t.key ? '2px solid #818cf8' : '2px solid transparent',
           }}>
             <i className={`ti ${t.icon}`} style={{ fontSize:13 }} />
             {t.label}
@@ -221,7 +231,7 @@ export default function DashboardPage({ lang = 'th' }) {
               <div style={C.card}>
                 <CardTitle>ชั้นข้อมูล</CardTitle>
                 {[
-                  { dot:'#00c8b4', name:'สถานที่สำคัญ',     num: counts.poi,     key:'poi' },
+                  { dot:'#818cf8', name:'สถานที่สำคัญ',     num: counts.poi,     key:'poi' },
                   { dot:'#f59e0b', name:'โครงสร้างพื้นฐาน', num: counts.infra,   key:'infra' },
                   { dot:'#3b82f6', name:'ทรัพยากรน้ำ',      num: counts.water,   key:'water' },
                   { dot:'#8b5cf6', name:'บริการสาธารณะ',    num: counts.service, key:'service' },
@@ -276,19 +286,19 @@ export default function DashboardPage({ lang = 'th' }) {
             {/* Center — Map */}
             <div style={{
               background:'linear-gradient(135deg,#060d1a,#0d2137)',
-              border:'1px solid rgba(0,200,180,0.15)', borderRadius:10,
+              border:'1px solid rgba(129,140,248,0.15)', borderRadius:10,
               position:'relative', overflow:'hidden', display:'flex',
               alignItems:'center', justifyContent:'center', cursor:'pointer'
             }} onClick={() => navigate('/')}>
               <div style={{
                 position:'absolute', inset:0,
-                backgroundImage:'linear-gradient(rgba(0,200,180,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,180,0.05) 1px,transparent 1px)',
+                backgroundImage:'linear-gradient(rgba(129,140,248,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(129,140,248,0.05) 1px,transparent 1px)',
                 backgroundSize:'30px 30px'
               }} />
               <div style={{ position:'relative', textAlign:'center' }}>
-                <i className="ti ti-map-2" style={{ fontSize:48, color:'rgba(0,200,180,0.15)', display:'block', marginBottom:10 }} />
+                <i className="ti ti-map-2" style={{ fontSize:48, color:'rgba(129,140,248,0.15)', display:'block', marginBottom:10 }} />
                 <div style={{ fontSize:14, fontWeight:600, color:'rgba(255,255,255,0.3)' }}>แผนที่ GIS เด่นชัย</div>
-                <div style={{ fontSize:11, color:'rgba(0,200,180,0.4)', marginTop:4 }}>คลิกเพื่อเปิดแผนที่</div>
+                <div style={{ fontSize:11, color:'rgba(129,140,248,0.4)', marginTop:4 }}>คลิกเพื่อเปิดแผนที่</div>
               </div>
               {/* Fake pins */}
               {[
@@ -316,7 +326,7 @@ export default function DashboardPage({ lang = 'th' }) {
                   <div key={i} style={{ ...C.row, cursor:'pointer' }} onClick={() => navigate('/')}>
                     <span style={{ width:6, height:6, borderRadius:'50%', background:['#ef4444','#f59e0b','#8b5cf6','#f97316','#0ea5e9','#3b82f6'][i], flexShrink:0 }} />
                     <span style={{ fontSize:11, color:'#94a3b8', flex:1 }}>{k}</span>
-                    <span style={{ fontSize:12, fontWeight:700, color:'#00c8b4' }}>{v}</span>
+                    <span style={{ fontSize:12, fontWeight:700, color:'#818cf8' }}>{v}</span>
                   </div>
                 ))}
               </div>
@@ -349,7 +359,7 @@ export default function DashboardPage({ lang = 'th' }) {
                 ))}
                 <div style={{ display:'flex', justifyContent:'space-between', paddingTop:4 }}>
                   <span style={{ fontSize:10, color:'#64748b' }}>รวม</span>
-                  <span style={{ fontSize:13, fontWeight:700, color:'#00c8b4' }}>{counts.water} แห่ง</span>
+                  <span style={{ fontSize:13, fontWeight:700, color:'#818cf8' }}>{counts.water} แห่ง</span>
                 </div>
               </div>
             </div>
@@ -357,7 +367,7 @@ export default function DashboardPage({ lang = 'th' }) {
             {/* Bottom KPI bar */}
             <div style={{ gridColumn:'1/-1', display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8 }}>
               {[
-                { icon:'ti-map-pin',           num: counts.poi,     lbl:'สถานที่สำคัญ',     color:'#00c8b4', bg:'rgba(0,200,180,0.1)' },
+                { icon:'ti-map-pin',           num: counts.poi,     lbl:'สถานที่สำคัญ',     color:'#818cf8', bg:'rgba(129,140,248,0.1)' },
                 { icon:'ti-road',              num: counts.infra,   lbl:'โครงสร้างพื้นฐาน', color:'#f59e0b', bg:'rgba(245,158,11,0.1)' },
                 { icon:'ti-droplet',           num: counts.water,   lbl:'ทรัพยากรน้ำ',      color:'#3b82f6', bg:'rgba(59,130,246,0.1)' },
                 { icon:'ti-heart-rate-monitor',num: counts.service, lbl:'บริการสาธารณะ',    color:'#8b5cf6', bg:'rgba(139,92,246,0.1)' },
@@ -388,7 +398,7 @@ export default function DashboardPage({ lang = 'th' }) {
                   <PolarGrid stroke="rgba(255,255,255,0.07)" />
                   <PolarAngleAxis dataKey="aspect" tick={{ fill:'#64748b', fontSize:11 }} />
                   <Radar dataKey="score" stroke="#00c8b4" fill="#00c8b4" fillOpacity={0.15} strokeWidth={2} />
-                  <Tooltip contentStyle={{ background:'#0a1628', border:'1px solid rgba(0,200,180,0.2)', borderRadius:8, color:'#f0f4ff', fontSize:12 }} />
+                  <Tooltip contentStyle={{ background:'#0a1628', border:'1px solid rgba(129,140,248,0.2)', borderRadius:8, color:'#f0f4ff', fontSize:12 }} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
@@ -407,7 +417,7 @@ export default function DashboardPage({ lang = 'th' }) {
                   <span style={{ fontSize:18, fontWeight:700, color:a.color, minWidth:36, textAlign:'right' }}>{a.score}</span>
                 </div>
               ))}
-              <div style={{ marginTop:8, padding:'8px 12px', background:'rgba(0,200,180,0.08)',
+              <div style={{ marginTop:8, padding:'8px 12px', background:'rgba(129,140,248,0.08)',
                 borderRadius:8, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                 <span style={{ fontSize:13, color:'#94a3b8' }}>คะแนนเฉลี่ยรวม</span>
                 <span style={{ fontSize:24, fontWeight:700, color:scoreColor(lpaAvg) }}>{lpaAvg}%</span>
@@ -438,16 +448,16 @@ export default function DashboardPage({ lang = 'th' }) {
                   ]).map(([k,v],i) => (
                     <tr key={i} style={{ cursor:'pointer' }} onClick={() => navigate('/')}>
                       <td style={{ padding:'9px 12px', color:'#c8d3e8' }}>{k}</td>
-                      <td style={{ padding:'9px 12px', textAlign:'right', fontWeight:700, color:'#00c8b4' }}>{v}</td>
+                      <td style={{ padding:'9px 12px', textAlign:'right', fontWeight:700, color:'#818cf8' }}>{v}</td>
                       <td style={{ padding:'9px 12px', textAlign:'right' }}>
                         <div style={{ display:'flex', alignItems:'center', gap:8, justifyContent:'flex-end' }}>
                           <div style={{ width:80, height:5, background:'rgba(255,255,255,0.07)', borderRadius:3 }}>
-                            <div style={{ width: Math.round(v/counts.poi*100)+'%', height:'100%', background:'#00c8b4', borderRadius:3 }} />
+                            <div style={{ width: Math.round(v/counts.poi*100)+'%', height:'100%', background:'#818cf8', borderRadius:3 }} />
                           </div>
                           <span style={{ fontSize:10, color:'#475569', minWidth:28 }}>{Math.round(v/counts.poi*100)}%</span>
                         </div>
                       </td>
-                      <td style={{ padding:'9px 12px', textAlign:'right', fontSize:11, color:'#00c8b4' }}>ดูแผนที่ →</td>
+                      <td style={{ padding:'9px 12px', textAlign:'right', fontSize:11, color:'#818cf8' }}>ดูแผนที่ →</td>
                     </tr>
                   ))}
                 </tbody>
@@ -465,7 +475,7 @@ export default function DashboardPage({ lang = 'th' }) {
                 <BarChart data={INFRA_CHART} margin={{ top:0, right:0, left:-25, bottom:0 }}>
                   <XAxis dataKey="name" tick={{ fill:'#475569', fontSize:10 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill:'#475569', fontSize:10 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background:'#0a1628', border:'1px solid rgba(0,200,180,0.2)', borderRadius:8, color:'#f0f4ff', fontSize:12 }} />
+                  <Tooltip contentStyle={{ background:'#0a1628', border:'1px solid rgba(129,140,248,0.2)', borderRadius:8, color:'#f0f4ff', fontSize:12 }} />
                   <Bar dataKey="value" radius={[3,3,0,0]}>
                     {INFRA_CHART.map((e,i) => <rect key={i} fill={e.fill} />)}
                   </Bar>

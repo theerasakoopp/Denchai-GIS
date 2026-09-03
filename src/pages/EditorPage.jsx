@@ -557,50 +557,93 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
         left: 0, top: 0
       }}>
         
-        {/* Top Studio Header */}
+        {/* Top Studio Header — Crimson */}
         <div style={{
-          padding: '14px 18px', background: '#0f172a', color: '#ffffff',
-          borderBottom: '1px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
+          padding: '12px 16px',
+          background: 'linear-gradient(160deg,#1a0508 0%,#2d0a10 60%,#3d0f18 100%)',
+          borderBottom: '1px solid rgba(248,113,113,0.2)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          position: 'relative', overflow: 'hidden'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Link
-              to="/"
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px',
-                background: 'rgba(255,255,255,0.12)', borderRadius: 8, color: '#f8fafc',
-                textDecoration: 'none', fontSize: '0.75rem', fontWeight: 600, border: '1px solid rgba(255,255,255,0.2)'
-              }}
-              title="กลับหน้าหลัก Dashboard"
-            >
-              <ArrowLeft size={14} />
-              <span>{lang === 'th' ? 'กลับหน้าแสดงผล' : 'Back to Viewer'}</span>
+          {/* Crimson glow */}
+          <div style={{ position:'absolute', top:0, right:0, width:120, height:80,
+            background:'radial-gradient(ellipse at 100% 0%,rgba(248,113,113,0.15) 0%,transparent 70%)',
+            pointerEvents:'none' }} />
+          <div style={{ position:'absolute', bottom:0, left:0, right:0, height:1,
+            background:'linear-gradient(90deg,transparent,rgba(248,113,113,0.35),transparent)',
+            pointerEvents:'none' }} />
+
+          <div style={{ display:'flex', alignItems:'center', gap:10, position:'relative' }}>
+            <Link to="/" style={{
+              display:'flex', alignItems:'center', gap:6, padding:'6px 10px',
+              background:'rgba(255,255,255,0.07)', borderRadius:7, color:'rgba(255,255,255,0.7)',
+              textDecoration:'none', fontSize:'0.74rem', fontWeight:600,
+              border:'1px solid rgba(255,255,255,0.1)'
+            }}>
+              <ArrowLeft size={13} />
+              {lang === 'th' ? 'กลับแผนที่' : 'Back'}
             </Link>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '0.86rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>🛠️ GIS Editor Studio</span>
+            <div style={{ width:1, height:28, background:'rgba(255,255,255,0.08)' }} />
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <div style={{ width:32, height:32, borderRadius:8,
+                background:'rgba(248,113,113,0.15)', border:'1.5px solid rgba(248,113,113,0.4)',
+                display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <i className="ti ti-pencil-plus" style={{ fontSize:16, color:'#f87171' }} aria-hidden="true" />
               </div>
-              <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
-                {lang === 'th' ? 'ศูนย์จัดการข้อมูลเทศบาล' : 'Municipality Data Center'}
+              <div>
+                <div style={{ fontWeight:700, fontSize:'0.86rem', color:'#f87171',
+                  display:'flex', alignItems:'center', gap:6 }}>
+                  GIS Editor Studio
+                </div>
+                <div style={{ fontSize:'0.68rem', color:'rgba(255,255,255,0.45)' }}>
+                  {lang === 'th' ? 'โหมดแก้ไขและจัดการข้อมูล GIS' : 'Data Management Mode'}
+                </div>
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-            <button style={{ background: lang === 'th' ? '#2563eb' : 'transparent', color: '#fff', border: 'none', borderRadius: 5, padding: '3px 7px', fontSize: '0.68rem', cursor: 'pointer' }} onClick={() => setLang?.('th')}>TH</button>
-            <button style={{ background: lang === 'en' ? '#2563eb' : 'transparent', color: '#fff', border: 'none', borderRadius: 5, padding: '3px 7px', fontSize: '0.68rem', cursor: 'pointer' }} onClick={() => setLang?.('en')}>EN</button>
+          <div style={{ display:'flex', gap:3, alignItems:'center', position:'relative' }}>
+            <div style={{ fontSize:9, fontWeight:700, color:'#f87171',
+              background:'rgba(248,113,113,0.12)', border:'1px solid rgba(248,113,113,0.3)',
+              padding:'3px 8px', borderRadius:99, marginRight:6,
+              display:'flex', alignItems:'center', gap:4 }}>
+              <span style={{ width:6, height:6, borderRadius:'50%', background:'#f87171',
+                boxShadow:'0 0 0 3px rgba(248,113,113,0.2)', flexShrink:0 }} />
+              {lang === 'th' ? 'กำลังแก้ไข' : 'Editing'}
+            </div>
+            <button style={{
+              background: lang === 'th' ? 'rgba(248,113,113,0.2)' : 'transparent',
+              color: lang === 'th' ? '#f87171' : 'rgba(255,255,255,0.4)',
+              border:'none', borderRadius:5, padding:'3px 7px', fontSize:'0.68rem', cursor:'pointer'
+            }} onClick={() => setLang?.('th')}>TH</button>
+            <button style={{
+              background: lang === 'en' ? 'rgba(248,113,113,0.2)' : 'transparent',
+              color: lang === 'en' ? '#f87171' : 'rgba(255,255,255,0.4)',
+              border:'none', borderRadius:5, padding:'3px 7px', fontSize:'0.68rem', cursor:'pointer'
+            }} onClick={() => setLang?.('en')}>EN</button>
             {isMobile && (
-              <button onClick={() => setSidebarOpen(false)} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 8px', fontSize: 16, cursor: 'pointer', marginLeft: 4 }}>✕</button>
+              <button onClick={() => setSidebarOpen(false)} style={{
+                background:'rgba(248,113,113,0.1)', color:'#f87171',
+                border:'1px solid rgba(248,113,113,0.25)', borderRadius:6,
+                padding:'5px 8px', fontSize:16, cursor:'pointer', marginLeft:4
+              }}>✕</button>
             )}
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-          
+        {/* Scrollable Content — dark crimson bg */}
+        <div style={{ flex:1, overflowY:'auto', padding:'12px 14px',
+          display:'flex', flexDirection:'column', gap:10,
+          background:'#0d0204' }}>
+
           {/* Layer Selector */}
-          <div style={{ background: '#f8fafc', padding: 12, borderRadius: 10, border: '1px solid #e2e8f0' }}>
-            <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginBottom: 8 }}>
-              📂 {lang === 'th' ? 'เลือกชั้นข้อมูลที่ต้องการจัดการ:' : 'Select Layer to Manage:'}
+          <div style={{ background:'rgba(248,113,113,0.06)', padding:10, borderRadius:10,
+            border:'1px solid rgba(248,113,113,0.18)' }}>
+            <div style={{ fontSize:'0.72rem', fontWeight:700, color:'rgba(248,113,113,0.8)',
+              textTransform:'uppercase', letterSpacing:'.06em', marginBottom:8,
+              display:'flex', alignItems:'center', gap:6 }}>
+              <i className="ti ti-layers-subtract" style={{ fontSize:13 }} aria-hidden="true" />
+              {lang === 'th' ? 'เลือกชั้นข้อมูลที่ต้องการจัดการ' : 'Select Layer to Manage'}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6 }}>
               {[
@@ -620,13 +663,14 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
                 <button
                   key={lay.key}
                   type="button"
-                  className={`btn btn-sm ${activeLayer === lay.key ? 'btn-primary' : ''}`}
                   style={{
-                    justifyContent: 'center', fontSize: '0.72rem', padding: '7px 4px',
+                    justifyContent:'center', fontSize:'0.72rem', padding:'7px 4px',
                     fontWeight: activeLayer === lay.key ? 700 : 500,
-                    border: activeLayer === lay.key ? 'none' : '1px solid #cbd5e1',
-                    background: activeLayer === lay.key ? 'linear-gradient(135deg, #ea580c, #c2410c)' : '#ffffff',
-                    color: activeLayer === lay.key ? '#ffffff' : '#334155'
+                    border: activeLayer === lay.key ? '1px solid rgba(248,113,113,0.5)' : '1px solid rgba(255,255,255,0.08)',
+                    background: activeLayer === lay.key ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.04)',
+                    color: activeLayer === lay.key ? '#f87171' : 'rgba(255,255,255,0.5)',
+                    borderRadius:8, cursor:'pointer', display:'flex', alignItems:'center',
+                    gap:4, fontFamily:'inherit', transition:'all .12s'
                   }}
                   onClick={() => setActiveLayer(lay.key)}
                 >
@@ -639,12 +683,12 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
 
           {/* Web Digitizing Action Box */}
           <div style={{
-            background: '#f8fafc', border: '1px solid #e2e8f0',
-            borderRadius: 12, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 10
+            background:'rgba(255,255,255,0.04)', border:'1px solid rgba(248,113,113,0.15)',
+            borderRadius:12, padding:'12px 14px', display:'flex', flexDirection:'column', gap:10
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontWeight: 700, fontSize: '0.8rem', color: '#1e293b' }}>
-                <i className="ti ti-pencil-plus" style={{ fontSize: 16, color: '#2563eb' }} aria-hidden="true" />
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:7, fontWeight:700, fontSize:'0.8rem', color:'#f87171' }}>
+                <i className="ti ti-pencil-plus" style={{ fontSize:16, color:'#f87171' }} aria-hidden="true" />
                 <span>{lang === 'th' ? 'เครื่องมือจัดการข้อมูล' : 'Data Tools'}</span>
               </div>
               <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, background: '#f1f5f9', padding: '2px 8px', borderRadius: 99 }}>

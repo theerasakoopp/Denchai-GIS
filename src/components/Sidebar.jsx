@@ -1092,62 +1092,61 @@ export default function Sidebar({
 
         {/* ═══════════ TAB: อาคารและที่ดิน ═══════════ */}
         {activeTab === 'land' && (
-          <div style={{ display:'flex', flexDirection:'column', gap:8, padding:'10px 10px' }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:6, padding:'10px 8px' }}>
 
-            {/* อาคาร / สิ่งปลูกสร้าง */}
-            <div style={{ fontSize:9, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.06em', padding:'2px 2px 4px' }}>
+            {/* อาคาร */}
+            <div style={{ fontSize:9, fontWeight:700, color:'rgba(0,200,180,0.6)',
+              textTransform:'uppercase', letterSpacing:'.06em', padding:'4px 2px 4px' }}>
               อาคารและสิ่งปลูกสร้าง
             </div>
-            {[
-              { dot:'#64748b', icon:'🏠', name:'อาคาร / สิ่งปลูกสร้าง', sub:'LTAX3000', cnt:0 },
-            ].map((l,i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 10px',
-                borderRadius:8, background:'#f8fafc', border:'1px solid #e2e8f0', cursor:'pointer' }}>
-                <span style={{ width:9, height:9, borderRadius:3, background:l.dot, flexShrink:0 }} />
-                <span style={{ fontSize:14 }}>{l.icon}</span>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:11.5, color:'#1e293b', fontWeight:500 }}>{l.name}</div>
-                  <div style={{ fontSize:9, color:'#94a3b8', marginTop:1 }}>{l.sub}</div>
-                </div>
-                <span style={{ fontSize:10, fontWeight:700, color:'#94a3b8', background:'#f1f5f9', padding:'1px 6px', borderRadius:99 }}>
-                  {l.cnt || '—'}
-                </span>
+            <div style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 10px',
+              borderRadius:8, background:'#0f1f3d', border:'1px solid rgba(0,200,180,0.12)', cursor:'pointer' }}>
+              <span style={{ width:9, height:9, borderRadius:3, background:'#64748b', flexShrink:0 }} />
+              <span style={{ fontSize:14 }}>🏠</span>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:11.5, color:'#e2e8f0', fontWeight:500 }}>อาคาร / สิ่งปลูกสร้าง</div>
+                <div style={{ fontSize:9, color:'rgba(0,200,180,0.5)', marginTop:1 }}>LTAX3000</div>
               </div>
-            ))}
+              <span style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.3)',
+                background:'rgba(255,255,255,0.06)', padding:'1px 6px', borderRadius:99 }}>—</span>
+            </div>
 
             {/* ที่ดิน */}
-            <div style={{ fontSize:9, fontWeight:700, color:'#94a3b8', textTransform:'uppercase', letterSpacing:'.06em', padding:'8px 2px 4px' }}>
+            <div style={{ fontSize:9, fontWeight:700, color:'rgba(217,119,6,0.8)',
+              textTransform:'uppercase', letterSpacing:'.06em', padding:'8px 2px 4px' }}>
               ที่ดิน — เชื่อมข้อมูลกรมที่ดิน
             </div>
             {[
-              { dot:'#d97706', icon:'📌', name:'หมุดหลักเขต', sub:'เลขหมุด, พิกัด UTM47N', cnt:0 },
-              { dot:'#f59e0b', icon:'🗺️', name:'แปลงที่ดิน', sub:'โฉนด / น.ส.3 / ส.ป.ก.', cnt:0 },
+              { dot:'#d97706', icon:'📌', name:'หมุดหลักเขต',   sub:'เลขหมุด, พิกัด UTM47N' },
+              { dot:'#f59e0b', icon:'🗺️', name:'แปลงที่ดิน',   sub:'โฉนด / น.ส.3 / ส.ป.ก.' },
             ].map((l,i) => (
               <div key={i} style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 10px',
-                borderRadius:8, background:'#fffbeb', border:'1px solid #fde68a', cursor:'pointer' }}>
+                borderRadius:8, background:'rgba(217,119,6,0.08)',
+                border:'1px solid rgba(217,119,6,0.2)', cursor:'pointer' }}>
                 <span style={{ width:9, height:9, borderRadius:3, background:l.dot, flexShrink:0 }} />
                 <span style={{ fontSize:14 }}>{l.icon}</span>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontSize:11.5, color:'#1e293b', fontWeight:500 }}>{l.name}</div>
-                  <div style={{ fontSize:9, color:'#92400e', marginTop:1 }}>{l.sub}</div>
+                  <div style={{ fontSize:11.5, color:'#e2e8f0', fontWeight:500 }}>{l.name}</div>
+                  <div style={{ fontSize:9, color:'rgba(217,119,6,0.7)', marginTop:1 }}>{l.sub}</div>
                 </div>
-                <span style={{ fontSize:10, fontWeight:700, color:'#94a3b8', background:'#fef3c7', padding:'1px 6px', borderRadius:99 }}>—</span>
+                <span style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.3)',
+                  background:'rgba(217,119,6,0.1)', padding:'1px 6px', borderRadius:99 }}>—</span>
               </div>
             ))}
 
             {/* hint */}
-            <div style={{ marginTop:4, padding:'10px 12px', background:'#fffbeb',
-              border:'1px solid #fde68a', borderRadius:8, fontSize:11, color:'#92400e', lineHeight:1.5 }}>
+            <div style={{ marginTop:4, padding:'10px 12px',
+              background:'rgba(217,119,6,0.08)', border:'1px solid rgba(217,119,6,0.2)',
+              borderRadius:8, fontSize:11, color:'rgba(217,119,6,0.8)', lineHeight:1.5 }}>
               <i className="ti ti-info-circle" style={{ fontSize:13, marginRight:5 }} aria-hidden="true" />
               นำเข้าข้อมูลจากกรมที่ดิน หรือวาด Polygon บนแผนที่ผ่าน Editor Studio
             </div>
 
             <a href="#/editor" style={{
               display:'flex', alignItems:'center', justifyContent:'center', gap:7,
-              padding:'9px 12px', background:'#0f172a',
-              border:'1px solid rgba(56,189,248,0.4)', borderRadius:9,
-              color:'#38bdf8', fontSize:12, fontWeight:600, textDecoration:'none',
-              marginTop:4
+              padding:'9px 12px',
+              background:'rgba(248,113,113,0.1)', border:'1px solid rgba(248,113,113,0.3)',
+              borderRadius:9, color:'#f87171', fontSize:12, fontWeight:600, textDecoration:'none', marginTop:4
             }}>
               <i className="ti ti-pencil-plus" style={{ fontSize:14 }} aria-hidden="true" />
               เพิ่ม / แก้ไขข้อมูล → Editor Studio
