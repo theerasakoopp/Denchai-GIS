@@ -16,6 +16,34 @@ import {
 } from 'lucide-react';
 import shp from 'shpjs';
 
+// Inline GitHub AutoSave (no separate import needed)
+function GitHubAutoSave({ lang }) {
+  const [token, setToken] = useState(() => localStorage.getItem('denchai_github_token') || '');
+  const [status, setStatus] = useState('');
+  const saveToken = () => {
+    localStorage.setItem('denchai_github_token', token);
+    setStatus(lang === 'th' ? 'บันทึก Token แล้ว' : 'Token saved');
+    setTimeout(() => setStatus(''), 2000);
+  };
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
+      <div style={{ fontSize:9, fontWeight:700, color:'rgba(248,113,113,0.6)',
+        textTransform:'uppercase', letterSpacing:'.06em', display:'flex', alignItems:'center', gap:5 }}>
+        <i className="ti ti-brand-github" style={{ fontSize:11 }} /> GitHub Auto-Save
+      </div>
+      <div style={{ display:'flex', gap:5 }}>
+        <input type="password" value={token} onChange={e => setToken(e.target.value)}
+          placeholder="ghp_..." style={{ flex:1, padding:'5px 8px', borderRadius:6, border:'1px solid rgba(255,255,255,0.1)',
+            background:'rgba(255,255,255,0.05)', color:'#e2e8f0', fontSize:11, fontFamily:'inherit', outline:'none' }} />
+        <button onClick={saveToken} style={{ padding:'5px 10px', borderRadius:6, border:'1px solid rgba(248,113,113,0.3)',
+          background:'rgba(248,113,113,0.1)', color:'#f87171', fontSize:11, cursor:'pointer', fontFamily:'inherit' }}>
+          {status || (lang === 'th' ? 'บันทึก' : 'Save')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const fmt = (n) => new Intl.NumberFormat('en-US').format(Math.round(n || 0));
 
 // ── GIS Templates List (16 Layers + CSV Data Dictionary) ──
