@@ -158,6 +158,7 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
   const [triggerDrawBuilding, setTriggerDrawBuilding] = useState(false);
   const [triggerDrawWater,    setTriggerDrawWater]    = useState(false);
   const [triggerDrawRoof,     setTriggerDrawRoof]     = useState(false);
+  const [expandedCats,        setExpandedCats]        = useState({});
 
   const downloadCSVTemplate = (layerKey) => {
     const templates = {
@@ -337,6 +338,60 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
     }
   };
 
+  // ── btn style helper ──
+  const btnStyle = (color) => ({
+    display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+    padding:'7px 8px', borderRadius:7, fontSize:'0.73rem', fontWeight:700,
+    cursor:'pointer', fontFamily:'inherit',
+    border:`1px solid ${color}55`, background:`${color}18`, color
+  });
+
+  // ── EditorFeatureRow ──
+  const EditorFeatureRow = ({ feature, idx }) => {
+    const p = feature.properties || {};
+    const name = p.name_th || p.name || p.building_name || `รายการ #${idx + 1}`;
+    const catMeta = currentDataset.categories?.[p.category] || {};
+    const isLinePoly = ['LineString','Polygon','MultiPolygon'].includes(feature.geometry?.type);
+    return (
+      <div style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 8px',
+        borderRadius:7, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)',
+        transition:'background .1s' }}
+        onMouseEnter={e => e.currentTarget.style.background='rgba(248,113,113,0.07)'}
+        onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.03)'}>
+        <div style={{ flex:1, minWidth:0, cursor:'pointer' }} onClick={() => setSelectedFeature(feature)}>
+          <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:1 }}>
+            <span style={{ width:7, height:7, borderRadius: isLinePoly ? 1 : 7,
+              background: catMeta.color || '#f87171', flexShrink:0 }} />
+            <span style={{ fontSize:11.5, fontWeight:600, color:'#f0f4ff',
+              overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
+          </div>
+          <div style={{ fontSize:'0.63rem', color:'rgba(255,255,255,0.25)', paddingLeft:12,
+            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+            {p.id?.slice(0,20) || ''}{p.description_th ? ` · ${p.description_th.slice(0,30)}` : ''}
+          </div>
+        </div>
+        <div style={{ display:'flex', gap:3, flexShrink:0 }}>
+          {isLinePoly && (
+            <button type="button" onClick={e => { e.stopPropagation(); setReshapingFeature(feature); }}
+              style={{ padding:'3px 5px', borderRadius:4, fontSize:11,
+                color:'#60a5fa', background:'rgba(59,130,246,0.1)',
+                border:'1px solid rgba(59,130,246,0.2)', cursor:'pointer' }}>⬡</button>
+          )}
+          <button type="button" onClick={e => { e.stopPropagation(); handleOpenEdit(feature, activeLayer); }}
+            style={{ padding:'3px 7px', borderRadius:4, fontSize:10, fontWeight:600,
+              color:'#f87171', background:'rgba(248,113,113,0.1)',
+              border:'1px solid rgba(248,113,113,0.22)', cursor:'pointer', fontFamily:'inherit' }}>✏️</button>
+          <button type="button" onClick={e => { e.stopPropagation(); handleDeleteFeature(feature, activeLayer); }}
+            style={{ padding:'3px 5px', borderRadius:4,
+              color:'#ef4444', background:'rgba(239,68,68,0.07)',
+              border:'1px solid rgba(239,68,68,0.18)', cursor:'pointer' }}>
+            <Trash2 size={10} />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="app-container" style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden' }}>
 
@@ -467,261 +522,188 @@ export default function EditorPage({ lang = 'th', setLang, tariff = 4.20, setTar
           <div style={{ flex:1, overflowY:'auto', padding:'10px 10px',
             display:'flex', flexDirection:'column', gap:0, background:'#0d0204' }}>
 
-          {/* ── ชั้นข้อมูลที่เลือก (Active Layer Banner) ── */}
-          <div style={{ padding:'8px 10px', borderBottom:'1px solid rgba(248,113,113,0.12)', flexShrink:0,
-            background:'rgba(248,113,113,0.06)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <div style={{ display:'flex', alignItems:'center', gap:7 }}>
-              <span style={{ fontSize:16 }}>{
-                activeLayer==='poi'?'📍':activeLayer==='infra'?'🏗️':activeLayer==='water'?'💧':
-                activeLayer==='service'?'⚡':activeLayer==='building_sc'?'🏢':'💡'
-              }</span>
-              <div>
-                <div style={{ fontSize:12, fontWeight:700, color:'#f87171' }}>
-                  {activeLayer==='poi'?'สถานที่สำคัญ':activeLayer==='infra'?'โครงสร้างพื้นฐาน':
-                   activeLayer==='water'?'แหล่งน้ำ':activeLayer==='service'?'บริการสาธารณะ':
-                   activeLayer==='building_sc'?'อาคารและที่ดิน':'Smart City'}
-                </div>
-                <div style={{ fontSize:9, color:'rgba(255,255,255,0.35)' }}>
-                  {lang==='th' ? 'ชั้นข้อมูลที่กำลังแก้ไข' : 'Active editing layer'}
-                </div>
-              </div>
-            </div>
-            <span style={{ fontSize:10, fontWeight:700, color:'#f87171',
-              background:'rgba(248,113,113,0.15)', border:'1px solid rgba(248,113,113,0.3)',
-              padding:'3px 10px', borderRadius:99 }}>
-              {currentDataset.data?.features?.length || 0} รายการ
-            </span>
-          </div>
-
-          {/* ── เครื่องมือแก้ไข/ปรับปรุง (Dynamic per layer) ── */}
-          <div style={{ padding:'8px 10px', borderBottom:'1px solid rgba(255,255,255,0.05)', flexShrink:0 }}>
-            <div style={{ fontSize:9, fontWeight:700, color:'rgba(248,113,113,0.6)',
-              textTransform:'uppercase', letterSpacing:'.06em', marginBottom:6,
-              display:'flex', alignItems:'center', gap:5 }}>
-              <i className="ti ti-tools" style={{ fontSize:11 }} />
-              {lang==='th' ? 'เครื่องมือแก้ไข/ปรับปรุงข้อมูล' : 'Edit & Update Tools'}
-            </div>
-
-            {/* GPS + Template Row */}
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:5, marginBottom:6 }}>
-              <button type="button" onClick={() => {
-                if (!navigator.geolocation) { alert('Browser ไม่รองรับ GPS'); return; }
-                navigator.geolocation.getCurrentPosition(
-                  pos => { const { latitude, longitude } = pos.coords; alert(`ตำแหน่งของคุณ:\nLat: ${latitude.toFixed(6)}\nLng: ${longitude.toFixed(6)}`); },
-                  err => alert('ไม่สามารถดึง GPS ได้: ' + err.message),
-                  { enableHighAccuracy: true }
-                );
-              }} style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                padding:'6px 6px', borderRadius:7, fontSize:'0.7rem', fontWeight:600, cursor:'pointer',
-                border:'1px solid rgba(16,185,129,0.4)', background:'rgba(16,185,129,0.08)', color:'#34d399', fontFamily:'inherit' }}>
-                <i className="ti ti-current-location" style={{ fontSize:13 }} /> GPS ตำแหน่งฉัน
-              </button>
-              <button type="button" onClick={() => downloadCSVTemplate(activeLayer)}
-                style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                  padding:'6px 6px', borderRadius:7, fontSize:'0.7rem', fontWeight:600, cursor:'pointer',
-                  border:'1px solid rgba(139,92,246,0.4)', background:'rgba(139,92,246,0.08)', color:'#a78bfa', fontFamily:'inherit' }}>
-                <i className="ti ti-table" style={{ fontSize:13 }} /> Template CSV
-              </button>
-            </div>
-
-            {/* Primary Action — dynamic per layer */}
-            {activeLayer === 'infra' ? (
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-                <button type="button" onClick={() => setTriggerDrawRoad(true)}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
-                    border:'1px solid rgba(245,158,11,0.5)', background:'rgba(245,158,11,0.15)', color:'#f59e0b', fontFamily:'inherit' }}>
-                  <i className="ti ti-line" style={{ fontSize:14 }} /> + วาดแนวถนน
-                </button>
-                <button type="button" onClick={() => handleOpenAdd('infra')}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
-                    border:'1px solid rgba(248,113,113,0.5)', background:'rgba(248,113,113,0.15)', color:'#f87171', fontFamily:'inherit' }}>
-                  <i className="ti ti-map-pin-plus" style={{ fontSize:14 }} /> + เพิ่มจุด
-                </button>
-              </div>
-            ) : activeLayer === 'drain' ? (
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-                <button type="button" onClick={() => setTriggerDrawDrain(true)}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
-                    border:'1px solid rgba(6,182,212,0.5)', background:'rgba(6,182,212,0.1)', color:'#22d3ee', fontFamily:'inherit' }}>
-                  <i className="ti ti-wave-sine" style={{ fontSize:14 }} /> + วาดระบายน้ำ
-                </button>
-                <button type="button" onClick={() => handleOpenAdd('drain')}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
-                    border:'1px solid rgba(248,113,113,0.5)', background:'rgba(248,113,113,0.15)', color:'#f87171', fontFamily:'inherit' }}>
-                  <i className="ti ti-map-pin-plus" style={{ fontSize:14 }} /> + เพิ่มจุดบ่อพัก
-                </button>
-              </div>
-            ) : activeLayer === 'water' ? (
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-                <button type="button" onClick={() => setTriggerDrawWater(true)}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
-                    border:'1px solid rgba(59,130,246,0.5)', background:'rgba(59,130,246,0.1)', color:'#60a5fa', fontFamily:'inherit' }}>
-                  <i className="ti ti-polygon" style={{ fontSize:14 }} /> + วาดแหล่งน้ำ
-                </button>
-                <button type="button" onClick={() => handleOpenAdd('water')}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
-                    border:'1px solid rgba(248,113,113,0.5)', background:'rgba(248,113,113,0.15)', color:'#f87171', fontFamily:'inherit' }}>
-                  <i className="ti ti-map-pin-plus" style={{ fontSize:14 }} /> + เพิ่มจุดน้ำ
-                </button>
-              </div>
-            ) : activeLayer === 'building_sc' ? (
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
-                <button type="button" onClick={() => setTriggerDrawBuilding?.(true)}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
-                    border:'1px solid rgba(217,119,6,0.5)', background:'rgba(217,119,6,0.1)', color:'#fbbf24', fontFamily:'inherit' }}>
-                  <i className="ti ti-building-skyscraper" style={{ fontSize:14 }} /> + วาดขอบเขตอาคาร
-                </button>
-                <button type="button" onClick={() => handleOpenAdd('building_sc')}
-                  style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                    padding:'8px', borderRadius:8, fontSize:'0.76rem', fontWeight:700, cursor:'pointer',
-                    border:'1px solid rgba(248,113,113,0.5)', background:'rgba(248,113,113,0.15)', color:'#f87171', fontFamily:'inherit' }}>
-                  <i className="ti ti-map-pin-plus" style={{ fontSize:14 }} /> + ปักจุดอาคาร
-                </button>
-              </div>
-            ) : (
-              <button type="button" onClick={() => handleOpenAdd(activeLayer)}
-                style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:6,
-                  padding:'9px', borderRadius:8, fontSize:'0.78rem', fontWeight:700, cursor:'pointer',
-                  border:'1px solid rgba(248,113,113,0.5)', background:'rgba(248,113,113,0.18)', color:'#f87171', fontFamily:'inherit' }}>
-                <i className="ti ti-map-pin-plus" style={{ fontSize:15 }} />
-                + {activeLayer==='service' ? t.addServiceBtn : t.addPoiBtn}
-              </button>
-            )}
-
-            {/* Import row */}
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:5, marginTop:6 }}>
-              <button type="button" onClick={() => fileInputRef.current?.click()}
-                style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                  padding:'6px', borderRadius:7, fontSize:'0.7rem', fontWeight:600, cursor:'pointer',
-                  border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.5)', fontFamily:'inherit' }}>
-                <Upload size={13} /> {lang==='th' ? 'นำเข้าไฟล์' : 'Import'}
-              </button>
-              <input type="file" ref={fileInputRef} style={{ display:'none' }}
-                accept=".geojson,.json,.zip" onChange={handleImportFile} />
-              <button type="button" onClick={() => handleExportData(activeLayer)}
-                style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:5,
-                  padding:'6px', borderRadius:7, fontSize:'0.7rem', fontWeight:600, cursor:'pointer',
-                  border:'1px solid rgba(255,255,255,0.1)', background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.5)', fontFamily:'inherit' }}>
-                <Download size={13} /> {lang==='th' ? 'ส่งออก GeoJSON' : 'Export'}
-              </button>
-            </div>
-          </div>
-
-          {/* ── Search + Feature List ── */}
-          <div style={{ flex:1, display:'flex', flexDirection:'column', minHeight:0, padding:'8px 10px', gap:6 }}>
-
-            {/* Search */}
+          {/* ── Search ── */}
+          <div style={{ padding:'8px 10px 6px', flexShrink:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:6,
-              background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)',
-              borderRadius:8, padding:'6px 9px', flexShrink:0 }}>
-              <Search size={13} color="rgba(248,113,113,0.6)" />
+              background:'rgba(255,255,255,0.06)', border:'1px solid rgba(248,113,113,0.2)',
+              borderRadius:8, padding:'6px 9px' }}>
+              <Search size={13} color="rgba(248,113,113,0.5)" />
               <input type="text"
-                placeholder={lang==='th' ? `ค้นหาใน ${currentDataset.name}...` : `Search in ${currentDataset.name}...`}
+                placeholder={lang==='th' ? 'ค้นหาชื่อ, ประเภท...' : 'Search name, type...'}
                 value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
                 style={{ background:'transparent', border:'none', outline:'none',
                   fontSize:12, color:'#e2e8f0', flex:1, fontFamily:'inherit' }} />
               {searchTerm && <button onClick={() => setSearchTerm('')}
-                style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.3)', display:'flex' }}>
+                style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.3)' }}>
                 <X size={13} />
               </button>}
             </div>
+          </div>
 
-            {/* List header */}
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
-              <span style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.4)',
+          {/* ── Action buttons row (สำหรับ layer ที่ active) ── */}
+          <div style={{ padding:'0 10px 8px', flexShrink:0, display:'flex', flexDirection:'column', gap:5 }}>
+            {/* Add button */}
+            {activeLayer === 'infra' ? (
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:5 }}>
+                <button type="button" onClick={() => setTriggerDrawRoad(true)} style={btnStyle('#f59e0b')}>
+                  <i className="ti ti-line" style={{ fontSize:13 }} /> + วาดถนน
+                </button>
+                <button type="button" onClick={() => handleOpenAdd('infra')} style={btnStyle('#f87171')}>
+                  <i className="ti ti-map-pin-plus" style={{ fontSize:13 }} /> + เพิ่มจุด
+                </button>
+              </div>
+            ) : activeLayer === 'water' ? (
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:5 }}>
+                <button type="button" onClick={() => setTriggerDrawWater(true)} style={btnStyle('#60a5fa')}>
+                  <i className="ti ti-polygon" style={{ fontSize:13 }} /> + วาดแหล่งน้ำ
+                </button>
+                <button type="button" onClick={() => handleOpenAdd('water')} style={btnStyle('#f87171')}>
+                  <i className="ti ti-map-pin-plus" style={{ fontSize:13 }} /> + เพิ่มจุด
+                </button>
+              </div>
+            ) : activeLayer === 'building_sc' ? (
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:5 }}>
+                <button type="button" onClick={() => setTriggerDrawBuilding(true)} style={btnStyle('#fbbf24')}>
+                  <i className="ti ti-building-skyscraper" style={{ fontSize:13 }} /> + วาดอาคาร
+                </button>
+                <button type="button" onClick={() => handleOpenAdd('building_sc')} style={btnStyle('#f87171')}>
+                  <i className="ti ti-map-pin-plus" style={{ fontSize:13 }} /> + ปักจุด
+                </button>
+              </div>
+            ) : (
+              <button type="button" onClick={() => handleOpenAdd(activeLayer)} style={{ ...btnStyle('#f87171'), width:'100%', justifyContent:'center' }}>
+                <i className="ti ti-map-pin-plus" style={{ fontSize:13 }} />
+                + {activeLayer==='service' ? t.addServiceBtn : t.addPoiBtn}
+              </button>
+            )}
+
+            {/* GPS + CSV + Import/Export */}
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:4 }}>
+              {[
+                { label:'GPS', icon:'ti-current-location', color:'#34d399', onClick: () => {
+                  if (!navigator.geolocation) return;
+                  navigator.geolocation.getCurrentPosition(
+                    pos => alert(`Lat: ${pos.coords.latitude.toFixed(6)}\nLng: ${pos.coords.longitude.toFixed(6)}`),
+                    err => alert(err.message), { enableHighAccuracy: true }
+                  );
+                }},
+                { label:'CSV', icon:'ti-table', color:'#a78bfa', onClick: () => downloadCSVTemplate(activeLayer) },
+                { label:'Import', icon:'ti-upload', color:'rgba(255,255,255,0.5)', onClick: () => fileInputRef.current?.click() },
+                { label:'Export', icon:'ti-download', color:'rgba(255,255,255,0.5)', onClick: () => handleExportData(activeLayer) },
+              ].map((b,i) => (
+                <button key={i} type="button" onClick={b.onClick} style={{
+                  display:'flex', flexDirection:'column', alignItems:'center', gap:2,
+                  padding:'5px 2px', borderRadius:7, fontSize:'0.65rem', fontWeight:600, cursor:'pointer',
+                  border:'1px solid rgba(255,255,255,0.08)', background:'rgba(255,255,255,0.04)', color:b.color, fontFamily:'inherit'
+                }}>
+                  <i className={`ti ${b.icon}`} style={{ fontSize:14 }} />
+                  {b.label}
+                </button>
+              ))}
+              <input type="file" ref={fileInputRef} style={{ display:'none' }}
+                accept=".geojson,.json,.zip" onChange={handleImportFile} />
+            </div>
+          </div>
+
+          {/* ── Category Groups — เหมือน View mode ── */}
+          <div style={{ flex:1, overflowY:'auto', padding:'0 8px 8px',
+            display:'flex', flexDirection:'column', gap:4,
+            scrollbarWidth:'thin', scrollbarColor:'rgba(248,113,113,0.2) transparent' }}>
+
+            {/* Header bar */}
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+              padding:'4px 2px', flexShrink:0 }}>
+              <span style={{ fontSize:10, fontWeight:700, color:'rgba(255,255,255,0.35)',
                 textTransform:'uppercase', letterSpacing:'.05em' }}>
-                รายการข้อมูล ({items.length})
+                {items.length} รายการ
               </span>
               <button type="button" onClick={() => handleResetData(activeLayer)}
-                style={{ fontSize:10, color:'rgba(248,113,113,0.6)', background:'none',
+                style={{ fontSize:9, color:'rgba(248,113,113,0.5)', background:'none',
                   border:'none', cursor:'pointer', fontFamily:'inherit' }}>
-                🔄 คืนค่าเริ่มต้น
+                🔄 คืนค่า
               </button>
             </div>
 
-            {/* Feature items — scrollable */}
-            <div style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:4,
-              scrollbarWidth:'thin', scrollbarColor:'rgba(248,113,113,0.2) transparent' }}>
-              {items.length === 0 ? (
-                <div style={{ padding:'32px 12px', textAlign:'center', color:'rgba(255,255,255,0.25)', fontSize:'0.75rem' }}>
-                  {lang==='th' ? '📭 ยังไม่มีข้อมูล — กดปุ่มเพิ่มด้านบน' : 'No items — use Add button above'}
-                </div>
-              ) : (
-                items.map((feature, idx) => {
-                  const p = feature.properties || {};
-                  const name = p.name_th || p.name || p.building_name || (lang === 'th' ? `รายการ #${idx + 1}` : `Feature #${idx + 1}`);
-                  const catMeta = currentDataset.categories?.[p.category] || ROOF_CLASSES[p.class_id] || {};
-                  const isGeometryLineOrPoly = feature.geometry?.type === 'LineString' || feature.geometry?.type === 'Polygon';
+            {/* Group by category */}
+            {(() => {
+              const categories = currentDataset.categories || {};
+              const catKeys = Object.keys(categories);
 
-                  return (
-                    <div key={p.id || idx} style={{
-                      background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.07)',
-                      borderRadius:8, padding:'8px 10px',
-                      display:'flex', alignItems:'center', justifyContent:'space-between',
-                      gap:8, transition:'all 0.12s', cursor:'pointer'
-                    }} onMouseEnter={e => e.currentTarget.style.background='rgba(248,113,113,0.06)'}
-                       onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.04)'}>
-                      <div style={{ flex:1, minWidth:0 }} onClick={() => setSelectedFeature(feature)}>
-                        <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
-                          <span style={{ fontSize:14 }}>{catMeta.icon || currentDataset.icon}</span>
-                          <span style={{ fontSize:'0.76rem', fontWeight:600, color:'#f0f4ff',
-                            overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{name}</span>
-                        </div>
-                        <div style={{ fontSize:'0.66rem', color:'rgba(255,255,255,0.3)',
-                          overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                          {p.id ? `ID: ${p.id}` : ''} {p.description_th ? `• ${p.description_th.slice(0,40)}` : ''}
-                        </div>
-                      </div>
-                      <div style={{ display:'flex', alignItems:'center', gap:3, flexShrink:0 }}>
-                        {isGeometryLineOrPoly && (
-                          <button type="button" onClick={() => setReshapingFeature(feature)}
-                            style={{ padding:'4px 6px', borderRadius:5, fontSize:'0.65rem',
-                              color:'#60a5fa', background:'rgba(59,130,246,0.1)',
-                              border:'1px solid rgba(59,130,246,0.25)', cursor:'pointer' }}>
-                            ⬡
-                          </button>
-                        )}
-                        <button type="button" onClick={() => handleOpenEdit(feature, activeLayer)}
-                          style={{ padding:'4px 8px', borderRadius:5, fontSize:'0.7rem', fontWeight:600,
-                            color:'#f87171', background:'rgba(248,113,113,0.1)',
-                            border:'1px solid rgba(248,113,113,0.25)', cursor:'pointer', fontFamily:'inherit' }}>
-                          ✏️ แก้
-                        </button>
-                        <button type="button" onClick={() => handleDeleteFeature(feature, activeLayer)}
-                          style={{ padding:'4px 6px', borderRadius:5, fontSize:'0.65rem',
-                            color:'#ef4444', background:'rgba(239,68,68,0.08)',
-                            border:'1px solid rgba(239,68,68,0.2)', cursor:'pointer' }}>
-                          <Trash2 size={11} />
-                        </button>
-                      </div>
+              // ถ้าไม่มี categories ให้แสดง flat list
+              if (catKeys.length === 0) {
+                return items.map((feature, idx) => (
+                  <EditorFeatureRow key={feature.properties?.id || idx} feature={feature} idx={idx} />
+                ));
+              }
+
+              return catKeys.map(catKey => {
+                const cat = categories[catKey];
+                const catItems = items.filter(f => (f.properties?.category || f.properties?.class_id) === catKey);
+                if (catItems.length === 0 && searchTerm) return null;
+                const isExpanded = expandedCats[catKey] !== false; // default expanded
+
+                return (
+                  <div key={catKey} style={{ border:'1px solid rgba(248,113,113,0.1)',
+                    borderRadius:9, overflow:'hidden', background:'rgba(248,113,113,0.03)' }}>
+
+                    {/* Category header */}
+                    <div onClick={() => setExpandedCats(prev => ({ ...prev, [catKey]: !isExpanded }))}
+                      style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px',
+                        cursor:'pointer', background:'rgba(248,113,113,0.06)',
+                        borderBottom: isExpanded ? '1px solid rgba(248,113,113,0.08)' : 'none',
+                        transition:'background .12s' }}
+                      onMouseEnter={e => e.currentTarget.style.background='rgba(248,113,113,0.1)'}
+                      onMouseLeave={e => e.currentTarget.style.background='rgba(248,113,113,0.06)'}>
+                      <span style={{ width:8, height:8, borderRadius:2, background:cat.color, flexShrink:0 }} />
+                      <span style={{ fontSize:14 }}>{cat.icon}</span>
+                      <span style={{ fontSize:12, color:'#e2e8f0', fontWeight:500, flex:1 }}>
+                        {lang==='th' ? cat.name_th : cat.name_en}
+                      </span>
+                      <span style={{ fontSize:10, fontWeight:700,
+                        background: catItems.length > 0 ? 'rgba(248,113,113,0.2)' : 'rgba(255,255,255,0.06)',
+                        color: catItems.length > 0 ? '#f87171' : 'rgba(255,255,255,0.3)',
+                        padding:'1px 7px', borderRadius:99 }}>{catItems.length}</span>
+
+                      {/* Quick add button */}
+                      <button type="button" onClick={e => { e.stopPropagation(); handleOpenAdd(activeLayer, catKey); }}
+                        style={{ padding:'3px 7px', borderRadius:5, fontSize:10, fontWeight:600,
+                          color:'#f87171', background:'rgba(248,113,113,0.12)',
+                          border:'1px solid rgba(248,113,113,0.25)', cursor:'pointer' }}>
+                        + เพิ่ม
+                      </button>
+                      <i className={`ti ti-chevron-${isExpanded ? 'up' : 'down'}`}
+                        style={{ fontSize:12, color:'rgba(255,255,255,0.3)' }} />
                     </div>
-                  );
-                })
-              )}
-            </div>
+
+                    {/* Feature list */}
+                    {isExpanded && (
+                      <div style={{ display:'flex', flexDirection:'column', gap:2, padding:'4px 6px 6px' }}>
+                        {catItems.length === 0 ? (
+                          <div style={{ padding:'10px', textAlign:'center', fontSize:11,
+                            color:'rgba(255,255,255,0.2)' }}>ยังไม่มีข้อมูล</div>
+                        ) : catItems.map((feature, idx) => (
+                          <EditorFeatureRow key={feature.properties?.id || idx}
+                            feature={feature} idx={idx} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              });
+            })()}
           </div>
 
-          {/* ── GitHub Auto-Save ── */}
-          <div style={{ padding:'8px 10px', borderTop:'1px solid rgba(255,255,255,0.05)', flexShrink:0 }}>
+          {/* ── Footer: GitHub + Download ── */}
+          <div style={{ padding:'8px 10px', borderTop:'1px solid rgba(255,255,255,0.05)', flexShrink:0,
+            display:'flex', flexDirection:'column', gap:6 }}>
             <GitHubAutoSave lang={lang} />
-          </div>
-
-          {/* ── Download Template — ล่างสุด ── */}
-          <div style={{ padding:'8px 10px', borderTop:'1px solid rgba(255,255,255,0.05)', flexShrink:0 }}>
             <button type="button" onClick={() => setShowTemplatesModal(true)}
               style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:6,
-                padding:'8px', borderRadius:8, fontSize:'0.72rem', fontWeight:600, cursor:'pointer',
-                border:'1px solid rgba(139,92,246,0.3)', background:'rgba(139,92,246,0.06)',
-                color:'rgba(139,92,246,0.8)', fontFamily:'inherit' }}>
-              <i className="ti ti-download" style={{ fontSize:13 }} />
-              {lang==='th' ? 'ดาวน์โหลด Template & CSV' : 'Download Templates'}
+                padding:'6px', borderRadius:7, fontSize:'0.7rem', fontWeight:600, cursor:'pointer',
+                border:'1px solid rgba(139,92,246,0.25)', background:'rgba(139,92,246,0.06)',
+                color:'rgba(139,92,246,0.7)', fontFamily:'inherit' }}>
+              <i className="ti ti-download" style={{ fontSize:12 }} />
+              ดาวน์โหลด Template & CSV
             </button>
           </div>
 
